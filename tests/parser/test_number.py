@@ -21,6 +21,8 @@ def _digit_parser():
 
 @pytest.fixture(scope='function')
 def number_parser(_digit_parser):
+    # TODO: Реализовать всё, что подчёркнуто красным.
+    #       Этот парсер трогать не нужно!
     return ActionParser(
         KeyArgument('sign', OptionalParser('-'))
             & spaces_parser
