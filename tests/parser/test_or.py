@@ -6,6 +6,7 @@ import pytest
 from line import Line
 from parser.base import BaseParser, ParseError
 from parser.logic.char_parser import CharParser
+from parser.logic.or_parser import OrParser
 from parser.parse_variant import ParseVariant
 
 _items = {
@@ -46,14 +47,14 @@ def test_items():
 
 
 @pytest.mark.parametrize('p,raw_line,results', (
-    *items_good(),
+        *items_good(),
 ))
 def test_good(p: BaseParser, raw_line: str, results: List[ParseVariant]):
     assert list(results) == list(p.parse(Line(raw_line)))
 
 
 @pytest.mark.parametrize('p,raw_line,error', (
-    *items_bad(),
+        *items_bad(),
 ))
 def test_bad(p: BaseParser, raw_line: str, error: Type[ParseError]):
     line = Line(raw_line)
@@ -61,13 +62,21 @@ def test_bad(p: BaseParser, raw_line: str, error: Type[ParseError]):
         tuple(p.parse(line))
 
 
+def _or(x, y):
+    x | y
+
+
+def _orp(x, y):
+    return OrParser(x, y)
+
+
 @pytest.mark.parametrize('alpha, beta, op, add', (
-    *product(items_good(), items(), (
-        lambda x, y: x | y,
-        lambda x, y: OrParser(x, y)
-    ), ("", "___")),
+        *product(items_good(), items(), (
+                _or,
+                _orp
+        ), ("", "___")),
 ))
-def test_or(alpha,beta,op,add):
+def test_or(alpha, beta, op, add):
     a_p, a_raw_line, a_results = alpha
     b_p, b_raw_line, b_results = beta
 
@@ -79,4 +88,4 @@ def test_or(alpha,beta,op,add):
         for pv in a_results
     ]
 
-    assert p_results == p.parse(line)
+    assert p_results == list(p.parse(line))
