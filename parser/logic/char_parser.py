@@ -36,8 +36,11 @@ class CharParser(BaseParser):
         else:
             raise ParseError(f"Expect {repr(self.ch)}, but {repr(line[0]) if len(line) else line}")
 
-    def __str__(self):
+    def __repr__(self):
         return f"<{self.__class__.__name__}: {repr(self.ch)}>"
+
+    def __str__(self):
+        return f"`{self.ch}`"
 
     def __hash__(self):
         return hash(self.ch)
