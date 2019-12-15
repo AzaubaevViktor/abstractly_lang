@@ -4,7 +4,9 @@ import pytest
 
 from line import Line
 from parser.base import ParseError, BaseParser
+from parser.common import space_parser
 from parser.logic.char_parser import CharParser
+from parser.logic.or_parser import OrParserError
 from parser.parse_variant import ParseVariant
 
 # TODO: Here! Enjoy.
@@ -22,7 +24,12 @@ _items = {
     CharParser('🤔'): {
         '🤔': [ParseVariant(CharParser('🤔'), Line(''))],
         '🤔🤔': [ParseVariant(CharParser('🤔'), Line('🤔'))],
-
+    },
+    space_parser: {
+        ' ': [ParseVariant(CharParser(' '), Line(''))],
+        '\t': [ParseVariant(CharParser('\t'), Line(''))],
+        '\n': [ParseVariant(CharParser('\n'), Line(''))],
+        'a': OrParserError
     }
     # TODO: Add OrParser
     # TODO: Add AndParser

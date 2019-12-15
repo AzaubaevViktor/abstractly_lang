@@ -45,3 +45,8 @@ class OrParser(BaseParser):
 
         if not is_found:
             raise OrParserError("No one parser", errors)
+
+    def __hash__(self):
+        raw_hashes = sorted(map(hash, self.parsers))
+        s_to_hash = '-'.join(map(str, raw_hashes))
+        return hash(s_to_hash)
