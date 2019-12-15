@@ -24,3 +24,22 @@ class BaseParser:
 
         if self is other:
             return True
+
+
+class BaseParserError(Exception):
+    def __init__(self, msg: str, parser: BaseParser = None):
+        self.msg = msg
+        self.parser = parser
+
+    def __str__(self):
+        return self.msg
+
+
+class ParseError(BaseParserError):
+    # TODO: Add context
+    # TODO: Add pretty print
+    def __init__(self, msg: str):
+        self.msg = msg
+
+    def __str__(self):
+        return self.msg
