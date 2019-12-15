@@ -38,3 +38,6 @@ class CharParser(BaseParser):
 
     def __str__(self):
         return f"<{self.__class__.__name__}: {repr(self.ch)}>"
+
+    def __hash__(self):
+        return hash(self.ch)

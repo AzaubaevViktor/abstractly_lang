@@ -25,6 +25,9 @@ class BaseParser:
         if self is other:
             return True
 
+    def __hash__(self):
+        raise NotImplementedError()
+
 
 class BaseParserError(Exception):
     def __init__(self, msg: str, parser: BaseParser = None):
