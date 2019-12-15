@@ -43,12 +43,15 @@ class BaseParserError(Exception):
 
 
 class ParseError(BaseParserError):
-    # TODO: Add context
-    #       Line (source, position, etc)
-    #       Parser nested (intercept ParseError)
     # TODO: Add pretty print
     def __init__(self, msg: str):
         self.msg = msg
 
     def __str__(self):
         return self.msg
+
+    def add_context(self):
+        # TODO: Add context
+        #       Line (source, position, etc)
+        #       Parser nested (intercept ParseError)
+        raise NotImplementedError()
