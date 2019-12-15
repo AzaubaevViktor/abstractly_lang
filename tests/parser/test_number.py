@@ -24,9 +24,9 @@ def number_parser(_digit_parser):
     # TODO: Реализовать всё, что подчёркнуто красным.
     #       Этот парсер трогать не нужно!
     return ActionParser(
-        KeyArgument('sign', OptionalParser('-'))
+        KeyArgument('sign', CharParser('-')[:2])
             & spaces_parser
-            & KeyArgument('number', NonZeroParser(_digit_parser)),
+            & KeyArgument('number', _digit_parser[1:]),
         p_to_num
     )
 
