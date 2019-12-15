@@ -31,3 +31,12 @@ def test_empty(_line):
 
     assert result.parser == EmptyParser()
     assert result.line == line
+
+# TODO: From here, like:
+#     {
+#         EmptyParser(): {
+#             'Hello World': [ParseVariant(EmptyParser(), Line('Hello Worlds'))],
+#             '': [ParseVariant(EmptyParser(), Line(''))],
+#             ...
+#         }
+#     }
