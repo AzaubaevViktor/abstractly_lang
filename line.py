@@ -16,7 +16,7 @@ class Line:
         self.pos = pos
         self.parent = parent
 
-    def __getitem__(self, item):
+    def __getitem__(self, item) -> "Line":
         if isinstance(item, slice):
             start = item.start or 0
         else:
@@ -36,3 +36,17 @@ class Line:
             return self.line == other.line
 
         return self.line == other
+
+    @property
+    def empty(self) -> bool:
+        return not bool(self.line)
+
+    def __repr__(self):
+        _parent = '^' if self.parent else ''
+        _source = f"{self.source}:" if self.source else ''
+        _pos = f"{{{self.pos}}}:" if self.pos else ''
+        return f"<Line{_parent}:" \
+               f"{_source}" \
+               f"{self.number}:" \
+               f"{_pos} " \
+               f"{repr(self.line)}>"
