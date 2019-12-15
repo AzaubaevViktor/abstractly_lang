@@ -1,3 +1,5 @@
+import pytest
+
 from line import Line
 
 
@@ -54,3 +56,19 @@ def test_line_str():
     print(Line("Hello, world!")[4:7])
 
 
+@pytest.mark.parametrize('raw_line', (
+    'asdfasdasda',
+    'asdfasdasda2',
+    '0923n12j',
+    '',
+    'x',
+    'xx',
+    '💻👏⏰🧠'
+))
+def test_line_len(raw_line):
+    assert len(raw_line) == len(Line(raw_line))
+
+    mid = len(raw_line) // 2
+
+    assert mid == len(Line(raw_line)[:mid])
+    assert len(raw_line) - mid == len(Line(raw_line)[mid:])

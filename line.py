@@ -37,6 +37,9 @@ class Line:
 
         return self.line == other
 
+    def __len__(self):
+        return len(self.line)
+
     @property
     def empty(self) -> bool:
         return not bool(self.line)
