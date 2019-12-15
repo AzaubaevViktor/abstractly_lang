@@ -14,7 +14,7 @@ def a():
 
 
 class TestEq:
-    params = ('a', 'x', '1', '⚠️', '✓', '🤔')
+    params = ('a', 'x', '1', '✓', '🤔')
 
     @pytest.mark.parametrize('char', params)
     def test_eq(self, char):

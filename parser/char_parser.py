@@ -19,5 +19,16 @@ class CharParser(BaseParser):
 
         self.ch = ch
 
+    def __eq__(self, other: BaseParser):
+        _result = super().__eq__(other)
+        if _result is not None:
+            return _result
+
+        # Для того, чтобы автоподсветка не ругалась
+        if not isinstance(other, CharParser):
+            return False
+
+        return self.ch == other.ch
+
     def parse(self, line: Line) -> Iterable[ParseVariant]:
         pass
