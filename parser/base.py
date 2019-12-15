@@ -25,6 +25,10 @@ class BaseParser:
         if self is other:
             return True
 
+    def __or__(self, other: 'BaseParser'):
+        from parser.logic.or_parser import OrParser
+        return OrParser(self, other)
+
     def __hash__(self):
         raise NotImplementedError()
 

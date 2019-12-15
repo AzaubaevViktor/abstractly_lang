@@ -63,7 +63,7 @@ def test_bad(p: BaseParser, raw_line: str, error: Type[ParseError]):
 
 
 def _or(x, y):
-    x | y
+    return x | y
 
 
 def _orp(x, y):
