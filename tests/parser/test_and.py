@@ -16,8 +16,19 @@ def _andp(x, y):
     return AndParser(x, y)
 
 
+def items_good_empty_line():
+    for parser, raw_line, results in items_good():
+        results = list(results)
+        for result in results[:]:
+            if result.line != Line(""):
+                results.remove(result)
+
+        if results:
+            yield parser, raw_line, results
+
+
 @pytest.mark.parametrize('alpha, beta, op, add', (
-        *product(items_good(), items(), (
+        *product(items_good_empty_line(), items_good(), (
                 _and,
                 _andp
         ), ("", "___")),

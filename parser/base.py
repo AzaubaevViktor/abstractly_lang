@@ -29,6 +29,10 @@ class BaseParser:
         from parser.logic.or_parser import OrParser
         return OrParser(self, other)
 
+    def __and__(self, other: 'BaseParser'):
+        from parser.logic.and_parser import AndParser
+        return AndParser(self, other)
+
     def __hash__(self):
         raise NotImplementedError()
 

@@ -15,6 +15,8 @@ class AndParser(BaseParser):
     # TODO: Common base class with or
     def __init__(self, *parsers: BaseParser):
         self.parsers = parsers
+        if len(self.parsers) != 2:
+            raise NotImplementedError(f"Write test for parsers count {len(self.parsers)}")
 
     def parse(self, line: Line) -> Iterable[ParseVariant]:
         variants: List[ParseVariant] = []

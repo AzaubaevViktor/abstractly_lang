@@ -17,7 +17,12 @@ _items = {
         'y': ParseError
     },
     CharParser('y'): {
-        'y': [ParseVariant(CharParser('y'), Line(''))]
+        'y': [ParseVariant(CharParser('y'), Line(''))],
+    },
+    CharParser('🤔'): {
+        '🤔': [ParseVariant(CharParser('🤔'), Line(''))],
+        '🤔🤔': [ParseVariant(CharParser('🤔'), Line('🤔'))],
+
     }
     # TODO: Add OrParser
     # TODO: Add AndParser
