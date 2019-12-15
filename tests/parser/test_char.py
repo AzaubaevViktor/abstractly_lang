@@ -43,23 +43,37 @@ def test_wrong_len(wrong_char):
     assert wrong_char in str(_e.value)
 
 
-def test_simple_ok():
-    line = Line("abc")
+@pytest.mark.parametrize('raw_line', (
+    'abc',
+    'a',
+    'a' + 'b' * 100,
+    '💻👏⏰🧠',
+    'Lorem ipsum'
+))
+def test_simple_ok(raw_line):
+    line = Line(raw_line)
 
-    a = CharParser('a')
+    p = CharParser(raw_line[0])
 
-    results = tuple(a.parse(line))
+    results = tuple(p.parse(line))
 
     assert len(results) == 1
 
     result = results[0]
 
     assert isinstance(result, ParseVariant)
-    assert result == a
+    assert result.parser == p
+    assert result.line == raw_line[1:]
 
 
-def test_simple_wrong():
-    line = Line("abc")
+@pytest.mark.parametrize('raw_line', (
+    'xxxxxxx',
+    '',
+    '12912391239',
+    '💻👏⏰🧠'
+))
+def test_simple_wrong(raw_line):
+    line = Line(raw_line)
 
     a = CharParser('b')
     with pytest.raises(ParseError) as _e:
