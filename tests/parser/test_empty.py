@@ -2,7 +2,7 @@ import pytest
 
 from line import Line
 from parser.base import BaseParser
-from parser.empty_parser import EmptyParser
+from parser.logic.empty_parser import EmptyParser
 from parser.parse_variant import ParseVariant
 
 
