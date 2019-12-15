@@ -61,6 +61,8 @@ def test_simple_ok(raw_line):
 
     result = results[0]
 
+    print(result)
+
     assert isinstance(result, ParseVariant)
     assert result.parser == p
     assert result.line == raw_line[1:]

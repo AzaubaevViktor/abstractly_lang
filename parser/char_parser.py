@@ -1,7 +1,7 @@
 from typing import Iterable
 
 from line import Line
-from parser.base import BaseParser, BaseParserError
+from parser.base import BaseParser, BaseParserError, ParseError
 from parser.parse_variant import ParseVariant
 
 
@@ -31,4 +31,10 @@ class CharParser(BaseParser):
         return self.ch == other.ch
 
     def parse(self, line: Line) -> Iterable[ParseVariant]:
-        pass
+        if len(line) and (line[0] == self.ch):
+            yield ParseVariant(CharParser(self.ch), line[1:])
+        else:
+            raise ParseError(f"Expect {repr(self.ch)}, but {repr(line[0]) if len(line) else line}")
+
+    def __str__(self):
+        return f"<{self.__class__.__name__}: {repr(self.ch)}>"
