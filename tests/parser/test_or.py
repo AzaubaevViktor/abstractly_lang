@@ -1,3 +1,4 @@
+from itertools import product
 from typing import Callable, List, Type
 
 import pytest
@@ -58,3 +59,24 @@ def test_bad(p: BaseParser, raw_line: str, error: Type[ParseError]):
     line = Line(raw_line)
     with pytest.raises(error) as _e:
         tuple(p.parse(line))
+
+
+@pytest.mark.parametrize('alpha, beta, op, add', (
+    *product(items_good(), items(), (
+        lambda x, y: x | y,
+        lambda x, y: OrParser(x, y)
+    ), ("", "___")),
+))
+def test_or(alpha,beta,op,add):
+    a_p, a_raw_line, a_results = alpha
+    b_p, b_raw_line, b_results = beta
+
+    p = op(a_p, b_p)
+    line = Line(f"{a_raw_line}{b_raw_line}{add}")
+
+    p_results = [
+        ParseVariant(pv.parser, Line(f"{pv.line}{b_raw_line}{add}"))
+        for pv in a_results
+    ]
+
+    assert p_results == p.parse(line)

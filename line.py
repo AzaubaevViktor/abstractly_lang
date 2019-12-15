@@ -53,3 +53,6 @@ class Line:
                f"{self.number}:" \
                f"{_pos} " \
                f"{repr(self.line)}>"
+
+    def __str__(self):
+        return self.line

@@ -51,9 +51,9 @@ def test_get_item():
     assert new_line.pos == 1
 
 
-def test_line_str():
-    print(Line("Hello, world!"))
-    print(Line("Hello, world!")[4:7])
+def test_line_repr():
+    print(repr(Line("Hello, world!")))
+    print(repr(Line("Hello, world!")[4:7]))
 
 
 @pytest.mark.parametrize('raw_line', (
@@ -72,3 +72,12 @@ def test_line_len(raw_line):
 
     assert mid == len(Line(raw_line)[:mid])
     assert len(raw_line) - mid == len(Line(raw_line)[mid:])
+
+
+@pytest.mark.parametrize('raw_line', (
+    "ASfsfd",
+    '',
+    "Fe9hf910jfnie"
+))
+def test_str(raw_line):
+    assert str(Line(raw_line)) == raw_line
