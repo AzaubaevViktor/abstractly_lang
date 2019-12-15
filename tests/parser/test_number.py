@@ -35,10 +35,10 @@ def number_parser(_digit_parser):
 def test_digit(_digit_parser, raw_line):
     line = Line(raw_line)
 
-    results = _digit_parser.parse(line)
+    results = tuple(_digit_parser.parse(line))
     assert len(results) == 1
     result = results[0]
 
     assert isinstance(result, ParseVariant)
-    assert result.parser == CharParser(raw_line)
+    assert result.parser == CharParser(raw_line[0])
     assert result.line == line[1:]
