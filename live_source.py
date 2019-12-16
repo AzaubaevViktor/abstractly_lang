@@ -13,7 +13,7 @@ class LiveSource(BaseSource):
         while True:
             self.line_n += 1
             yield Line(
-                input(".=>"),
+                input(".=> "),
                 self.line_n,
                 self
             )
