@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Iterable, Any
 
 from line import Line
 from parser.base import BaseParser
@@ -19,3 +19,6 @@ class WrapperParser(BaseParser):
                 variant.line
             )
         # TODO: try + except + context
+
+    def calculate(self) -> Any:
+        return self.parser.calculate()
