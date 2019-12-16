@@ -1,3 +1,4 @@
+from parser.logic.and_parser import AndParser
 from parser.logic.char_parser import CharParser
 
 

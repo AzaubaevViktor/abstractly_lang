@@ -53,7 +53,7 @@ class AndParser(MultiParser):
             raise AndParserError("No variants :(", all_errors)
 
     def __str__(self):
-        return " & ".join(map(str, self.parsers))
+        return "(" + " & ".join(map(str, self.parsers)) + ")"
 
     def __repr__(self):
         return f"<AndParser: {'; '.join(map(str, self.parsers))}>"

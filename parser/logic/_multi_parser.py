@@ -1,4 +1,5 @@
 from parser.base import BaseParser
+from parser.logic.empty_parser import EmptyParser
 
 
 class MultiParser(BaseParser):
@@ -11,7 +12,7 @@ class MultiParser(BaseParser):
             else:
                 _parsers.append(parser)
 
-        self.parsers = tuple(_parsers)
+        self.parsers = tuple(p for p in _parsers if not isinstance(p, EmptyParser))
 
     def __eq__(self, other: BaseParser):
         _result = super().__eq__(other)

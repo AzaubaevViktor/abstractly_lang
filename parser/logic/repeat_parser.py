@@ -2,6 +2,7 @@ from typing import Iterable
 
 from line import Line
 from parser.base import BaseParser, ParseError
+from parser.logic.empty_parser import EmptyParser
 from parser.parse_variant import ParseVariant
 
 
@@ -9,8 +10,12 @@ class RepeatParserValuesError(ParseError):
     pass
 
 
+class RepeatParserError(ParseError):
+    pass
+
+
 class RepeatParser(BaseParser):
-    def __init__(self, p, _from=None, _to=None):
+    def __init__(self, p: BaseParser, _from=None, _to=None):
         self.p = p
         self._from = 0 if _from is None else _from
         self._to = float("+inf") if _to is None else _to
@@ -21,5 +26,31 @@ class RepeatParser(BaseParser):
             )
 
     def parse(self, line: Line) -> Iterable[ParseVariant]:
-        if False:
-            yield None
+        level = 0
+        variants = [ParseVariant(EmptyParser(), line)]
+        is_found = False
+
+        while True:
+            if self._from <= level < self._to:
+                yield from variants
+                is_found = True
+
+            new_variants = []
+
+            for variant in variants:
+                try:
+                    for result in self.p.parse(variant.line):
+                        new_variants.append(
+                            ParseVariant(variant.parser & result.parser, result.line)
+                        )
+                except ParseError:
+                    pass
+
+            if not new_variants:
+                break
+
+            variants = new_variants
+            level += 1
+
+        if not is_found:
+            raise RepeatParserError("Not found anything")
