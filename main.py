@@ -1,3 +1,4 @@
+import math
 from time import time
 from typing import Union, List
 
@@ -45,11 +46,24 @@ def _exit(*args, **kwargs):
     exit(0)
 
 
-_exit_parser = EndLineParser(FuncParser(
+_exit_parser = FuncParser(
     CharParser('e') & CharParser('x') & CharParser('i') & CharParser('t'),
     _exit
-))
+)
 
+# Number factorial
+
+
+def _f_fact(parser, result: int):
+    return math.factorial(result)
+
+
+_factorial = FuncParser(
+    KeyArgument("result", _number_parser) & CharParser('!'),
+    _f_fact
+)
+
+_number_parser_ng = _number_parser | _factorial
 
 # Calculator
 
@@ -72,13 +86,13 @@ def _get_mul_coef(*args, op: CharParser, num: int):
 
 
 _op_mul_div = FuncParser(
-    spaces & KeyArgument('op', CharParser('*') | CharParser('/')) & spaces & KeyArgument('num', _number_parser),
+    spaces & KeyArgument('op', CharParser('*') | CharParser('/')) & spaces & KeyArgument('num', _number_parser_ng),
     _get_mul_coef
 )
 
 
 _term = FuncParser(
-        spaces & KeyArgument('a', _number_parser) & KeyArgument('operators', _op_mul_div[:]) & spaces,
+        spaces & KeyArgument('a', _number_parser_ng) & KeyArgument('operators', _op_mul_div[:]) & spaces,
         _f_mul_div
     )
 
@@ -105,16 +119,13 @@ _op_add_diff = FuncParser(
     _get_add_coef
 )
 
-_expr = EndLineParser(
-    FuncParser(
+_expr = FuncParser(
         spaces & KeyArgument('a', _term) & KeyArgument('operators', _op_add_diff[:]) & spaces,
         _f_add_diff
     )
-)
 
-# Combine
 
-live_parser = _exit_parser | _expr
+live_parser = EndLineParser(_exit_parser | _expr)
 
 
 if __name__ == '__main__':

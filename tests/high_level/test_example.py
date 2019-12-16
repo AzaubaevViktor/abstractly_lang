@@ -31,7 +31,7 @@ def test_simple_op(a, expr):
     assert a(expr) == exec_ret(expr)
 
 
-@pytest.mark.parametrize("value", tuple(range(-10, 10)))
+@pytest.mark.parametrize("value", tuple(range(0, 10)))
 def test_factorial(a, value):
     expr = f"{value}!"
     assert a(expr) == math.factorial(value)
