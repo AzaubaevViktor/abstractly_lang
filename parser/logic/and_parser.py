@@ -2,6 +2,7 @@ from typing import Iterable, List
 
 from line import Line
 from parser.base import BaseParser, ParseError
+from parser.logic._multi_parser import MultiParser
 from parser.parse_variant import ParseVariant
 
 
@@ -11,13 +12,7 @@ class AndParserError(ParseError):
         self.errors = errors
 
 
-class AndParser(BaseParser):
-    # TODO: Common base class with or
-    def __init__(self, *parsers: BaseParser):
-        self.parsers = parsers
-        if len(self.parsers) != 2:
-            raise NotImplementedError(f"Write test for parsers count {len(self.parsers)}")
-
+class AndParser(MultiParser):
     def parse(self, line: Line) -> Iterable[ParseVariant]:
         variants: List[ParseVariant] = []
         all_errors: List[List] = []
@@ -62,13 +57,3 @@ class AndParser(BaseParser):
 
     def __repr__(self):
         return f"<AndParser: {'; '.join(map(str, self.parsers))}>"
-
-    def __eq__(self, other: BaseParser):
-        _result = super().__eq__(other)
-        if _result is not None:
-            return _result
-
-        if not isinstance(other, AndParser):
-            return False
-
-        return self.parsers == other.parsers

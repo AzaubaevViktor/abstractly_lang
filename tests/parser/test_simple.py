@@ -74,3 +74,14 @@ def test_bad(p: BaseParser, raw_line: str, error: Type[ParseError]):
     line = Line(raw_line)
     with pytest.raises(error) as _e:
         tuple(p.parse(line))
+
+
+def items_good_empty_line():
+    for parser, raw_line, results in items_good():
+        results = list(results)
+        for result in results[:]:
+            if result.line != Line(""):
+                results.remove(result)
+
+        if results:
+            yield parser, raw_line, results

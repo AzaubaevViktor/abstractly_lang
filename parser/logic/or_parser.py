@@ -3,6 +3,7 @@ from typing import Iterable
 
 from line import Line
 from parser.base import BaseParser, ParseError
+from parser.logic._multi_parser import MultiParser
 from parser.parse_variant import ParseVariant
 
 
@@ -24,10 +25,7 @@ def uniques(f):
     return _
 
 
-class OrParser(BaseParser):
-    def __init__(self, *parsers: BaseParser):
-        self.parsers = parsers
-
+class OrParser(MultiParser):
     @uniques
     def parse(self, line: Line) -> Iterable[ParseVariant]:
         errors = []
