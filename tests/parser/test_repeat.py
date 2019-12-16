@@ -26,7 +26,7 @@ _max_items = 10
     *product(
         items_good_empty_line(),
         (
-                # _rep,
+                _rep,
                 _repp,
         ),
         (None, 1, 2, 3),

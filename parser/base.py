@@ -25,6 +25,16 @@ class BaseParser:
         if self is other:
             return True
 
+    def __getitem__(self, item):
+        from parser.logic.repeat_parser import RepeatParser
+
+        if isinstance(item, slice):
+            if item.step is not None:
+                raise ValueError(f"Do not use `steps`: ({item.step})")
+            return RepeatParser(self, item.start, item.stop)
+        else:
+            raise NotImplementedError("Slice only")
+
     def __or__(self, other: 'BaseParser'):
         from parser.logic.or_parser import OrParser
         return OrParser(self, other)
