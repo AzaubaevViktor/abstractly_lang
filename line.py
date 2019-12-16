@@ -56,3 +56,6 @@ class Line:
 
     def __str__(self):
         return self.line
+
+    def __bool__(self):
+        return bool(self.line)
