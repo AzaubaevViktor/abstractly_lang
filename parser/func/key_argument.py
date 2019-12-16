@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Iterable, Dict
 
 from line import Line
 from parser.base import BaseParser
@@ -26,3 +26,8 @@ class KeyArgument(BaseParser):
             return False
 
         return (self.parser == other.parser) and (self.key == other.key)
+
+    def key_args(self) -> Dict[str, BaseParser]:
+        return {
+            self.key: self.parser
+        }

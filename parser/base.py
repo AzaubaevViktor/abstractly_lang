@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Iterable, Dict, Any
 
 from line import Line
 from parser.parse_variant import ParseVariant
@@ -35,6 +35,12 @@ class BaseParser:
 
     def __hash__(self):
         raise NotImplementedError()
+
+    def key_args(self) -> Dict[str, 'BaseParser']:
+        raise NotImplementedError()
+
+    def calculate(self) -> Any:
+        return self
 
 
 class BaseParserError(Exception):

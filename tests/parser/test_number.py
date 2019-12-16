@@ -1,6 +1,7 @@
 import pytest
 
 from line import Line
+from parser.func.key_argument import KeyArgument
 from parser.logic.char_parser import CharParser
 from parser.parse_variant import ParseVariant
 
@@ -23,7 +24,7 @@ def _digit_parser():
 def number_parser(_digit_parser):
     # TODO: Реализовать всё, что подчёркнуто красным.
     #       Этот парсер трогать не нужно!
-    return ActionParser(
+    return FuncParser(
         KeyArgument('sign', CharParser('-')[:2]) & KeyArgument('number', _digit_parser[1:]),
         p_to_num
     )
