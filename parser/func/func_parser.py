@@ -17,7 +17,9 @@ class FuncParser(WrapperParser):
     def calculate(self) -> Any:
         return self.func(
             self.parser,
-            **self.parser.key_args()
+            **{k: p.calculate()
+               for k, p in self.parser.key_args().items()
+            }
         )
 
     def __eq__(self, other: BaseParser):

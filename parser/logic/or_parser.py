@@ -34,7 +34,7 @@ class OrParser(MultiParser):
         is_found = False
 
         for parser in self._rearrange(self.parsers):
-            print(parser, line)
+            # print(parser, line)
             try:
                 yield from parser.parse(line)
             except ParseError as e:
@@ -48,7 +48,7 @@ class OrParser(MultiParser):
 
     def _rearrange(self, parsers: Sequence[BaseParser]):
         srt = sorted(parsers, key=self._search)
-        print(srt)
+        # print(srt)
         return srt
 
     def __hash__(self):

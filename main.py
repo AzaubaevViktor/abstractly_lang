@@ -1,5 +1,5 @@
 from time import time
-from typing import Union
+from typing import Union, List
 
 from executor import Executor
 from live_source import LiveSource
@@ -26,7 +26,7 @@ _digit_parser = CharParser('0') \
 
 def p_to_num(result, sign: Union[CharParser, EmptyParser], number: AndParser):
     print(result, sign, number)
-    num_str = "".join(p.ch for p in number.parsers)
+    num_str = "".join(p.ch for p in number)
     num = int(num_str)
 
     if sign:
@@ -35,10 +35,10 @@ def p_to_num(result, sign: Union[CharParser, EmptyParser], number: AndParser):
     return num
 
 
-_number_parser = EndLineParser(FuncParser(
+_number_parser = FuncParser(
         KeyArgument('sign', CharParser('-')[:2]) & KeyArgument('number', _digit_parser[1:]),
         p_to_num
-    ))
+    )
 
 
 def _exit(*args, **kwargs):
@@ -51,7 +51,40 @@ _exit_parser = EndLineParser(FuncParser(
 ))
 
 
-live_parser = _number_parser | _exit_parser
+# Calculator
+
+def _f_mul_div(parser, a: int, operators: List[float],):
+    operators.append(a)
+    result = 1
+    for coef in operators:
+        result *= coef
+    return result
+
+
+def _get_mul_coef(*args, op: CharParser, num: int):
+    if op == CharParser("*"):
+        return num
+    if op == CharParser("/"):
+        return 1 / num
+    raise NotImplementedError(f"Don't know what to do with {repr(op)}")
+
+
+_op_mul_div = FuncParser(
+    spaces & KeyArgument('op', CharParser('*') | CharParser('/')) & spaces & KeyArgument('num', _number_parser),
+    _get_mul_coef
+)
+
+
+_term = EndLineParser(
+    FuncParser(
+        spaces & KeyArgument('a', _number_parser) & KeyArgument('operators', _op_mul_div[:]) & spaces,
+        _f_mul_div
+    )
+)
+
+# Combine
+
+live_parser = _exit_parser | _term
 
 
 if __name__ == '__main__':

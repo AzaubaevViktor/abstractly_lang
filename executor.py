@@ -32,10 +32,12 @@ class Executor:
             print(f"|- Line:")
             print(f"|  `{result.line}`")
 
+        print(f"|- Execute:")
+        print(f"|")
+
         exec_result = result.parser.calculate()
 
-        print(f"|- Execute:")
-
+        print(f"|- Finished. Result:")
         print(f"   `{exec_result}`")
 
         return exec_result

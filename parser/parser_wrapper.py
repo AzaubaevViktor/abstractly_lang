@@ -22,3 +22,6 @@ class WrapperParser(BaseParser):
 
     def calculate(self) -> Any:
         return self.parser.calculate()
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}: {self.parser}>"

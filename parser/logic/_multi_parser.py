@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List, Any
 
 from parser.base import BaseParser
 from parser.func.key_argument import KeyArgument
@@ -7,6 +7,7 @@ from parser.logic.empty_parser import EmptyParser
 
 class MultiParser(BaseParser):
     STR_SYM = None
+
     def __init__(self, *parsers):
         _parsers = []
 
@@ -43,3 +44,6 @@ class MultiParser(BaseParser):
     def __str__(self):
         parsers_str = (str(parser) if not self._search(parser) else "..." for parser in self.parsers)
         return "(" + f" {self.STR_SYM} ".join(parsers_str) + ")"
+
+    def calculate(self) -> List[Any]:
+        return list(p.calculate() for p in self.parsers)
