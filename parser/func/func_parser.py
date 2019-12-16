@@ -3,19 +3,16 @@ from typing import Iterable, Callable, Any
 from line import Line
 from parser.base import BaseParser
 from parser.parse_variant import ParseVariant
+from parser.parser_wrapper import WrapperParser
 
 
-class FuncParser(BaseParser):
+class FuncParser(WrapperParser):
     def __init__(self, parser: BaseParser, func: Callable):
-        self.parser = parser
+        super().__init__(parser)
         self.func = func
 
-    def parse(self, line: Line) -> Iterable[ParseVariant]:
-        for result in self.parser.parse(line):
-            yield ParseVariant(
-                FuncParser(result.parser, self.func),
-                result.line
-            )
+    def _wrap(self, parser: BaseParser):
+        return FuncParser(parser, self.func)
 
     def calculate(self) -> Any:
         return self.func(

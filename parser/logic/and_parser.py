@@ -20,7 +20,6 @@ class AndParser(MultiParser):
         for i, parser in enumerate(self.parsers):
             errors = []
             all_errors.append(errors)
-            print(i, parser, variants)
             try:
                 if i == 0:
                     variants = list(parser.parse(line))
@@ -44,8 +43,6 @@ class AndParser(MultiParser):
             except ParseError as e:
                 # TODO: Commond add context with or
                 errors.append(e)
-
-            print(i, parser, variants)
 
         if variants:
             yield from variants

@@ -3,19 +3,16 @@ from typing import Iterable, Dict
 from line import Line
 from parser.base import BaseParser
 from parser.parse_variant import ParseVariant
+from parser.parser_wrapper import WrapperParser
 
 
-class KeyArgument(BaseParser):
+class KeyArgument(WrapperParser):
     def __init__(self, key: str, parser: BaseParser):
+        super().__init__(parser)
         self.key = key
-        self.parser = parser
 
-    def parse(self, line: Line) -> Iterable[ParseVariant]:
-        for variant in self.parser.parse(line):
-            yield ParseVariant(
-                KeyArgument(self.key, variant.parser),
-                variant.line
-            )
+    def _wrap(self, parser: BaseParser):
+        return KeyArgument(self.key, parser)
 
     def __eq__(self, other: BaseParser):
         _result = super().__eq__(other)
@@ -31,3 +28,6 @@ class KeyArgument(BaseParser):
         return {
             self.key: self.parser
         }
+
+    def __str__(self):
+        return f"[{self.key}: {self.parser}]"

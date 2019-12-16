@@ -18,3 +18,6 @@ class EmptyParser(BaseParser):
             return _result
 
         return isinstance(other, EmptyParser)
+
+    def __bool__(self):
+        return False
