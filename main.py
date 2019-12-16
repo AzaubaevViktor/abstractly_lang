@@ -53,7 +53,9 @@ _exit_parser = EndLineParser(FuncParser(
 
 # Calculator
 
-def _f_mul_div(parser, a: int, operators: List[float],):
+def _f_mul_div(parser, a: int, operators: Union[EmptyParser, List[float]]):
+    if not operators:
+        operators = []
     operators.append(a)
     result = 1
     for coef in operators:
@@ -75,16 +77,44 @@ _op_mul_div = FuncParser(
 )
 
 
-_term = EndLineParser(
-    FuncParser(
+_term = FuncParser(
         spaces & KeyArgument('a', _number_parser) & KeyArgument('operators', _op_mul_div[:]) & spaces,
         _f_mul_div
+    )
+
+
+# =======
+
+def _f_add_diff(parser, a: int, operators: Union[EmptyParser, List[float]]):
+    if not operators:
+        operators = []
+    operators.append(a)
+    return sum(operators)
+
+
+def _get_add_coef(*args, op: CharParser, num: int):
+    if op == CharParser("+"):
+        return num
+    if op == CharParser("-"):
+        return - num
+    raise NotImplementedError(f"Don't know what to do with {repr(op)}")
+
+
+_op_add_diff = FuncParser(
+    spaces & KeyArgument('op', CharParser('+') | CharParser('-')) & spaces & KeyArgument('num', _term),
+    _get_add_coef
+)
+
+_expr = EndLineParser(
+    FuncParser(
+        spaces & KeyArgument('a', _term) & KeyArgument('operators', _op_add_diff[:]) & spaces,
+        _f_add_diff
     )
 )
 
 # Combine
 
-live_parser = _exit_parser | _term
+live_parser = _exit_parser | _expr
 
 
 if __name__ == '__main__':
