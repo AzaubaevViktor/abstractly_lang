@@ -37,7 +37,7 @@ class BaseParser:
         raise NotImplementedError()
 
     def key_args(self) -> Dict[str, 'BaseParser']:
-        raise NotImplementedError()
+        return {}
 
     def calculate(self) -> Any:
         return self

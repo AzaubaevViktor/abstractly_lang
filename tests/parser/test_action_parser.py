@@ -1,15 +1,17 @@
 import pytest
 
 from line import Line
+from parser.func.func_parser import FuncParser
 from parser.func.key_argument import KeyArgument
 from parser.logic.char_parser import CharParser
+from parser.parse_variant import ParseVariant
 
 
 def sym_to_num(*args, **kwargs):
     print(args, kwargs)
 
     assert 'symbol' in kwargs
-    assert isinstance(kwargs['symbols'], CharParser)
+    assert isinstance(kwargs['symbol'], CharParser)
 
     return int(kwargs['symbol'].ch)
 
@@ -30,5 +32,7 @@ def test_action_parser(raw_line):
     assert len(results) == 1
     result = results[0]
 
-    assert isinstance(result, FuncParser)
-    assert int(raw_line) == result.calculate()
+    assert isinstance(result, ParseVariant)
+    assert isinstance(result.parser, FuncParser)
+    assert result.line == ''
+    assert int(raw_line) == result.parser.calculate()
