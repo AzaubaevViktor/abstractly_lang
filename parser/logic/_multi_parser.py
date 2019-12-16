@@ -6,6 +6,7 @@ from parser.logic.empty_parser import EmptyParser
 
 
 class MultiParser(BaseParser):
+    STR_SYM = None
     def __init__(self, *parsers):
         _parsers = []
 
@@ -34,3 +35,11 @@ class MultiParser(BaseParser):
                 _kas[parser.key] = parser.parser
 
         return _kas
+
+    def __repr__(self):
+        parsers_str = (repr(parser) if not self._search(parser) else "..." for parser in self.parsers)
+        return f"<{self.__class__.__name__}: {'; '.join(parsers_str)}>"
+
+    def __str__(self):
+        parsers_str = (str(parser) if not self._search(parser) else "..." for parser in self.parsers)
+        return "(" + f" {self.STR_SYM} ".join(parsers_str) + ")"

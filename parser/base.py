@@ -52,6 +52,16 @@ class BaseParser:
     def calculate(self) -> Any:
         return self
 
+    def _search(self, parser: 'BaseParser'):
+        if self is parser:
+            return True
+
+        from parser.logic._multi_parser import MultiParser
+        if isinstance(parser, MultiParser):
+            return any(map(self._search, parser.parsers))
+
+        return False
+
 
 class BaseParserError(Exception):
     def __init__(self, msg: str, parser: BaseParser = None):

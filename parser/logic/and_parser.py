@@ -13,6 +13,8 @@ class AndParserError(ParseError):
 
 
 class AndParser(MultiParser):
+    STR_SYM = '&'
+
     def parse(self, line: Line) -> Iterable[ParseVariant]:
         variants: List[ParseVariant] = []
         all_errors: List[List] = []
@@ -48,9 +50,3 @@ class AndParser(MultiParser):
             yield from variants
         else:
             raise AndParserError("No variants :(", all_errors)
-
-    def __str__(self):
-        return "(" + " & ".join(map(str, self.parsers)) + ")"
-
-    def __repr__(self):
-        return f"<AndParser: {'; '.join(map(str, self.parsers))}>"
