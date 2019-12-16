@@ -19,3 +19,16 @@ class FuncParser(WrapperParser):
             self.parser,
             **self.parser.key_args()
         )
+
+    def __eq__(self, other: BaseParser):
+        _result = super().__eq__(other)
+        if _result is not None:
+            return _result
+
+        if not isinstance(other, self.__class__):
+            return False
+
+        return (self.parser == other.parser) and (self.func == other.func)
+
+    def __str__(self):
+        return f"{{{self.parser}}} => {self.func}"

@@ -33,3 +33,6 @@ class EndLineParser(WrapperParser):
             return False
 
         return self.parser == other.parser
+
+    def __str__(self):
+        return f"{self.parser} (\\0)"
