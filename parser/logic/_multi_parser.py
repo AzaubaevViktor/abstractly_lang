@@ -1,4 +1,7 @@
+from typing import Dict
+
 from parser.base import BaseParser
+from parser.func.key_argument import KeyArgument
 from parser.logic.empty_parser import EmptyParser
 
 
@@ -23,3 +26,11 @@ class MultiParser(BaseParser):
             return False
 
         return self.parsers == other.parsers
+
+    def key_args(self) -> Dict[str, BaseParser]:
+        _kas = {}
+        for parser in self.parsers:
+            if isinstance(parser, KeyArgument):
+                _kas[parser.key] = parser.parser
+
+        return _kas
