@@ -20,4 +20,5 @@ jobs:
     - name: Test with pytest
       run: |
         pip install pytest
-        env PYTHONPATH=$(PWD) pytest tests
+        export PYTHONPATH=$(PWD)
+        pytest tests
