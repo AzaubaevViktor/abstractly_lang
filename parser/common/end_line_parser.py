@@ -16,13 +16,22 @@ class EndLineParser(WrapperParser):
 
     def parse(self, line: Line) -> Iterable[ParseVariant]:
         is_found = False
+        wrong_variants = []
+
         for variant in super().parse(line):
             if variant.line == '':
                 is_found = True
                 yield variant
+            else:
+                wrong_variants = variant
 
         if not is_found:
-            raise NotFoundEndLineError("Not found variant with end line")
+            raise NotFoundEndLineError(
+                "Not found variant with end line",
+                line=line,
+                parser=self,
+                wrong_variants=wrong_variants
+            )
 
     def __eq__(self, other):
         _result = super().__eq__(other)

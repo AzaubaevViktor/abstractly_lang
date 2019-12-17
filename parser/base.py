@@ -1,10 +1,39 @@
-from typing import Iterable, Dict, Any
+from typing import Iterable, Dict, Any, Tuple, Type
 
 from line import Line
 from parser.parse_variant import ParseVariant
 
 
-class BaseParser:
+class MetaParser(type):
+    def __new__(mcls, name: str, bases: Tuple["BaseParser"], attributes: Dict[str, Any]):
+        if name != "BaseParser":
+            for an, a in attributes.items():
+                if callable(a):
+                    attributes[an] = mcls._catcher(mcls, a)
+                    print(name, an, a)
+        return super().__new__(mcls, name, bases, attributes)
+
+    def _catcher(mcls, f):
+        def _(self, *args, **kwargs):
+            try:
+                return f(self, *args, **kwargs)
+            except BaseParserError as e:
+                print("OWOWOW")
+                e.add_context(
+                    _function_name=f.__name__,
+                    self=self,
+                    args=args,
+                    **kwargs
+                )
+                raise e
+            except Exception:
+                import pdb; pdb.set_trace()
+
+        _.__name__ = f.__name__
+        return _
+
+
+class BaseParser(metaclass=MetaParser):
     def parse(self, line: Line) -> Iterable[ParseVariant]:
         """
         Возвращать (парсеры и строки) нужно через yield
@@ -72,16 +101,30 @@ class BaseParserError(Exception):
         return self.msg
 
 
-class ParseError(BaseParserError):
-    # TODO: Add pretty print
-    def __init__(self, msg: str):
-        self.msg = msg
+class _ParseContext:
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
 
     def __str__(self):
-        return self.msg
+        return "\n".join((
+            f"{k}: {repr(v)}"
+            for k, v in self.kwargs.items()
+        ))
 
-    def add_context(self):
+
+class ParseError(BaseParserError):
+    # TODO: Add pretty print
+    def __init__(self, msg: str, **kwargs):
+        self.msg = msg
+        self.contexts = [_ParseContext(**kwargs)]
+
+    def __str__(self):
+        return "\n====\n".join(
+            (self.msg, ) + tuple(map(str, self.contexts))
+        )
+
+    def add_context(self, **kwargs):
         # TODO: Add context
         #       Line (source, position, etc)
         #       Parser nested (intercept ParseError)
-        raise NotImplementedError()
+        self.contexts.append(_ParseContext(**kwargs))
