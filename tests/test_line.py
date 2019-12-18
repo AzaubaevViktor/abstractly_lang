@@ -84,7 +84,7 @@ def test_str(raw_line):
 
 
 def test_str_pos_eq():
-    assert Line("1234", pos=0) != Line("1234", pos=1)
+    assert Line("1234", pos=0) == Line("1234", pos=1)
     assert Line("1234", pos=0) == Line("1234", pos=0)
     assert Line("234", pos=0) != Line("1234", pos=0)
     assert Line("234", pos=0) != Line("1234", pos=1)

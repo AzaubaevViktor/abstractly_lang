@@ -33,7 +33,7 @@ class Line:
 
     def __eq__(self, other: Union[str, "Line"]):
         if isinstance(other, Line):
-            return (self.line == other.line) and (self.pos == other.pos)
+            return self.line == other.line
 
         return self.line == other
 

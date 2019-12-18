@@ -3,8 +3,9 @@ from typing import Iterable, Dict, Any, Tuple, Type
 from line import Line
 from parser.parse_variant import ParseVariant
 
-
 class MetaParser(type):
+    __memo__ = {}
+
     def __new__(mcls, name: str, bases: Tuple["BaseParser"], attributes: Dict[str, Any]):
         if name != "BaseParser":
             for an, a in attributes.items():
@@ -13,15 +14,28 @@ class MetaParser(type):
                     print(name, an, a)
         return super().__new__(mcls, name, bases, attributes)
 
+    def _memo(mcls, f):
+        def _(self, line):
+            if (self, line) not in mcls.__memo__:
+                mcls.__memo__[(self, line)] = f(self, line)
+            return mcls.__memo__[(self, line)]
+
+        _.__name__ = f.__name__
+        return _
+
     def _catcher(mcls, f):
         def _(self, *args, **kwargs):
             try:
                 return f(self, *args, **kwargs)
             except BaseParserError as e:
-                print("OWOWOW")
+                print("OWOWOW", kwargs)
+                if 'self' in kwargs:
+                    kwargs['WTF:self'] = kwargs["self"]
+                    del kwargs['self']
+
                 e.add_context(
                     _function_name=f.__name__,
-                    self=self,
+                    _self=self,
                     args=args,
                     **kwargs
                 )
