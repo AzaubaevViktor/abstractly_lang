@@ -8,7 +8,7 @@ from parser.logic.and_parser import AndParser
 from parser.logic.empty_parser import EmptyParser
 from parser.logic.repeat_parser import RepeatParser
 from parser.parse_variant import ParseVariant
-from tests.parser.test_simple import items_good_empty_line
+from tests.parser.common.test_simple import items_good_empty_line
 
 
 def _rep(p, f, t):
