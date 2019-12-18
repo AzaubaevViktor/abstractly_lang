@@ -18,3 +18,4 @@ def test_simple(a):
     "0"))
 def test_simple_op(a, expr):
     assert a(expr) == exec_ret(expr)
+    
