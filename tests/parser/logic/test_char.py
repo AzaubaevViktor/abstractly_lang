@@ -4,7 +4,7 @@ import pytest
 
 from line import Line
 from parser.base import ParseError
-from parser.logic.char_parser import CharParser, CharParserInitError
+from parser import CharParser, CharParserInitError
 from parser.parse_variant import ParseVariant
 
 

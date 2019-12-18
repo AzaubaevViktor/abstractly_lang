@@ -4,7 +4,7 @@ import pytest
 
 from line import Line
 from parser.base import ParseError
-from parser.common.end_line_parser import EndLineParser
+from parser import EndLineParser
 from parser.parse_variant import ParseVariant
 from tests.parser.common.test_simple import items_good
 

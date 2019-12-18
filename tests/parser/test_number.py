@@ -1,14 +1,14 @@
-from typing import Optional, Union
+from typing import Union
 
 import pytest
 
 from line import Line
-from parser.common.end_line_parser import EndLineParser
-from parser.func.func_parser import FuncParser
-from parser.func.key_argument import KeyArgument
-from parser.logic.and_parser import AndParser
-from parser.logic.char_parser import CharParser
-from parser.logic.empty_parser import EmptyParser
+from parser import AndParser
+from parser import CharParser
+from parser import EmptyParser
+from parser import EndLineParser
+from parser import FuncParser
+from parser import KeyArgument
 from parser.parse_variant import ParseVariant
 
 

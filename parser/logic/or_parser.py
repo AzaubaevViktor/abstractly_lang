@@ -1,4 +1,3 @@
-from functools import wraps
 from typing import Iterable, Sequence
 
 from line import Line

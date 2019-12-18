@@ -5,8 +5,8 @@ import pytest
 from line import Line
 from parser.base import ParseError, BaseParser
 from parser.common.simple import space_parser
-from parser.logic.char_parser import CharParser
-from parser.logic.or_parser import OrParserError
+from parser import CharParser
+from parser import OrParserError
 from parser.parse_variant import ParseVariant
 
 # TODO: Here! Enjoy.

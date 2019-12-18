@@ -1,7 +1,8 @@
-from typing import Iterable, Dict, Any, Tuple, Type
+from typing import Iterable, Dict, Any, Tuple
 
 from line import Line
 from parser.parse_variant import ParseVariant
+
 
 class MetaParser(type):
     __memo__ = {}
@@ -41,7 +42,7 @@ class MetaParser(type):
                 )
                 raise e
             except Exception:
-                import pdb; pdb.set_trace()
+                pass
 
         _.__name__ = f.__name__
         return _

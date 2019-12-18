@@ -4,8 +4,8 @@
 import pytest
 
 from line import Line
-from parser.logic.char_parser import CharParser
-from parser.logic.or_parser import OrParser
+from parser import CharParser
+from parser import OrParser
 
 
 def test_or_set():

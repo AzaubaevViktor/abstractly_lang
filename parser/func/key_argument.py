@@ -1,8 +1,6 @@
-from typing import Iterable, Dict
+from typing import Dict
 
-from line import Line
 from parser.base import BaseParser
-from parser.parse_variant import ParseVariant
 from parser.parser_wrapper import WrapperParser
 
 

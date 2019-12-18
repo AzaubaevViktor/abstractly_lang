@@ -4,9 +4,9 @@ import pytest
 
 from line import Line
 from parser.base import ParseError
-from parser.logic.and_parser import AndParser
-from parser.logic.empty_parser import EmptyParser
-from parser.logic.repeat_parser import RepeatParser
+from parser import AndParser
+from parser import EmptyParser
+from parser import RepeatParser
 from parser.parse_variant import ParseVariant
 from tests.parser.common.test_simple import items_good_empty_line
 

@@ -3,7 +3,7 @@ from itertools import product
 import pytest
 
 from line import Line
-from parser.func.key_argument import KeyArgument
+from parser import KeyArgument
 from parser.parse_variant import ParseVariant
 from tests.parser.common.test_simple import items_good, items_good_empty_line
 
