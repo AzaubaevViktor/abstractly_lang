@@ -8,3 +8,5 @@ from parser.logic.char_parser import CharParser, CharParserInitError
 from parser.logic.empty_parser import EmptyParser
 from parser.logic.or_parser import OrParser, OrParserError
 from parser.logic.repeat_parser import RepeatParser, RepeatParserError, RepeatParserValuesError
+
+from parser.common.simple import spaces, space_parser

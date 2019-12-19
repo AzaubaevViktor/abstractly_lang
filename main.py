@@ -9,7 +9,7 @@ from parser import CharParser
 from parser import EndLineParser
 from parser import FuncParser
 from parser import KeyArgument
-from parser.common.simple import spaces
+from parser import spaces
 from parser import EmptyParser
 
 _digit_parser = CharParser('0') \
