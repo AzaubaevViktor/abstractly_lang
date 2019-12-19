@@ -41,8 +41,8 @@ class MetaParser(type):
                     **kwargs
                 )
                 raise e
-            except Exception:
-                pass
+            except Exception as ex:
+                raise ex
 
         _.__name__ = f.__name__
         return _
