@@ -3,10 +3,9 @@ from itertools import product
 import pytest
 
 from line import Line
-from parser.logic.and_parser import AndParser
-from parser.logic.char_parser import CharParser
+from parser import AndParser
 from parser.parse_variant import ParseVariant
-from tests.parser.test_simple import items_good, items_good_empty_line
+from tests.parser.common.test_simple import items_good, items_good_empty_line
 
 
 def _and(*parsers):

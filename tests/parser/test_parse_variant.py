@@ -1,5 +1,5 @@
 from line import Line
-from parser.logic.char_parser import CharParser
+from parser import CharParser
 from parser.parse_variant import ParseVariant
 
 

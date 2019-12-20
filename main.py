@@ -4,14 +4,13 @@ from typing import Union, List
 
 from executor import Executor
 from live_source import LiveSource
-from parser.common.end_line_parser import EndLineParser
-from parser.common.simple import spaces
-from parser.func.func_parser import FuncParser
-from parser.func.key_argument import KeyArgument
-from parser.logic.and_parser import AndParser
-from parser.logic.char_parser import CharParser
-from parser.logic.empty_parser import EmptyParser
-from parser.logic.or_parser import OrParser
+from parser import AndParser
+from parser import CharParser
+from parser import EndLineParser
+from parser import FuncParser
+from parser import KeyArgument
+from parser import spaces
+from parser import EmptyParser
 
 _digit_parser = CharParser('0') \
                 | CharParser('1') \

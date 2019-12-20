@@ -1,8 +1,6 @@
-from typing import Iterable, Callable, Any
+from typing import Callable, Any
 
-from line import Line
 from parser.base import BaseParser
-from parser.parse_variant import ParseVariant
 from parser.parser_wrapper import WrapperParser
 
 
@@ -19,7 +17,7 @@ class FuncParser(WrapperParser):
             self.parser,
             **{k: p.calculate()
                for k, p in self.parser.key_args().items()
-            }
+               }
         )
 
     def __eq__(self, other: BaseParser):

@@ -1,7 +1,7 @@
 from typing import Iterable, List
 
 from line import Line
-from parser.base import BaseParser, ParseError
+from parser.base import ParseError
 from parser.logic._multi_parser import MultiParser
 from parser.parse_variant import ParseVariant
 

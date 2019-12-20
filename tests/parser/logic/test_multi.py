@@ -1,5 +1,4 @@
-from parser.logic.and_parser import AndParser
-from parser.logic.char_parser import CharParser
+from parser import CharParser
 
 
 def test_and_combine():

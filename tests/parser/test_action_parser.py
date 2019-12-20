@@ -1,9 +1,9 @@
 import pytest
 
 from line import Line
-from parser.func.func_parser import FuncParser
-from parser.func.key_argument import KeyArgument
-from parser.logic.char_parser import CharParser
+from parser import FuncParser
+from parser import KeyArgument
+from parser import CharParser
 from parser.parse_variant import ParseVariant
 
 

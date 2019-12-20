@@ -3,9 +3,9 @@ from itertools import product
 import pytest
 
 from line import Line
-from parser.logic.or_parser import OrParser
+from parser import OrParser
 from parser.parse_variant import ParseVariant
-from tests.parser.test_simple import items, items_good
+from tests.parser.common.test_simple import items, items_good
 
 
 def _or(x, y):

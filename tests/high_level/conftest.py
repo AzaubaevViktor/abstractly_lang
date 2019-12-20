@@ -6,7 +6,7 @@ import pytest
 pprint(dict(os.environ))
 
 from executor import Executor
-from parser.common.end_line_parser import EndLineParser
+from parser import EndLineParser
 from source import StrSource
 from main import _expr
 
