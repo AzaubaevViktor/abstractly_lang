@@ -1,10 +1,12 @@
 from typing import List, Type
+from itertools import product
+from typing import Optional, Union
 
 import pytest
 
 from line import Line
 from parser.base import ParseError, BaseParser
-from parser.common.simple import space_parser
+from parser.common.simple import space_parser, digit_parser
 from parser import CharParser
 from parser import OrParserError
 from parser.parse_variant import ParseVariant
@@ -25,12 +27,33 @@ _items = {
         '🤔': [ParseVariant(CharParser('🤔'), Line(''))],
         '🤔🤔': [ParseVariant(CharParser('🤔'), Line('🤔'))],
     },
+    CharParser('b'): {
+        'raw_line': ParseError,
+        'xxxxxxx': ParseError,
+        '': ParseError,
+        '12912391239': ParseError,
+        '💻👏⏰🧠': ParseError
+    },
     space_parser: {
         ' ': [ParseVariant(CharParser(' '), Line(''))],
         '\t': [ParseVariant(CharParser('\t'), Line(''))],
         '\n': [ParseVariant(CharParser('\n'), Line(''))],
         'a': OrParserError
+    },
+    digit_parser: {
+        '01': [ParseVariant(CharParser('0'), Line('1'))],
+        '1a': [ParseVariant(CharParser('1'), Line('a'))],
+        '2': [ParseVariant(CharParser('2'), Line(''))],
+        '3': [ParseVariant(CharParser('3'), Line(''))],
+        '4': [ParseVariant(CharParser('4'), Line(''))],
+        '5': [ParseVariant(CharParser('5'), Line(''))],
+        '6': [ParseVariant(CharParser('6'), Line(''))],
+        '7': [ParseVariant(CharParser('7'), Line(''))],
+        '8': [ParseVariant(CharParser('8'), Line(''))],
+        '9': [ParseVariant(CharParser('9'), Line(''))],
+        'a1': ParseError
     }
+
     # TODO: Add OrParser
     # TODO: Add AndParser
 }
