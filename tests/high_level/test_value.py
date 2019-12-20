@@ -1,5 +1,3 @@
-import math
-
 import pytest
 
 from tests.high_level._exec_ret import exec_ret
