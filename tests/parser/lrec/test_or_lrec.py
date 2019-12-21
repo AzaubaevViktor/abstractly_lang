@@ -4,7 +4,7 @@
 import pytest
 
 from line import Line
-from parser import CharParser
+from parser import CharParser, EndLineParser, AndParser
 from parser import OrParser
 
 
@@ -31,3 +31,28 @@ def test_or_lrec(raw_line):
 
     for result in results:
         print(result)
+
+
+@pytest.mark.parametrize('raw_line', (
+    'x', 'z', 'xy', 'zy', 'xxy', 'xxz',
+))
+def test_deep_lrec_good(raw_line: str):
+    line = Line(raw_line)
+
+    x = OrParser(CharParser('x'))
+    a = x & CharParser('y')  # X `y`
+    b = a | CharParser('z')  # X 'y' | z
+    x |= b  # X = x | z | X 'y'
+
+    _x = EndLineParser(x)
+
+    results = list(_x.parse(line))
+
+    assert len(results) == 1
+
+    result = results[0]
+
+    assert isinstance(result.parser, EndLineParser)
+    pr = result.parser.parser
+    assert isinstance(pr, AndParser)
+    assert len(pr.parsers) == len(raw_line)
