@@ -1,4 +1,5 @@
 import math
+from itertools import product
 
 import pytest
 
@@ -23,3 +24,15 @@ def test_simple_op(a, expr):
 def test_factorial(a, value):
     expr = f"{value}!"
     assert a(expr) == math.factorial(value)
+
+
+@pytest.mark.parametrize("x, y", (
+    *product(
+        range(0, 10),
+        range(0, 10)
+    ),
+))
+def test_factorial_sum(a, x, y):
+    result = math.factorial(x) + math.factorial(y)
+
+    assert a(f"{x}! + {y}!") == result
