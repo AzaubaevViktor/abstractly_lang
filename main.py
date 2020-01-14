@@ -4,7 +4,7 @@ from typing import Union, List
 
 from executor import Executor
 from live_source import LiveSource
-from parser import AndParser
+from parser import AndParser, OrParser
 from parser import CharParser
 from parser import EndLineParser
 from parser import FuncParser
@@ -66,6 +66,7 @@ _number_parser_ng = _number_parser | _factorial
 
 # Calculator
 
+
 def _f_mul_div(parser, a: int, operators: Union[EmptyParser, List[float]]):
     if not operators:
         operators = []
@@ -118,13 +119,24 @@ _op_add_diff = FuncParser(
     _get_add_coef
 )
 
+# Comment
+_symbols = " \t\nqwertyuiop[]asdfghjkl;'\\zxcvbnm,./QWERTYUIOP{}ASDFGHJKL:\"|ZXCVBNM<>?" \
+           "1234567890-=" \
+           "!@#$%^&*()_+" \
+           "№%:,.;()_+"
+_any_symbol = OrParser(*(CharParser(ch) for ch in _symbols))
+
+_comment = CharParser("#") & _any_symbol[:]
+
+print(_comment)
+
 _expr = FuncParser(
         spaces & KeyArgument('a', _term) & KeyArgument('operators', _op_add_diff[:]) & spaces,
         _f_add_diff
     )
 
 
-live_parser = EndLineParser(_exit_parser | _expr)
+live_parser = EndLineParser((_exit_parser | _expr))
 
 
 if __name__ == '__main__':

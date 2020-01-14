@@ -54,3 +54,6 @@ class RepeatParser(BaseParser):
 
         if not is_found:
             raise RepeatParserError("Not found anything")
+
+    def __repr__(self):
+        return f"<RepeatParser {self._from}:{self._to} of {self.p}>"
