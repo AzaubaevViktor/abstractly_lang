@@ -11,6 +11,7 @@ from parser import FuncParser
 from parser import KeyArgument
 from parser import spaces
 from parser import EmptyParser
+from parser.base import BaseParser
 
 _digit_parser = CharParser('0') \
                 | CharParser('1') \
@@ -128,7 +129,31 @@ _any_symbol = OrParser(*(CharParser(ch) for ch in _symbols))
 
 _comment = CharParser("#") & _any_symbol[:]
 
-print(_comment)
+
+# Parser generator parser
+
+def _char_generator_func(*args, ch: CharParser):
+    return ch
+
+
+_char_generator = FuncParser(
+    CharParser("'") & KeyArgument('ch', _any_symbol) & CharParser("'"),
+    _char_generator_func
+)
+
+_parser_parser = OrParser(_char_generator)
+
+
+def _or_generator_func(*args, a: BaseParser, b: BaseParser):
+    return OrParser(a, b)
+
+
+_or_parser_generator = FuncParser(
+    KeyArgument('a', _parser_parser) & spaces & CharParser('|') & spaces & KeyArgument('b', _parser_parser),
+    _or_generator_func
+)
+
+_parser_parser |= _or_parser_generator
 
 _expr = FuncParser(
         spaces & KeyArgument('a', _term) & KeyArgument('operators', _op_add_diff[:]) & spaces,
@@ -136,7 +161,7 @@ _expr = FuncParser(
     )
 
 
-live_parser = EndLineParser((_exit_parser | _expr))
+live_parser = EndLineParser((_exit_parser | _expr | _parser_parser))
 
 
 if __name__ == '__main__':
