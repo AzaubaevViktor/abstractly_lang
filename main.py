@@ -4,7 +4,7 @@ from typing import Union, List
 
 from executor import Executor
 from live_source import LiveSource
-from parser import AndParser, OrParser
+from parser import AndParser, OrParser, RepeatParser
 from parser import CharParser
 from parser import EndLineParser
 from parser import FuncParser
@@ -169,7 +169,6 @@ _and_parser_generator = FuncParser(
 _parser_parser |= _and_parser_generator
 
 
-
 # Expression
 
 
@@ -177,6 +176,21 @@ _expr = FuncParser(
         spaces & KeyArgument('a', _term) & KeyArgument('operators', _op_add_diff[:]) & spaces,
         _f_add_diff
     )
+
+# Repeat
+
+def _repeat_generator_func(*args, a: BaseParser, _from: int, _to: int):
+    return a[_from:_to]
+
+
+_repeat_parser_generator = FuncParser(
+    KeyArgument('a', _parser_parser)
+        & CharParser('[') & KeyArgument('_from', _expr) & CharParser(':') & KeyArgument('_to', _expr) & CharParser(']')
+    ,
+    _repeat_generator_func
+)
+
+_parser_parser |= _repeat_parser_generator
 
 
 live_parser = EndLineParser((_exit_parser | _expr | _parser_parser))
