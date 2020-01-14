@@ -27,9 +27,12 @@ def uniques(f):
 
 def _or_parser_error(f):
     def _(*args, **kwargs):
+        is_found = False
         for item in f(*args, **kwargs):
             yield item
-        else:
+            is_found = True
+
+        if not is_found:
             raise OrParserError("Not found anything", [])
 
     _.__name__ = f.__name__
@@ -47,9 +50,9 @@ class OrParser(MultiParser):
 
     @_or_parser_error
     def parse(self, line: Line) -> Iterable[ParseVariant]:
-        print("PARSE   :", self, line)
-        print("DEEP    :", self.deep[line])
-        print("RESULTS :", self.results[line])
+        # print("PARSE   :", self, line)
+        # print("DEEP    :", self.deep[line])
+        # print("RESULTS :", self.results[line])
 
         yield from self.results[line]
 
