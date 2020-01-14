@@ -59,3 +59,6 @@ class Line:
 
     def __bool__(self):
         return bool(self.line)
+
+    def __hash__(self):
+        return hash(self.line)

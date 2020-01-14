@@ -19,7 +19,8 @@ def test_or_set():
 
 @pytest.mark.parametrize('raw_line', (
     'x',
-    'xy'
+    'xy',
+    'xyyyy'
 ))
 def test_or_lrec(raw_line):
     line = Line(raw_line)
@@ -34,7 +35,7 @@ def test_or_lrec(raw_line):
 
 
 @pytest.mark.parametrize('raw_line', (
-    'x', 'z', 'xy', 'zy', 'xxy', 'xxz',
+    'x', 'z', 'xy', 'xz', 'zy', 'zz', 'xyy', 'zyyy',
 ))
 def test_deep_lrec_good(raw_line: str):
     line = Line(raw_line)
@@ -54,5 +55,9 @@ def test_deep_lrec_good(raw_line: str):
 
     assert isinstance(result.parser, EndLineParser)
     pr = result.parser.parser
-    assert isinstance(pr, AndParser)
-    assert len(pr.parsers) == len(raw_line)
+    if len(raw_line) == 1:
+        assert isinstance(pr, CharParser)
+        assert pr.ch == raw_line
+    else:
+        assert isinstance(pr, AndParser)
+        assert len(pr.parsers) == len(raw_line)
