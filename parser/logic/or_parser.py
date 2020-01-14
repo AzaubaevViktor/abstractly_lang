@@ -25,6 +25,18 @@ def uniques(f):
     return _
 
 
+def _or_parser_error(f):
+    def _(*args, **kwargs):
+        for item in f(*args, **kwargs):
+            yield item
+        else:
+            raise OrParserError("Not found anything", [])
+
+    _.__name__ = f.__name__
+
+    return _
+
+
 class OrParser(MultiParser):
     STR_SYM = '|'
 
@@ -33,6 +45,7 @@ class OrParser(MultiParser):
         self.results: Dict[Line, List[ParseVariant]] = defaultdict(list)
         self.deep: Dict[Line, int] = defaultdict(int)
 
+    @_or_parser_error
     def parse(self, line: Line) -> Iterable[ParseVariant]:
         print("PARSE   :", self, line)
         print("DEEP    :", self.deep[line])
