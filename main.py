@@ -155,6 +155,24 @@ _or_parser_generator = FuncParser(
 
 _parser_parser |= _or_parser_generator
 
+
+# Почему это работает?
+def _and_generator_func(*args, a: BaseParser, b: BaseParser):
+    return AndParser(a, b)
+
+
+_and_parser_generator = FuncParser(
+    KeyArgument('a', _parser_parser) & spaces & CharParser('&') & spaces & KeyArgument('b', _parser_parser),
+    _and_generator_func
+)
+
+_parser_parser |= _and_parser_generator
+
+
+
+# Expression
+
+
 _expr = FuncParser(
         spaces & KeyArgument('a', _term) & KeyArgument('operators', _op_add_diff[:]) & spaces,
         _f_add_diff
