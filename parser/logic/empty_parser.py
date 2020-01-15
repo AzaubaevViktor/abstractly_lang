@@ -21,3 +21,9 @@ class EmptyParser(BaseParser):
 
     def __bool__(self):
         return False
+
+    def __hash__(self):
+        return hash(self.__class__)
+
+    def __iter__(self):
+        yield self

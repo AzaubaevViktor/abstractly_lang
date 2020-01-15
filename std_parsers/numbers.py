@@ -1,8 +1,14 @@
 import operator
 from typing import Union, Callable, Dict, Any
 
-from parser import CharParser, EmptyParser, AndParser, FuncParser, KeyArgument, OrParser
+from parser import CharParser, EmptyParser, AndParser, FuncParser, KeyArgument, OrParser, BasePriority, PriorityParser
+from parser.base import BaseParser
 from .common import digit, spaces
+
+
+class NumberPriority(BasePriority):
+    pass
+
 
 number_expressions = OrParser()
 
@@ -36,7 +42,11 @@ number = FuncParser(
 number_expressions |= number
 
 
-def generate_operation_2(base_expr, ops: Dict[str, Callable[[Any, Any], Any]]):
+def generate_operation_2(
+        base_expr: BaseParser,
+        ops: Dict[str, Callable[[Any, Any], Any]],
+        priority: BasePriority
+):
     # Создаёт операцию от двух переменных с оператором symbol
 
     ops_key_parsers = {
@@ -58,15 +68,21 @@ def generate_operation_2(base_expr, ops: Dict[str, Callable[[Any, Any], Any]]):
         _func_wrapper
     )
 
-    return parser
+    return PriorityParser(parser, priority)
 
 
-number_expressions |= generate_operation_2(number_expressions, {
-    "-": operator.sub,
-    "+": operator.add
-})
+number_expressions |= generate_operation_2(
+    number_expressions, {
+        "-": operator.sub,
+        "+": operator.add
+    },
+    NumberPriority(10)
+)
 
-number_expressions |= generate_operation_2(number_expressions, {
-    "*": operator.mul,
-    "/": operator.floordiv
-})
+number_expressions |= generate_operation_2(
+    number_expressions, {
+        "*": operator.mul,
+        "/": operator.floordiv
+    },
+    NumberPriority(20)
+)

@@ -29,3 +29,6 @@ class KeyArgument(WrapperParser):
 
     def __str__(self):
         return f"[{self.key}: {self.parser}]"
+
+    def __hash__(self):
+        return hash(self.__class__) * hash(self.key) * hash(self.parser)

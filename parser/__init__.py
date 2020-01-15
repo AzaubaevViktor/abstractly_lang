@@ -8,4 +8,4 @@ from .logic.char_parser import CharParser, CharParserInitError
 from .logic.empty_parser import EmptyParser
 from .logic.or_parser import OrParser, OrParserError
 from .logic.repeat_parser import RepeatParser, RepeatParserError, RepeatParserValuesError
-
+from .priority_parser import BasePriority, PriorityParser

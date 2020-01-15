@@ -32,3 +32,6 @@ class FuncParser(WrapperParser):
 
     def __str__(self):
         return f"{{{self.parser}}} => {self.func}"
+
+    def __hash__(self):
+        return hash(self.__class__) * hash(self.func) * hash(self.parser)

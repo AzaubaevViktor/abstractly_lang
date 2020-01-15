@@ -106,6 +106,10 @@ class BaseParser(metaclass=MetaParser):
 
         return False
 
+    def __iter__(self) -> Iterable['BaseParser']:
+        """ Список парсеров внутри """
+        raise NotImplementedError()
+
 
 class BaseParserError(Exception):
     def __init__(self, msg: str, parser: BaseParser = None):

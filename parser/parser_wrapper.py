@@ -7,7 +7,7 @@ from parser.parse_variant import ParseVariant
 
 class WrapperParser(BaseParser):
     def __init__(self, parser: BaseParser):
-        self.parser = parser
+        self.parser: BaseParser = parser
 
     def _wrap(self, parser: BaseParser):
         raise NotImplementedError()
@@ -25,3 +25,8 @@ class WrapperParser(BaseParser):
 
     def __repr__(self):
         return f"<{self.__class__.__name__}: {self.parser}>"
+
+    def __iter__(self):
+        yield self
+        yield self.parser
+        yield from self.parser
