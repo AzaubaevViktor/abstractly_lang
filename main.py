@@ -6,13 +6,15 @@ from parser import EndLineParser
 from std_parsers import number_expressions
 from std_parsers import system_expressions
 from std_parsers import parser_parser
+from std_parsers.variable import variables
 
 live_parser = EndLineParser(number_expressions | system_expressions | parser_parser)
 
+variables['@'] = live_parser
 
 if __name__ == '__main__':
     source = LiveSource()
-    executor = Executor(live_parser)
+    executor = Executor(lambda: variables['@'])
 
     for line in source():
         st = time()

@@ -1,12 +1,19 @@
 from traceback import print_exc
+from typing import Union, Callable
 
 from line import Line
 from parser.base import BaseParser
 
 
 class Executor:
-    def __init__(self, parser: BaseParser):
-        self.parser = parser
+    def __init__(self, parser: Union[BaseParser, Callable]):
+        self._parser = parser
+
+    @property
+    def parser(self):
+        if callable(self._parser):
+            return self._parser()
+        return self._parser
 
     def execute(self, line: Line):
         try:

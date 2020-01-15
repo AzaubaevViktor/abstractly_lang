@@ -1,11 +1,10 @@
 import math
 import operator
-from typing import Union, Callable, Dict, Any, Optional
+from typing import Union
 
-from parser import CharParser, EmptyParser, AndParser, FuncParser, KeyArgument, OrParser, BasePriority, PriorityParser, \
-    DictParser
-from parser.base import BaseParser
+from parser import CharParser, EmptyParser, AndParser, FuncParser, KeyArgument, OrParser, BasePriority, PriorityParser
 from .common import digit, spaces
+from .op_generators import generate_operation_2
 from .variable import use_variables
 
 
@@ -43,29 +42,6 @@ number = FuncParser(
 )
 
 number_expressions |= number
-
-
-def generate_operation_2(
-        base_expr: BaseParser,
-        ops: Dict[str, Callable[[Any, Any], Any]],
-        priority: Optional[BasePriority]
-):
-    # Создаёт операцию от двух переменных с оператором symbol
-
-    def _func_wrapper(*args, a, op: Callable, b):
-        return op(a, b)
-
-    parser = FuncParser(
-        KeyArgument('a', base_expr) & spaces
-        & KeyArgument('op', DictParser(ops)) & spaces
-        & KeyArgument('b', base_expr),
-        _func_wrapper
-    )
-    if priority:
-        parser = PriorityParser(parser, priority)
-
-    return parser
-
 
 number_expressions |= generate_operation_2(
     number_expressions, {
