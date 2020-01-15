@@ -31,7 +31,7 @@ def parsed_to_number(*args,
 number = FuncParser(
     KeyArgument(
         'sign',
-        CharParser('-')[:1]
+        CharParser('-')[:2]
     )
     & KeyArgument(
         'digits',
@@ -87,7 +87,7 @@ number_expressions |= generate_operation_2(
 number_expressions |= generate_operation_2(
     number_expressions, {
         "*": operator.mul,
-        "/": operator.floordiv
+        "/": operator.truediv
     },
     NumberPriority(20)
 )
