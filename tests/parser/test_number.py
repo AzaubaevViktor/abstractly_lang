@@ -10,11 +10,12 @@ from parser import EndLineParser
 from parser import FuncParser
 from parser import KeyArgument
 from parser.parse_variant import ParseVariant
-from parser.common.simple import digit_parser
+from std_parsers.common import digit
+
 
 @pytest.fixture(scope='function')
 def _digit_parser():
-    return digit_parser
+    return digit
 
 
 def p_to_num(result, sign: Union[CharParser, EmptyParser], number: AndParser):
@@ -30,8 +31,6 @@ def p_to_num(result, sign: Union[CharParser, EmptyParser], number: AndParser):
 
 @pytest.fixture(scope='function')
 def number_parser(_digit_parser):
-    # TODO: Реализовать всё, что подчёркнуто красным.
-    #       Этот парсер трогать не нужно!
     return EndLineParser(FuncParser(
         KeyArgument('sign', CharParser('-')[:2]) & KeyArgument('number', _digit_parser[1:]),
         p_to_num

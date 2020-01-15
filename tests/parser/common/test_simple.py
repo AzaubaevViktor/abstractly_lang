@@ -6,11 +6,12 @@ from line import Line
 from parser import CharParser
 from parser import OrParserError
 from parser.base import ParseError, BaseParser
-from parser.common.simple import space_parser, digit_parser
 from parser.parse_variant import ParseVariant
 
 # TODO: Here! Enjoy.
 #       Ессно можно добавлять свои тесты, если они кажутся адекватными
+from std_parsers.common import space, digit
+
 _items = {
     CharParser('x'): {
         'x': [ParseVariant(CharParser('x'), Line(""))],
@@ -32,13 +33,13 @@ _items = {
         '12912391239': ParseError,
         '💻👏⏰🧠': ParseError
     },
-    space_parser: {
+    space: {
         ' ': [ParseVariant(CharParser(' '), Line(''))],
         '\t': [ParseVariant(CharParser('\t'), Line(''))],
         '\n': [ParseVariant(CharParser('\n'), Line(''))],
         'a': OrParserError
     },
-    digit_parser: {
+    digit: {
         '01': [ParseVariant(CharParser('0'), Line('1'))],
         '1a': [ParseVariant(CharParser('1'), Line('a'))],
         '2': [ParseVariant(CharParser('2'), Line(''))],

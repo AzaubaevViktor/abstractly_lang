@@ -9,9 +9,9 @@ from parser import CharParser
 from parser import EndLineParser
 from parser import FuncParser
 from parser import KeyArgument
-from parser import spaces
 from parser import EmptyParser
 from parser.base import BaseParser
+from std_parsers.common import spaces
 
 _digit_parser = CharParser('0') \
                 | CharParser('1') \
