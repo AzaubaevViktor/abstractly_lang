@@ -1,6 +1,6 @@
 import math
 import operator
-from typing import Union, Callable, Dict, Any, Optional
+from typing import Union, Callable, Dict, Any, Optional, List
 
 from parser import CharParser, EmptyParser, AndParser, FuncParser, KeyArgument, OrParser, BasePriority, PriorityParser
 from parser.base import BaseParser
@@ -55,7 +55,9 @@ def generate_operation_2(
         for k, v in ops.items()
     }
 
-    def _func_wrapper(*args, a, op: Union[AndParser], b):
+    def _func_wrapper(*args, a, op: Union[CharParser, List[CharParser]], b):
+        if isinstance(op, list):
+            op = AndParser(*op)
         return ops_key_parsers[op](a, b)
 
     _func_wrapper.__name__ = f"op_for_{'_'.join(ops.keys())}"
@@ -103,6 +105,9 @@ number_expressions |= \
     )
 
 
+# Factorial
+
+
 number_expressions |= PriorityParser(
     FuncParser(
         KeyArgument(
@@ -110,5 +115,15 @@ number_expressions |= PriorityParser(
         ) & spaces & CharParser('!'),
         lambda *args, e: math.factorial(e)
     ),
-    NumberPriority(30)
+    NumberPriority(50)
+)
+
+
+# Power
+
+number_expressions |= generate_operation_2(
+    number_expressions, {
+        '**': math.pow
+    },
+    NumberPriority(40)
 )
