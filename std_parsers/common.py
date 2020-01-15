@@ -6,3 +6,4 @@ space = CharParser(' ') | CharParser('\t') | CharParser('\n')
 
 spaces = space[:]
 
+symbol = OrParser(*(CharParser(x) for x in "qwertyuiopasdfghjklzxcvbnm"))

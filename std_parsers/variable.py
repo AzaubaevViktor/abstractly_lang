@@ -1,18 +1,18 @@
 import math
 from typing import Any
 
-from parser import DictParser, OrParser, CharParser, FuncParser, KeyArgument
+from parser import DictParser, CharParser, FuncParser, KeyArgument
 from parser.base import BaseParser
-from std_parsers.common import spaces
+from std_parsers.common import spaces, symbol
 
-_variables = {
+variables = {
     'hello': 'world!',
     'pi': math.pi,
 }
 
 
 def use_variables(key: str, base_parser: BaseParser) -> BaseParser:
-    get_var_parser = DictParser(_variables)
+    get_var_parser = DictParser(variables)
 
     def _set_var_func(*result, name, value: Any):
         if isinstance(name, list):
@@ -23,8 +23,6 @@ def use_variables(key: str, base_parser: BaseParser) -> BaseParser:
         get_var_parser.d[name] = value
 
         return value
-
-    symbol = OrParser(*(CharParser(x) for x in "qwertyuiopasdfghjklzxcvbnm"))
 
     set_var_parser = FuncParser(
         KeyArgument('name', symbol[1:]) & spaces & CharParser('=') & spaces & KeyArgument('value', base_parser),

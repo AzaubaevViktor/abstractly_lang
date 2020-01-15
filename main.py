@@ -5,8 +5,9 @@ from live_source import LiveSource
 from parser import EndLineParser
 from std_parsers import number_expressions
 from std_parsers import system_expressions
+from std_parsers import parser_parser
 
-live_parser = EndLineParser(number_expressions | system_expressions)
+live_parser = EndLineParser(number_expressions | system_expressions | parser_parser)
 
 
 if __name__ == '__main__':
