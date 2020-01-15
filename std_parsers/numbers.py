@@ -1,5 +1,5 @@
 import operator
-from typing import Union, Callable, Dict, Any
+from typing import Union, Callable, Dict, Any, Optional
 
 from parser import CharParser, EmptyParser, AndParser, FuncParser, KeyArgument, OrParser, BasePriority, PriorityParser
 from parser.base import BaseParser
@@ -45,7 +45,7 @@ number_expressions |= number
 def generate_operation_2(
         base_expr: BaseParser,
         ops: Dict[str, Callable[[Any, Any], Any]],
-        priority: BasePriority
+        priority: Optional[BasePriority]
 ):
     # Создаёт операцию от двух переменных с оператором symbol
 
@@ -67,8 +67,10 @@ def generate_operation_2(
         & KeyArgument('b', base_expr),
         _func_wrapper
     )
+    if priority:
+        parser = PriorityParser(parser, priority)
 
-    return PriorityParser(parser, priority)
+    return parser
 
 
 number_expressions |= generate_operation_2(
@@ -86,3 +88,17 @@ number_expressions |= generate_operation_2(
     },
     NumberPriority(20)
 )
+
+
+# Braces
+
+number_expressions |= \
+    FuncParser(
+        CharParser('(') & spaces
+        & KeyArgument(
+            'e', number_expressions
+        ) & spaces & CharParser(')'),
+        lambda *args, e: e
+    )
+
+

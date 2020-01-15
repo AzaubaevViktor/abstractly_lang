@@ -41,7 +41,6 @@ class PriorityParser(WrapperParser):
         for variant in self.parser.parse(line):
             is_good = True
             for sub in variant.parser:
-                print(sub)
                 if isinstance(sub, PriorityParser):
                     if sub.priority.priority < self.priority.priority:
                         is_good = False
