@@ -19,25 +19,23 @@ class Executor:
 
         assert len(results) != 0, "Please catch this"
 
-        print("|- Parsed:")
-        for result in results:
-            print(f"|  - {result}")
-
         if len(results) > 1:
             print(f"| ⚠️ More than one result")
 
-        result = results[0]
+        for result in results:
+            print("|- Parsed:")
+            print(f"|  - {result}")
 
-        if result.line:
-            print(f"|- Line:")
-            print(f"|  `{result.line}`")
+            if result.line:
+                print(f"|- Line:")
+                print(f"|  `{result.line}`")
 
-        print(f"|- Execute:")
-        print(f"|")
+            print(f"|- Execute:")
+            print(f"|")
 
-        exec_result = result.parser.calculate()
+            exec_result = result.parser.calculate()
 
-        print(f"|- Finished. Result:")
-        print(f"   `{exec_result}`")
+            print(f"|- Finished. Result:")
+            print(f"   `{exec_result}`")
 
         return exec_result

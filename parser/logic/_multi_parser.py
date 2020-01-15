@@ -29,6 +29,11 @@ class MultiParser(BaseParser):
 
         return self.parsers == other.parsers
 
+    def __hash__(self):
+        raw_hashes = sorted(map(hash, self.parsers))
+        s_to_hash = self.STR_SYM + '-'.join(map(str, raw_hashes))
+        return hash(s_to_hash)
+
     def key_args(self) -> Dict[str, BaseParser]:
         _kas = {}
         for parser in self.parsers:

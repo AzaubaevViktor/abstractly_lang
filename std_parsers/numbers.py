@@ -1,8 +1,8 @@
-from typing import Union
+import operator
+from typing import Union, Callable, Dict, Any
 
 from parser import CharParser, EmptyParser, AndParser, FuncParser, KeyArgument, OrParser
-from .common import digit
-
+from .common import digit, spaces
 
 number_expressions = OrParser()
 
@@ -33,6 +33,40 @@ number = FuncParser(
     parsed_to_number
 )
 
-
 number_expressions |= number
 
+
+def generate_operation_2(base_expr, ops: Dict[str, Callable[[Any, Any], Any]]):
+    # Создаёт операцию от двух переменных с оператором symbol
+
+    ops_key_parsers = {
+        CharParser.line(k): v
+        for k, v in ops.items()
+    }
+
+    def _func_wrapper(*args, a, op: Union[AndParser], b):
+        return ops_key_parsers[op](a, b)
+
+    _func_wrapper.__name__ = f"op_for_{'_'.join(ops.keys())}"
+
+    op_parser = OrParser(*(CharParser.line(k) for k in ops.keys()))
+
+    parser = FuncParser(
+        KeyArgument('a', base_expr) & spaces
+        & KeyArgument('op', op_parser) & spaces
+        & KeyArgument('b', base_expr),
+        _func_wrapper
+    )
+
+    return parser
+
+
+number_expressions |= generate_operation_2(number_expressions, {
+    "-": operator.sub,
+    "+": operator.add
+})
+
+number_expressions |= generate_operation_2(number_expressions, {
+    "*": operator.mul,
+    "/": operator.floordiv
+})

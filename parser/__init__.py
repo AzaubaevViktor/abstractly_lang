@@ -9,4 +9,3 @@ from .logic.empty_parser import EmptyParser
 from .logic.or_parser import OrParser, OrParserError
 from .logic.repeat_parser import RepeatParser, RepeatParserError, RepeatParserValuesError
 
-from .common.simple import spaces, space_parser

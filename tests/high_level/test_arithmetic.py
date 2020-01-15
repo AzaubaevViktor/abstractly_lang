@@ -5,6 +5,7 @@ import pytest
 
 from tests.high_level._exec_ret import exec_ret
 
+
 @pytest.mark.parametrize("expr", (
     "1 + 2",
     "5 / 2",
@@ -15,6 +16,7 @@ from tests.high_level._exec_ret import exec_ret
     "4 + 2 * 3",
     "4 - 2 * 3",
     "2 + 3 * 4 - 5",
+    "1 + 2 * 3 - 1 + 3 * 4"
 ))
 def test_simple_op(a, expr):
     assert a(expr) == exec_ret(expr)

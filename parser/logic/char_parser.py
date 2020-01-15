@@ -48,4 +48,6 @@ class CharParser(BaseParser):
     @classmethod
     def line(cls, s: str) -> "AndParser":
         from parser import AndParser
+        if len(s) == 1:
+            return CharParser(s)
         return AndParser(*(CharParser(ch) for ch in s))
