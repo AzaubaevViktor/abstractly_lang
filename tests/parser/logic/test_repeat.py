@@ -84,7 +84,7 @@ def test_repeat(alpha, op, raw_f, raw_t, add, count):
 
 @pytest.mark.parametrize(
     'item', (
-        slice(None, 1),
+        slice(None, 0),
         slice(5, 2),
         slice(3, 3)
     )
