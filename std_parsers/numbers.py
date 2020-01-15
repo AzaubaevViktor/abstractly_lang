@@ -2,7 +2,8 @@ import math
 import operator
 from typing import Union, Callable, Dict, Any, Optional, List
 
-from parser import CharParser, EmptyParser, AndParser, FuncParser, KeyArgument, OrParser, BasePriority, PriorityParser
+from parser import CharParser, EmptyParser, AndParser, FuncParser, KeyArgument, OrParser, BasePriority, PriorityParser, \
+    DictParser
 from parser.base import BaseParser
 from .common import digit, spaces
 
@@ -50,23 +51,12 @@ def generate_operation_2(
 ):
     # Создаёт операцию от двух переменных с оператором symbol
 
-    ops_key_parsers = {
-        CharParser.line(k): v
-        for k, v in ops.items()
-    }
-
-    def _func_wrapper(*args, a, op: Union[CharParser, List[CharParser]], b):
-        if isinstance(op, list):
-            op = AndParser(*op)
-        return ops_key_parsers[op](a, b)
-
-    _func_wrapper.__name__ = f"op_for_{'_'.join(ops.keys())}"
-
-    op_parser = OrParser(*(CharParser.line(k) for k in ops.keys()))
+    def _func_wrapper(*args, a, op: Callable, b):
+        return op(a, b)
 
     parser = FuncParser(
         KeyArgument('a', base_expr) & spaces
-        & KeyArgument('op', op_parser) & spaces
+        & KeyArgument('op', DictParser(ops)) & spaces
         & KeyArgument('b', base_expr),
         _func_wrapper
     )
@@ -126,4 +116,39 @@ number_expressions |= generate_operation_2(
         '**': math.pow
     },
     NumberPriority(40)
+)
+
+
+# Variables
+
+variables = {
+    'hello': 'world!',
+    'pi': math.pi
+}
+
+variables_parser = DictParser(variables)
+number_expressions |= variables_parser
+
+
+def _set_var_func(*result, name, value: Any):
+    if isinstance(name, list):
+        name = "".join(x.ch for x in name)
+    else:
+        name = name.ch
+
+    global variables_parser
+    print(name, value)
+    variables_parser.d[name] = value
+
+    return value
+
+
+symbol = OrParser(*(CharParser(x) for x in "qwertyuiopasdfghjklzxcvbnm"))
+
+
+number_expressions |= FuncParser(
+    KeyArgument('name', symbol[1:]) & spaces
+    & CharParser('=') & spaces
+    & KeyArgument('value', number_expressions),
+    _set_var_func
 )
