@@ -1,3 +1,4 @@
+import math
 import operator
 from typing import Union, Callable, Dict, Any, Optional
 
@@ -102,3 +103,12 @@ number_expressions |= \
     )
 
 
+number_expressions |= PriorityParser(
+    FuncParser(
+        KeyArgument(
+            'e', number_expressions
+        ) & spaces & CharParser('!'),
+        lambda *args, e: math.factorial(e)
+    ),
+    NumberPriority(30)
+)
