@@ -44,3 +44,8 @@ class CharParser(BaseParser):
 
     def __hash__(self):
         return hash(self.ch)
+
+    @classmethod
+    def line(cls, s: str) -> "AndParser":
+        from parser import AndParser
+        return AndParser(*(CharParser(ch) for ch in s))

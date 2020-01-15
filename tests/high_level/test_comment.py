@@ -7,7 +7,7 @@ def test_comment(a):
 
 
 def test_comment_parser():
-    from main import _comment
+    from main_v0 import _comment
     # print(list(_comment.parse(Line(""))))
     print(list(_comment.parse(Line("# test"))))
     print(list(_comment.parse(Line("#    sadf fd adsf adsf adsf "))))

@@ -8,7 +8,7 @@ pprint(dict(os.environ))
 from executor import Executor
 from parser import EndLineParser
 from source import StrSource
-from main import _expr
+from main_v0 import _expr
 
 
 def _executor(raw_line: str):

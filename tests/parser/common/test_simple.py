@@ -50,6 +50,9 @@ _items = {
         '8': [ParseVariant(CharParser('8'), Line(''))],
         '9': [ParseVariant(CharParser('9'), Line(''))],
         'a1': ParseError
+    },
+    CharParser.line("abc"): {
+        'abc': [ParseVariant(CharParser('a') & CharParser('b') & CharParser('c'), Line(''))]
     }
 
     # TODO: Add OrParser

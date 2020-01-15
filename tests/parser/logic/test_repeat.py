@@ -4,7 +4,7 @@ import pytest
 
 from line import Line
 from parser.base import ParseError
-from parser import AndParser
+from parser import AndParser, CharParser, RepeatParserValuesError
 from parser import EmptyParser
 from parser import RepeatParser
 from parser.parse_variant import ParseVariant
@@ -80,3 +80,17 @@ def test_repeat(alpha, op, raw_f, raw_t, add, count):
         assert p_results == list(p.parse(line))
     else:
         raise NotImplementedError()
+
+
+@pytest.mark.parametrize(
+    'item', (
+        slice(None, 1),
+        slice(5, 2),
+        slice(3, 3)
+    )
+)
+def test_wrong(item):
+    x = CharParser('x')
+
+    with pytest.raises(RepeatParserValuesError):
+        y = x[item]
