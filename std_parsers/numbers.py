@@ -1,11 +1,12 @@
 import math
 import operator
-from typing import Union, Callable, Dict, Any, Optional, List
+from typing import Union, Callable, Dict, Any, Optional
 
 from parser import CharParser, EmptyParser, AndParser, FuncParser, KeyArgument, OrParser, BasePriority, PriorityParser, \
     DictParser
 from parser.base import BaseParser
 from .common import digit, spaces
+from .variable import use_variables
 
 
 class NumberPriority(BasePriority):
@@ -121,35 +122,4 @@ number_expressions |= generate_operation_2(
 
 # Variables
 
-variables = {
-    'hello': 'world!',
-    'pi': math.pi,
-    '@': number_expressions
-}
-
-variables_parser = DictParser(variables)
-number_expressions |= variables_parser
-
-
-def _set_var_func(*result, name, value: Any):
-    if isinstance(name, list):
-        name = "".join(x.ch for x in name)
-    else:
-        name = name.ch
-
-    global variables_parser
-
-    variables_parser.d[name] = value
-
-    return value
-
-
-symbol = OrParser(*(CharParser(x) for x in "qwertyuiopasdfghjklzxcvbnm"))
-
-
-number_expressions |= FuncParser(
-    KeyArgument('name', symbol[1:]) & spaces
-    & CharParser('=') & spaces
-    & KeyArgument('value', number_expressions),
-    _set_var_func
-)
+number_expressions |= use_variables("@n", number_expressions)
