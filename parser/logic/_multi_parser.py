@@ -31,6 +31,7 @@ class MultiParser(BaseParser):
         self.parsers = tuple(p for p in _parsers if not isinstance(p, EmptyParser))
         self._iter_deep = False
         self._hash_deep = 0
+        self._str_deep = 0
 
     def __eq__(self, other: BaseParser):
         _result = super().__eq__(other)
@@ -60,8 +61,13 @@ class MultiParser(BaseParser):
         return f"<{self.__class__.__name__}: {'; '.join(parsers_str)}>"
 
     def __str__(self):
+        if self._str_deep:
+            return "🔃"
+        self._str_deep = True
         parsers_str = (str(parser) if not self._search(parser) else "..." for parser in self.parsers)
-        return "(" + f" {self.STR_SYM} ".join(parsers_str) + ")"
+        s = "(" + f" {self.STR_SYM} ".join(parsers_str) + ")"
+        self._str_deep = False
+        return s
 
     def calculate(self) -> List[Any]:
         return list(p.calculate() for p in self.parsers)

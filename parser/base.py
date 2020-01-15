@@ -12,7 +12,6 @@ class MetaParser(type):
             for an, a in attributes.items():
                 if callable(a):
                     attributes[an] = mcls._catcher(mcls, a)
-                    print(name, an, a)
         return super().__new__(mcls, name, bases, attributes)
 
     def _memo(mcls, f):

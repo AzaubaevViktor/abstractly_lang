@@ -11,7 +11,9 @@ class DictParser(BaseParser):
     Парсит всё из словаря
     """
     def __init__(self, d, _return_keys=False, **kwargs,):
-        self.d = {**d, **kwargs}
+        self.d = {} if d is None else d
+
+        self.d.update(**kwargs)
         self._return_keys = _return_keys
 
     def _calc(self, *result, key: Union[CharParser, List[CharParser]]):
@@ -34,7 +36,6 @@ class DictParser(BaseParser):
             f = self._calc
 
         words = OrParser(*(CharParser.line(key) for key in self.d.keys()))
-        print(self.d)
         return FuncParser(
             KeyArgument('key', words),
             f

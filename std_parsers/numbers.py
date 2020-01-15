@@ -123,7 +123,8 @@ number_expressions |= generate_operation_2(
 
 variables = {
     'hello': 'world!',
-    'pi': math.pi
+    'pi': math.pi,
+    '@': number_expressions
 }
 
 variables_parser = DictParser(variables)
@@ -137,7 +138,7 @@ def _set_var_func(*result, name, value: Any):
         name = name.ch
 
     global variables_parser
-    print(name, value)
+
     variables_parser.d[name] = value
 
     return value
