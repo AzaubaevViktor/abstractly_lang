@@ -1,3 +1,4 @@
+import inspect
 from typing import Callable, Any
 
 from parser.base import BaseParser
@@ -12,12 +13,15 @@ class FuncParser(WrapperParser):
     def _wrap(self, parser: BaseParser):
         return FuncParser(parser, self.func)
 
-    def calculate(self) -> Any:
+    def calculate(self, executor: 'Executor') -> Any:
+        kwargs = {k: p.calculate(executor) for k, p in self.parser.key_args().items()}
+
+        if "_executor" in inspect.signature(self.func).parameters:
+            kwargs['_executor'] = executor
+
         return self.func(
             self.parser,
-            **{k: p.calculate()
-               for k, p in self.parser.key_args().items()
-               }
+            **kwargs
         )
 
     def __eq__(self, other: BaseParser):

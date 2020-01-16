@@ -75,8 +75,8 @@ class MultiParser(BaseParser):
         self._str_deep = False
         return s
 
-    def calculate(self) -> List[Any]:
-        return list(p.calculate() for p in self.parsers)
+    def calculate(self, executor: 'Executor') -> List[Any]:
+        return list(p.calculate(executor) for p in self.parsers)
 
     def __iter__(self):
         if not self._iter_deep:

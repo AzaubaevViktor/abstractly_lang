@@ -40,7 +40,7 @@ class Executor:
             print(f"|- Execute:")
             print(f"|")
 
-            exec_result = result.parser.calculate()
+            exec_result = result.parser.calculate(self)
 
             print(f"|- Finished. Result:")
             print(f"   `{exec_result}`")

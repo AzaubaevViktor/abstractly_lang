@@ -53,11 +53,11 @@ def test_ior_parser(a):
 
 
 def test_func_parser(a):
-    a("__test_func = a:@number => @factorial(a)")
+    a("__test_func = `^` & a:@number => @factorial(a)")
     p = a("__test_func")
     assert isinstance(p, FuncParser)
 
-    assert p.parser == KeyArgument('a', number_expressions)
+    assert p.parser == CharParser('^') & KeyArgument('a', number_expressions)
 
-    a("@ = __test_func")
-    assert a("10") == math.factorial(10)
+    a("@ |= __test_func")
+    assert a("^10") == math.factorial(10)

@@ -35,4 +35,4 @@ def test_action_parser(raw_line):
     assert isinstance(result, ParseVariant)
     assert isinstance(result.parser, FuncParser)
     assert result.line == ''
-    assert int(raw_line) == result.parser.calculate()
+    assert int(raw_line) == result.parser.calculate(None)

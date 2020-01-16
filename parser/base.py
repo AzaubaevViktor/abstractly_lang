@@ -92,7 +92,7 @@ class BaseParser(metaclass=MetaParser):
     def key_args(self) -> Dict[str, 'BaseParser']:
         return {}
 
-    def calculate(self) -> Any:
+    def calculate(self, executor: 'Executor') -> Any:
         return self
 
     def _search(self, parser: 'BaseParser'):

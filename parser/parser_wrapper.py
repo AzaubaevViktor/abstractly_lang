@@ -20,8 +20,8 @@ class WrapperParser(BaseParser):
             )
         # TODO: try + except + context
 
-    def calculate(self) -> Any:
-        return self.parser.calculate()
+    def calculate(self, executor: 'Executor') -> Any:
+        return self.parser.calculate(executor)
 
     def __repr__(self):
         return f"<{self.__class__.__name__}: {self.parser}>"

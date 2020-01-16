@@ -52,4 +52,4 @@ def test_number(raw_line, number_parser):
     assert isinstance(result, ParseVariant)
     assert isinstance(result.parser, EndLineParser)
     assert result.line == ''
-    assert int(raw_line) == result.parser.calculate()
+    assert int(raw_line) == result.parser.calculate(None)

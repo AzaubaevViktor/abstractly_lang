@@ -23,6 +23,10 @@ from .key_argument import use_key_argument
 
 parser_parser |= use_key_argument(parser_parser)
 
+from .func_parser import use_func_parser
+
+parser_parser |= use_func_parser(parser_parser)
+
 # Braces
 
 from ..braces import use_braces
