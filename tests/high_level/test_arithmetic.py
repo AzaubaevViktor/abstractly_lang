@@ -38,3 +38,12 @@ def test_factorial_sum(a, x, y):
     result = math.factorial(x) + math.factorial(y)
 
     assert a(f"{x}! + {y}!") == result
+
+@pytest.mark.parametrize("x, y", (
+    *product(
+        range(0, 10),
+        range(0, 10)
+    ),
+))
+def test_power(a, x, y):
+    assert a(f"{x} ** {y}") == math.pow(x, y)
