@@ -6,6 +6,7 @@ from parser import CharParser, EmptyParser, AndParser, FuncParser, KeyArgument, 
 from .common import digit, spaces
 from .op_generators import generate_operation_2
 from .variable import use_variables
+from .functions import use_functions
 
 
 class NumberPriority(BasePriority):
@@ -99,3 +100,6 @@ number_expressions |= generate_operation_2(
 # Variables
 
 number_expressions |= use_variables("@n", number_expressions)
+
+
+number_expressions |= use_functions(number_expressions)
