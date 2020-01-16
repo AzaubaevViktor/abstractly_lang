@@ -8,8 +8,7 @@ from std_parsers.common import spaces
 def test_vars(a):
     assert a("@spaces") == spaces
     assert a("__") == spaces
-    # TODO: Fix MultiParser.__eq__
-    assert hash(a("@number")) == hash(number_expressions)
+    assert a("@number") is number_expressions
 
 
 def test_char_parser(a):
