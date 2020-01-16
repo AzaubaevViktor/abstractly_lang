@@ -1,3 +1,5 @@
+from .parse_variant import ParseVariant
+
 from .common.end_line_parser import EndLineParser, NotFoundEndLineError
 
 from .func.func_parser import FuncParser

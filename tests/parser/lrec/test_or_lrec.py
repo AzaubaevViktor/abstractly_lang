@@ -1,10 +1,12 @@
 """
 Разбор леворекурсивных правил. Пока разворачиваем их руками, чё делать
 """
+from typing import List
+
 import pytest
 
 from line import Line
-from parser import CharParser, EndLineParser, AndParser
+from parser import CharParser, EndLineParser, AndParser, ParseVariant
 from parser import OrParser
 
 
@@ -61,3 +63,16 @@ def test_deep_lrec_good(raw_line: str):
     else:
         assert isinstance(pr, AndParser)
         assert len(pr.parsers) == len(raw_line)
+
+
+def test_simple_lrec():
+    x = OrParser(CharParser('x'))
+    x |= x & CharParser('y')
+
+    results: List[ParseVariant] = list(x.parse(Line('xyy')))
+
+    assert results == [
+        ParseVariant(CharParser('x'), Line('yy')),
+        ParseVariant(CharParser('x') & CharParser('y'), Line('y')),
+        ParseVariant(CharParser('x') & CharParser('y') & CharParser('y'), Line(''))
+    ]
