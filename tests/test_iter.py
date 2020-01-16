@@ -21,7 +21,7 @@ def test_or_and_iter():
     z = CharParser('z')
     a = OrParser((x | y) & z)
 
-    assert set(a) == set((a, (x | y) & z, x, y, (x | y), z))
+    assert set(a) == {a, (x | y) & z, x, y, (x | y), z}
 
     a |= z & a
 
@@ -29,6 +29,6 @@ def test_or_and_iter():
     for _ in sa:
         print(_)
 
-    assert sa == set((a, (x | y), z, x, y, z & a))
+    assert sa == {a, (x | y), z, x, y, z & a}
 
 
