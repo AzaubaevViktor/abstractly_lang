@@ -2,7 +2,7 @@ import math
 
 from parser import FuncParser, KeyArgument, CharParser, PriorityParser, DictParser, EmptyParser, OrParser
 from parser.base import BaseParser
-from std_parsers.common import var_symbol, spaces
+from std_parsers.common import spaces
 from std_parsers.variable import variables
 
 variables['@factorial'] = math.factorial

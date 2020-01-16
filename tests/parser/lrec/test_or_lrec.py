@@ -8,6 +8,7 @@ import pytest
 from line import Line
 from parser import CharParser, EndLineParser, AndParser, ParseVariant
 from parser import OrParser
+from parser.base import ParseError
 
 
 def test_or_set():
@@ -37,7 +38,7 @@ def test_or_lrec(raw_line):
 
 
 @pytest.mark.parametrize('raw_line', (
-    'x', 'z', 'xy', 'xz', 'zy', 'zz', 'xyy', 'zyyy',
+    'x', 'z', 'xy',  'zy', 'xyy', 'zyyy',
 ))
 def test_deep_lrec_good(raw_line: str):
     line = Line(raw_line)
@@ -63,6 +64,23 @@ def test_deep_lrec_good(raw_line: str):
     else:
         assert isinstance(pr, AndParser)
         assert len(pr.parsers) == len(raw_line)
+
+
+@pytest.mark.parametrize('raw_line', (
+    'xz', 'xx', 'y', 'zyyyx',
+))
+def test_deep_lrec_wrong(raw_line: str):
+    line = Line(raw_line)
+
+    x = OrParser(CharParser('x'))
+    a = x & CharParser('y')  # X `y`
+    b = a | CharParser('z')  # X 'y' | z
+    x |= b  # X = x | z | X 'y'
+
+    _x = EndLineParser(x)
+
+    with pytest.raises(ParseError):
+        list(_x.parse(line))
 
 
 def test_simple_lrec():

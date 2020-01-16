@@ -19,11 +19,17 @@ from .and_parser import and_parser
 
 parser_parser |= and_parser
 
+from .key_argument import use_key_argument
+
+parser_parser |= use_key_argument(parser_parser)
+
+# Braces
+
 from ..braces import use_braces
 
 parser_parser |= use_braces(parser_parser)
 
-# ===============
+# Variables
 
 parser_parser |= use_variables('@parser', parser_parser)
 

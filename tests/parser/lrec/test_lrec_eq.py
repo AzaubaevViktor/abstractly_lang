@@ -20,8 +20,10 @@ def test_lrec_eq_other():
     y |= y & CharParser('y')
 
     assert x is not y
-    assert x == y
     assert hash(x) == hash(y)
 
     print(x)
     print(y)
+
+    assert x == y
+

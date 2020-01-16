@@ -30,7 +30,7 @@ class MultiParser(BaseParser):
 
         self.parsers = tuple(p for p in _parsers if not isinstance(p, EmptyParser))
         self._iter_deep = False
-        self._hash_deep = 0
+        self._hash_deep = False
         self._str_deep = 0
 
     def __eq__(self, other: BaseParser):
@@ -44,9 +44,15 @@ class MultiParser(BaseParser):
         return self.parsers == other.parsers
 
     def __hash__(self):
+        if self._hash_deep:
+            return hash(-1)
+
+        self._hash_deep = True
         raw_hashes = sorted(map(hash, self.parsers))
         s_to_hash = self.STR_SYM + '-'.join(map(str, raw_hashes))
-        return hash(s_to_hash)
+        _calculated_hash = hash(s_to_hash)
+        self._hash_deep = False
+        return _calculated_hash
 
     def key_args(self) -> Dict[str, BaseParser]:
         _kas = {}
