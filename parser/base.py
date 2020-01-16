@@ -8,10 +8,10 @@ class MetaParser(type):
     __memo__ = {}
 
     def __new__(mcls, name: str, bases: Tuple["BaseParser"], attributes: Dict[str, Any]):
-        if name != "BaseParser":
-            for an, a in attributes.items():
-                if callable(a):
-                    attributes[an] = mcls._catcher(mcls, a)
+        # if name != "BaseParser":
+        #     for an, a in attributes.items():
+        #         if callable(a):
+        #             attributes[an] = mcls._catcher(mcls, a)
         return super().__new__(mcls, name, bases, attributes)
 
     def _memo(mcls, f):

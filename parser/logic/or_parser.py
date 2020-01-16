@@ -112,4 +112,6 @@ class OrParser(MultiParser):
         else:
             self.parsers = (*self.parsers, other)
 
+        self.results.clear()
+
         return self

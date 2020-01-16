@@ -62,3 +62,6 @@ class Line:
 
     def __hash__(self):
         return hash(self.line)
+
+    def startswith(self, s: str):
+        return self.line.startswith(s)

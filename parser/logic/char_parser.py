@@ -31,10 +31,10 @@ class CharParser(BaseParser):
         return self.ch == other.ch
 
     def parse(self, line: Line) -> Iterable[ParseVariant]:
-        if len(line) and (line[0] == self.ch):
+        if line and (line.startswith(self.ch)):
             yield ParseVariant(CharParser(self.ch), line[1:])
         else:
-            raise ParseError(f"Expect {repr(self.ch)}, but {repr(line[0]) if len(line) else line}")
+            raise ParseError("")
 
     def __repr__(self):
         return f"<{self.__class__.__name__}: {repr(self.ch)}>"
