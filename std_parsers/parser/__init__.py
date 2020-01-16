@@ -1,9 +1,9 @@
-
+import operator
 
 from .base import parser_parser
 
 from .empty_parser import empty_parser
-from ..variable import use_variables, variables
+from ..variable import use_variables, variables, add_variable_op
 
 parser_parser |= empty_parser
 
@@ -32,5 +32,9 @@ parser_parser |= use_braces(parser_parser)
 # Variables
 
 parser_parser |= use_variables('@parser', parser_parser)
+
+# |=
+
+parser_parser |= add_variable_op(parser_parser, "|=", operator.ior)
 
 __all__ = ("parser_parser", )

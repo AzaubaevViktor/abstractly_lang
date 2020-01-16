@@ -8,7 +8,7 @@ space = CharParser(' ') | CharParser('\t') | CharParser('\n')
 
 spaces = space[:]
 
-correct_var_symbol = "@:qwertyuiopasdfghjklzxcvbnm"
+correct_var_symbol = "_@:qwertyuiopasdfghjklzxcvbnm"
 
 
 _all_symbols = "1234567890-=" \
