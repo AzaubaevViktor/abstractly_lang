@@ -50,37 +50,36 @@ class OrParser(MultiParser):
         """
         super().__init__(*parsers)
         self.results: Dict[Line, List[ParseVariant]] = defaultdict(list)
-        self.deep: Dict[Line, int] = defaultdict(int)
+        self.deep: Dict[Line, bool] = defaultdict(bool)
 
     @_or_parser_error
     def parse(self, line: Line) -> Iterable[ParseVariant]:
-        # print("PARSE   :", self, line)
-        # print("DEEP    :", self.deep[line])
-        # print("RESULTS :", self.results[line])
-
         yield from self.results[line]
 
-        if self.deep[line] != 0:
+        if self.deep[line]:
             return
 
-        self.deep[line] += 1
+        self.deep[line] = True
 
-        while True:
-            prev_results_count = len(self.results[line])
+        try:
+            while True:
+                prev_results_count = len(self.results[line])
 
-            for parser in self.parsers:
-                try:
-                    for item in parser.parse(line):
-                        if item not in self.results[line]:
-                            self.results[line].append(item)
-                            yield item
-                except ParseError:
-                    pass
+                for parser in self.parsers:
+                    try:
+                        for item in parser.parse(line):
+                            if item not in self.results[line]:
+                                self.results[line].append(item)
+                                yield item
+                    except ParseError:
+                        pass
 
-            if prev_results_count == len(self.results[line]):
-                break
-
-        self.deep[line] -= 1
+                if prev_results_count == len(self.results[line]):
+                    break
+        except Exception:
+            raise
+        finally:
+            self.deep[line] = False
 
     @uniques
     def _parse(self, line: Line) -> Iterable[ParseVariant]:
