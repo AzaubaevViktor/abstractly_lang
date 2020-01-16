@@ -9,6 +9,7 @@ variables['@factorial'] = math.factorial
 variables['@power'] = math.pow
 variables['_return_hello'] = lambda: "hello"
 variables['vars_keys'] = lambda: variables.keys()
+variables['type'] = type
 
 
 def use_functions(base_expr: BaseParser, priority=None):

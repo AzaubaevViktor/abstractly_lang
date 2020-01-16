@@ -30,3 +30,7 @@ class WrapperParser(BaseParser):
         yield self
         yield self.parser
         yield from self.parser
+
+    def __ior__(self, other: BaseParser):
+        self.parser |= other
+        return self

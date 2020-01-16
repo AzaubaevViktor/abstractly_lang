@@ -2,7 +2,7 @@ from time import time
 
 from executor import Executor
 from live_source import LiveSource
-from parser import EndLineParser, KeyArgument, FuncParser
+from parser import EndLineParser, KeyArgument, FuncParser, OrParser
 from std_parsers import number_expressions, comment_parser
 from std_parsers import system_expressions
 from std_parsers import parser_parser
@@ -10,8 +10,11 @@ from std_parsers.common import spaces
 from std_parsers.variable import variables
 
 live_parser = EndLineParser(FuncParser(
-    KeyArgument("calc_result", number_expressions | system_expressions | parser_parser)
-    & spaces & comment_parser[:2],
+    KeyArgument("calc_result",
+                OrParser(*(
+                    p & comment_parser[:2]
+                    for p in (number_expressions, system_expressions, parser_parser)))
+                ),
     lambda *result, calc_result: calc_result
 ))
 

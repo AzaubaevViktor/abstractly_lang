@@ -110,7 +110,7 @@ class BaseParser(metaclass=MetaParser):
         raise NotImplementedError()
 
     def __ior__(self, other):
-        raise NotImplementedError("Onnly for OrParser")
+        raise NotImplementedError("Only for OrParser")
 
     def __iand__(self, other):
         raise NotImplementedError("Only for AndParser")
