@@ -20,7 +20,7 @@ class KeyArgument(WrapperParser):
         if not isinstance(other, self.__class__):
             return False
 
-        return (self.parser == other.parser) and (self.key == other.key)
+        return (hash(self.parser) == hash(other.parser)) and (self.key == other.key)
 
     def key_args(self) -> Dict[str, BaseParser]:
         return {

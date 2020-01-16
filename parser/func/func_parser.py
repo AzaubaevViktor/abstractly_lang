@@ -32,7 +32,7 @@ class FuncParser(WrapperParser):
         if not isinstance(other, self.__class__):
             return False
 
-        return (self.parser == other.parser) and (self.func == other.func)
+        return (hash(self.parser) == hash(other.parser)) and (self.func == other.func)
 
     def __str__(self):
         return f"{{{self.parser}}} => {self.func}"

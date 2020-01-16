@@ -59,7 +59,7 @@ class PriorityParser(WrapperParser):
             return _result
 
         if isinstance(other, self.__class__):
-            return self.parser == other.parser and self.priority == other.priority
+            return hash(self.parser) == hash(other.parser) and self.priority == other.priority
 
         return False
 

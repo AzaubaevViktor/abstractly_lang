@@ -41,7 +41,10 @@ class MultiParser(BaseParser):
         if not isinstance(other, self.__class__):
             return False
 
-        return self.parsers == other.parsers
+        sp_hashes = frozenset(hash(p) for p in self.parsers)
+        op_hashes = frozenset(hash(p) for p in other.parsers)
+
+        return sp_hashes == op_hashes
 
     def __hash__(self):
         if self._hash_deep:
