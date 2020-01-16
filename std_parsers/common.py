@@ -47,3 +47,4 @@ def raw_text(chars: str):
 
 
 var_name = raw_text(correct_var_symbol)
+any_str = raw_text(_all_symbols)

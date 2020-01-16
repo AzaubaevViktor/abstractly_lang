@@ -23,7 +23,7 @@ class EndLineParser(WrapperParser):
                 is_found = True
                 yield variant
             else:
-                wrong_variants = variant
+                wrong_variants.append(variant)
 
         if not is_found:
             raise NotFoundEndLineError(

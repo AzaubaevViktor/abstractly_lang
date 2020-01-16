@@ -2,7 +2,7 @@ from time import time
 
 from executor import Executor
 from live_source import LiveSource
-from parser import EndLineParser, KeyArgument, FuncParser, OrParser
+from parser import EndLineParser, KeyArgument, FuncParser
 from std_parsers import number_expressions, comment_parser
 from std_parsers import system_expressions
 from std_parsers import parser_parser
@@ -23,7 +23,7 @@ variables['@spaces'] = variables['__'] = spaces
 
 if __name__ == '__main__':
     source = LiveSource()
-    executor = Executor(lambda: variables['@'])
+    executor = Executor(lambda: variables['@@'])
 
     for line in source():
         st = time()
