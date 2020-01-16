@@ -9,16 +9,16 @@ from std_parsers import parser_parser
 from std_parsers.common import spaces
 from std_parsers.variable import variables
 
+_core_parser = number_expressions | system_expressions | parser_parser
+
 live_parser = EndLineParser(FuncParser(
-    KeyArgument("calc_result",
-                OrParser(*(
-                    p & comment_parser[:2]
-                    for p in (number_expressions, system_expressions, parser_parser)))
-                ),
+    KeyArgument("calc_result", _core_parser)
+    & spaces & comment_parser[:2],
     lambda *result, calc_result: calc_result
 ))
 
-variables['@'] = live_parser
+variables['@@'] = live_parser
+variables['@'] = _core_parser
 variables['@spaces'] = variables['__'] = spaces
 
 if __name__ == '__main__':
