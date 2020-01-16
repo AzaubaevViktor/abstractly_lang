@@ -57,3 +57,6 @@ class RepeatParser(BaseParser):
 
     def __repr__(self):
         return f"<RepeatParser {self._from}:{self._to} of {self.p}>"
+
+    def __hash__(self):
+        return hash(self.__class__) * hash(self.p) * hash(self._from) * hash(self._to)

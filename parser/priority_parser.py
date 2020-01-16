@@ -8,12 +8,16 @@ from parser.parser_wrapper import WrapperParser
 
 class BasePriority:
     def __init__(self, priority: int):
+        assert isinstance(priority, int)
         self.priority = priority
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
             return False
         return self.priority == other.priority
+
+    def __hash__(self):
+        return hash(self.__class__) * hash(self.priority)
 
 
 class PriorityParser(WrapperParser):
