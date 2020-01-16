@@ -109,6 +109,12 @@ class BaseParser(metaclass=MetaParser):
         """ Список парсеров внутри """
         raise NotImplementedError()
 
+    def __ior__(self, other):
+        raise NotImplementedError("Onnly for OrParser")
+
+    def __iand__(self, other):
+        raise NotImplementedError("Only for AndParser")
+
 
 class BaseParserError(Exception):
     def __init__(self, msg: str, parser: BaseParser = None):

@@ -15,6 +15,6 @@ from .or_parser import or_parser
 
 parser_parser |= or_parser
 
-parser_parser |= use_variables('@:parser_parser', parser_parser)
+parser_parser |= use_variables('@parser', parser_parser)
 
 __all__ = ("parser_parser", )

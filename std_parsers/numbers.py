@@ -99,7 +99,7 @@ number_expressions |= generate_operation_2(
 
 # Variables
 
-number_expressions |= use_variables("@n", number_expressions)
+number_expressions |= use_variables("@number", number_expressions)
 
 
 number_expressions |= use_functions(number_expressions)
