@@ -14,3 +14,12 @@ def test_and_hash():
 
     assert hash(a1) == hash(a2)
 
+
+def test_or_hash():
+    x = CharParser("x")
+    y = CharParser("y")
+
+    a1 = x & y
+    a2 = x & y
+
+    assert hash(a1) == hash(a2)
