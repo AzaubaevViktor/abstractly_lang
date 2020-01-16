@@ -3,7 +3,7 @@ from typing import Any
 
 from parser import DictParser, CharParser, FuncParser, KeyArgument
 from parser.base import BaseParser
-from std_parsers.common import spaces, symbol
+from std_parsers.common import spaces, var_symbol
 
 variables = {
     'hello': 'world!',
@@ -25,7 +25,7 @@ def use_variables(key: str, base_parser: BaseParser) -> BaseParser:
         return value
 
     set_var_parser = FuncParser(
-        KeyArgument('name', symbol[1:]) & spaces & CharParser('=') & spaces & KeyArgument('value', base_parser),
+        KeyArgument('name', var_symbol[1:]) & spaces & CharParser('=') & spaces & KeyArgument('value', base_parser),
         _set_var_func)
 
     get_var_parser.d[key] = base_parser

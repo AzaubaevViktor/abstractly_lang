@@ -6,4 +6,20 @@ space = CharParser(' ') | CharParser('\t') | CharParser('\n')
 
 spaces = space[:]
 
-symbol = OrParser(*(CharParser(x) for x in "@:qwertyuiopasdfghjklzxcvbnm"))
+var_symbol = OrParser(*(CharParser(x) for x in "@:qwertyuiopasdfghjklzxcvbnm"))
+
+_all_symbols = "1234567890-=" \
+               "qwertyuiop[]" \
+               "asdfghjkl;\'\"\\" \
+               "zxcvbnm,./" \
+               "!@#$%^&*()_+" \
+               "QWERTYUIOP{}" \
+               "ASDFGHJKL:|" \
+               "ZXCVBNM<>?" \
+               "~`><" \
+               " \t" \
+               "№" \
+               "йцукенгшщзхъЙЦУКЕНГШЩЗХЪ" \
+               "фывапролджэёФЫВАПРОЛДЖЭЁ" \
+               "ячсмитьбюЯЧСМИТЬБЮ"
+all_symbol = OrParser(*(CharParser(x) for x in _all_symbols))

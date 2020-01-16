@@ -3,17 +3,16 @@ from pprint import pprint
 
 import pytest
 
-from std_parsers import number_expressions
+from main import live_parser
 
 pprint(dict(os.environ))
 
 from executor import Executor
-from parser import EndLineParser
 from source import StrSource
 
 
 def _executor(raw_line: str):
-    executor = Executor(EndLineParser(number_expressions))
+    executor = Executor(live_parser)
 
     source = StrSource("<test>", raw_line)
     result = None

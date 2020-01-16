@@ -44,6 +44,10 @@ class OrParser(MultiParser):
     STR_SYM = '|'
 
     def __init__(self, *parsers: BaseParser):
+        """
+
+        :rtype:
+        """
         super().__init__(*parsers)
         self.results: Dict[Line, List[ParseVariant]] = defaultdict(list)
         self.deep: Dict[Line, int] = defaultdict(int)
