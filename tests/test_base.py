@@ -1,4 +1,4 @@
-from parser import CharParser, AndParser, OrParser
+from parser import CharParser, AndParser, OrParser, KeyArgument
 
 
 def test_char_hash():
@@ -21,3 +21,9 @@ def test_and_hash():
 
 def test_or_hash():
     binary_parser_assert(OrParser)
+
+
+def test_key_argument_hash():
+    x = CharParser("x")
+
+    assert hash(KeyArgument("y", x)) == hash(KeyArgument("y", x))
