@@ -1,4 +1,4 @@
-from parser import CharParser, AndParser, OrParser, KeyArgument, FuncParser
+from parser import CharParser, AndParser, OrParser, KeyArgument, FuncParser, RepeatParser
 
 
 def test_char_hash():
@@ -34,3 +34,10 @@ def test_func_hash():
     x = CharParser("x")
 
     assert hash(FuncParser(x, f)) == hash(FuncParser(x, f))
+
+
+def test_repeat_hash():
+    x = CharParser("x")
+
+    assert hash(RepeatParser(x)) == hash(RepeatParser(x))
+    assert hash(RepeatParser(x, _from=10, _to=100)) == hash(RepeatParser(x, _from=10, _to=100))
