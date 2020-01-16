@@ -1,4 +1,4 @@
-from parser import CharParser, AndParser, OrParser, KeyArgument
+from parser import CharParser, AndParser, OrParser, KeyArgument, FuncParser
 
 
 def test_char_hash():
@@ -27,3 +27,10 @@ def test_key_argument_hash():
     x = CharParser("x")
 
     assert hash(KeyArgument("y", x)) == hash(KeyArgument("y", x))
+
+
+def test_func_hash():
+    def f(): pass
+    x = CharParser("x")
+
+    assert hash(FuncParser(x, f)) == hash(FuncParser(x, f))
