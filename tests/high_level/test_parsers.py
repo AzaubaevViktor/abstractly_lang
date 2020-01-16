@@ -1,6 +1,6 @@
 import math
 
-from parser import CharParser, KeyArgument, FuncParser
+from parser import CharParser, KeyArgument, FuncParser, AndParser
 from std_parsers import number_expressions
 from std_parsers.common import spaces
 
@@ -61,3 +61,22 @@ def test_func_parser(a):
 
     a("@ |= __test_func")
     assert a("^10") == math.factorial(10)
+
+
+def test_func_2_key_arg(a):
+    ka2 = a("b:@number & a:@number")
+    assert isinstance(ka2, AndParser)
+    assert len(ka2.parsers) == 2
+    for parser in ka2.parsers:
+        assert isinstance(parser, KeyArgument)
+
+
+def test_func2_parser(a):
+    a("__test_func = a:@number & `^` & b:@number => a + b")
+    p = a("__test_func")
+    assert isinstance(p, FuncParser)
+
+    # assert p.parser == KeyArgument('a', number_expressions) & CharParser('^') & KeyArgument('a', number_expressions)
+
+    a("@ |= __test_func")
+    assert a("2^5") == 7
