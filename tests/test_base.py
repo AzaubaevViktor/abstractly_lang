@@ -1,25 +1,23 @@
-from parser import CharParser
+from parser import CharParser, AndParser, OrParser
 
 
 def test_char_hash():
     assert hash(CharParser("x")) == hash(CharParser("x"))
 
 
-def test_and_hash():
+def binary_parser_assert(parser):
     x = CharParser("x")
     y = CharParser("y")
 
-    a1 = x & y
-    a2 = x & y
+    p1 = parser(x, y)
+    p2 = parser(x, y)
 
-    assert hash(a1) == hash(a2)
+    assert hash(p1) == hash(p2)
+
+
+def test_and_hash():
+    binary_parser_assert(AndParser)
 
 
 def test_or_hash():
-    x = CharParser("x")
-    y = CharParser("y")
-
-    a1 = x & y
-    a2 = x & y
-
-    assert hash(a1) == hash(a2)
+    binary_parser_assert(OrParser)
