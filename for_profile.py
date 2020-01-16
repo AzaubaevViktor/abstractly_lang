@@ -23,10 +23,16 @@ variables['@spaces'] = variables['__'] = spaces
 
 executor = Executor(lambda: variables['@@'])
 
-lines = """__p = a:@number & __ & `^_^` & __ & b:@number
+lines1 = """__p = a:@number & __ & `^_^` & __ & b:@number
 __fp = __p => @power(a, b)
 @ |= __fp
 2 ^_^ 3
+"""
+
+lines = """_p = a:@number & __ & `^_^` & __ & b:@number & __ & `O_o` & __ & c:@number
+_fp = _p => @power((a + b), 2) * (b + c) ** 2 / (a + c)
+@number |= _fp
+2 ^_^ 3 O_o 4
 """
 
 source = StrSource("profile", lines)

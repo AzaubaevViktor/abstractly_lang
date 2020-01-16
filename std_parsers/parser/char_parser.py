@@ -6,7 +6,7 @@ chars_dict = {
     '\\"': '"',
     "\\'": "'",
     "\\t": "\t",
-    **{x: x for x in "1234567890-=qwertyuiop[]asdfghjkl;'zxcvbnm,./!@#$%^&*()_+"}
+    **{x: x for x in "1234567890-=qwertyuiop[]asdfghjkl;'zxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM,./!@#$%^&*()_+"}
 }
 
 chars_dict_parser = DictParser(chars_dict)
