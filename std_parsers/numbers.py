@@ -3,6 +3,7 @@ import operator
 from typing import Union
 
 from parser import CharParser, EmptyParser, AndParser, FuncParser, KeyArgument, OrParser, BasePriority, PriorityParser
+from .braces import use_braces
 from .common import digit, spaces
 from .op_generators import generate_operation_2
 from .variable import use_variables
@@ -63,14 +64,8 @@ number_expressions |= generate_operation_2(
 
 # Braces
 
-number_expressions |= \
-    FuncParser(
-        CharParser('(') & spaces
-        & KeyArgument(
-            'e', number_expressions
-        ) & spaces & CharParser(')'),
-        lambda *args, e: e
-    )
+
+number_expressions |= use_braces(number_expressions)
 
 
 # Factorial

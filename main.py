@@ -16,6 +16,7 @@ live_parser = EndLineParser(FuncParser(
 ))
 
 variables['@'] = live_parser
+variables['@spaces'] = variables['__'] = spaces
 
 if __name__ == '__main__':
     source = LiveSource()

@@ -3,7 +3,7 @@
 from .base import parser_parser
 
 from .empty_parser import empty_parser
-from ..variable import use_variables
+from ..variable import use_variables, variables
 
 parser_parser |= empty_parser
 
@@ -14,6 +14,16 @@ parser_parser |= char_parser
 from .or_parser import or_parser
 
 parser_parser |= or_parser
+
+from .and_parser import and_parser
+
+parser_parser |= and_parser
+
+from ..braces import use_braces
+
+parser_parser |= use_braces(parser_parser)
+
+# ===============
 
 parser_parser |= use_variables('@parser', parser_parser)
 

@@ -34,6 +34,14 @@ def test_and_parser(a):
     assert a("`x` & `y`") == CharParser('x') & CharParser('y')
 
 
+def test_priority_parser(a):
+    assert a("`x` | `y` & `z`") == CharParser('x') | CharParser('y') & CharParser('z')
+
+
+def test_braces(a):
+    assert a("(`x` | `y`) & `z`") == (CharParser('x') | CharParser('y')) & CharParser('z')
+
+
 def test_ior_parser(a):
     a("__test_ior = `x` | `y`")
     assert a("__test_ior") == CharParser('x') | CharParser('y')
