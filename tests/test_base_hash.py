@@ -1,3 +1,4 @@
+import pytest
 from parser import CharParser, AndParser, OrParser, KeyArgument, FuncParser, RepeatParser
 
 
@@ -5,7 +6,8 @@ def test_char_hash():
     assert hash(CharParser("x")) == hash(CharParser("x"))
 
 
-def binary_parser_assert(parser):
+@pytest.mark.parametrize("parser", [AndParser, OrParser])
+def test_binary_parser_assert(parser):
     x = CharParser("x")
     y = CharParser("y")
 
@@ -13,14 +15,6 @@ def binary_parser_assert(parser):
     p2 = parser(x, y)
 
     assert hash(p1) == hash(p2)
-
-
-def test_and_hash():
-    binary_parser_assert(AndParser)
-
-
-def test_or_hash():
-    binary_parser_assert(OrParser)
 
 
 def test_key_argument_hash():
@@ -47,7 +41,8 @@ def test_char_not_hash():
     assert hash(CharParser("x")) != hash(CharParser("y"))
 
 
-def binary_parser_not_assert(parser):
+@pytest.mark.parametrize("parser", [AndParser, OrParser])
+def test_binary_parser_not_assert(parser):
     x = CharParser("x")
     y = CharParser("y")
 
@@ -55,14 +50,6 @@ def binary_parser_not_assert(parser):
     p2 = parser(y, y)
 
     assert hash(p1) != hash(p2)
-
-
-def test_and_not_hash():
-    binary_parser_not_assert(AndParser)
-
-
-def test_or_not_hash():
-    binary_parser_not_assert(OrParser)
 
 
 def test_key_argument_not_hash():
