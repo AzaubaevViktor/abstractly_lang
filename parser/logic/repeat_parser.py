@@ -60,3 +60,13 @@ class RepeatParser(BaseParser):
 
     def __hash__(self):
         return hash(self.__class__) * hash(self.p) * hash(self._from) * hash(self._to)
+
+    def __eq__(self, other: BaseParser):
+        _result = super().__eq__(other)
+        if _result is not None:
+            return _result
+
+        if not isinstance(other, RepeatParser):
+            return False
+
+        return self.p == other.p
