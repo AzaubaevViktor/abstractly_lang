@@ -88,5 +88,5 @@ def test_repeat_not_hash():
     y = CharParser("y")
 
     assert hash(RepeatParser(x)) != hash(RepeatParser(y))
-    assert hash(RepeatParser(x, _from=1, _to=100)) == hash(RepeatParser(x, _from=10, _to=100))
-    assert hash(RepeatParser(x, _from=10, _to=10)) == hash(RepeatParser(x, _from=10, _to=100))
+    assert hash(RepeatParser(x, _from=1, _to=100)) != hash(RepeatParser(x, _from=10, _to=100))
+    assert hash(RepeatParser(x, _from=10, _to=10)) != hash(RepeatParser(x, _from=10, _to=100))
