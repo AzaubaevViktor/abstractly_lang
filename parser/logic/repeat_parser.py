@@ -69,4 +69,5 @@ class RepeatParser(BaseParser):
         if not isinstance(other, RepeatParser):
             return False
 
-        return self.p == other.p
+        return self.p == other.p and self._from == other._from and self._to == other._to
+
