@@ -23,9 +23,9 @@ class DictParser(BaseParser):
 
     def _calc_key(self, key):
         if isinstance(key, list):
-            key = "".join(p.ch for p in key)
+            key = "".join(p.s for p in key)
         else:
-            key = key.ch
+            key = key.s
         return key
 
     def _generate_parser(self) -> BaseParser:

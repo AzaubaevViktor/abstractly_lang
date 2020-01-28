@@ -21,7 +21,7 @@ def parsed_to_number(*args,
                      sign: Union[CharParser, EmptyParser],
                      digits: AndParser
                      ):
-    num_str = "".join(p.ch for p in digits)
+    num_str = "".join(p.s for p in digits)
 
     num = int(num_str)
 

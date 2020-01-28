@@ -33,9 +33,9 @@ def raw_text(chars: str):
 
     def _to_str(self, _key: Union[CharParser, List[CharParser]]):
         if isinstance(_key, list):
-            _key = "".join(p.ch for p in _key)
+            _key = "".join(p.s for p in _key)
         else:
-            _key = _key.ch
+            _key = _key.s
         return _key
 
     correct_char = OrParser(*(CharParser(x) for x in chars))

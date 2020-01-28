@@ -59,6 +59,11 @@ class BaseParser(metaclass=MetaParser):
         return f"<{self.__class__.__name__}>"
 
     def __eq__(self, other):
+        from parser.logic._multi_parser import MultiParser
+        if isinstance(other, MultiParser):
+            if other == self:
+                return True
+
         if not isinstance(other, BaseParser):
             return False
 
