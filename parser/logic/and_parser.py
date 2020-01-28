@@ -15,26 +15,6 @@ class AndParserError(ParseError):
 class AndParser(MultiParser):
     STR_SYM = '&'
 
-    def __init__(self, *parsers):
-        super().__init__(*parsers)
-
-        if len(self.parsers) >= 2:
-            from parser import CharParser
-            i1 = iter(self.parsers)
-            i2 = iter(self.parsers)
-            next(i2)
-
-            new_parsers = [self.parsers[0]]
-
-            for p, pn in zip(i1, i2):
-                if isinstance(p, CharParser) and isinstance(pn, CharParser):
-                    new_parsers.pop(-1)
-                    new_parsers.append(p & pn)
-                else:
-                    new_parsers.append(pn)
-
-            self.parsers = new_parsers
-
     def parse(self, line: Line) -> Iterable[ParseVariant]:
         variants: List[ParseVariant] = []
         all_errors: List[List] = []

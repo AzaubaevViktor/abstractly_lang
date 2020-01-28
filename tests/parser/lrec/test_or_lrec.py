@@ -60,7 +60,7 @@ def test_deep_lrec_good(raw_line: str):
     pr = result.parser.parser
     if len(raw_line) == 1:
         assert isinstance(pr, CharParser)
-        assert pr.s == raw_line
+        assert pr.ch == raw_line
     else:
         assert isinstance(pr, AndParser)
         assert len(pr.parsers) == len(raw_line)

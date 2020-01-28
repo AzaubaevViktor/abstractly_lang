@@ -35,7 +35,7 @@ _fp = _p => @power((a + b), 2) * (b + c) ** 2 / (a + c)
 2 ^_^ 3 O_o 4
 """
 
-source = StrSource("profile", lines1)
+source = StrSource("profile", lines)
 
 for line in source():
     print("Start parse: ", line)

@@ -20,7 +20,7 @@ def _digit_parser():
 
 def p_to_num(result, sign: Union[CharParser, EmptyParser], number: AndParser):
     print(result, sign, number)
-    num_str = "".join(p.s for p in number)
+    num_str = "".join(p.ch for p in number)
     num = int(num_str)
 
     if sign:

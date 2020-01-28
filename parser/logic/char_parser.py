@@ -10,8 +10,14 @@ class CharParserInitError(BaseParserError):
 
 
 class CharParser(BaseParser):
-    def __init__(self, s: str):
-        self.s = s
+    def __init__(self, ch: str):
+        if len(ch) != 1:
+            raise CharParserInitError(
+                "Value must be length 1, not "
+                f"{len(ch)} {repr(ch)}"
+            )
+
+        self.ch = ch
 
     def __eq__(self, other: BaseParser):
         _result = super().__eq__(other)
@@ -22,31 +28,29 @@ class CharParser(BaseParser):
         if not isinstance(other, CharParser):
             return False
 
-        return self.s == other.s
-
-    def __and__(self, other: BaseParser):
-        if isinstance(other, CharParser):
-            return CharParser(self.s + other.s)
-        return super().__and__(other)
+        return self.ch == other.ch
 
     def parse(self, line: Line) -> Iterable[ParseVariant]:
-        if line and (line.startswith(self.s)):
-            yield ParseVariant(CharParser(self.s), line[len(self.s):])
+        if line and (line.startswith(self.ch)):
+            yield ParseVariant(CharParser(self.ch), line[1:])
         else:
             raise ParseError("")
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}: {repr(self.s)}>"
+        return f"<{self.__class__.__name__}: {repr(self.ch)}>"
 
     def __str__(self):
-        return f"`{self.s}`"
+        return f"`{self.ch}`"
 
     def __hash__(self):
-        return hash(self.s)
+        return hash(self.ch)
 
     def __iter__(self):
         yield self
 
     @classmethod
-    def line(cls, s: str) -> "CharParser":
-        return CharParser(s)
+    def line(cls, s: str) -> "AndParser":
+        from parser import AndParser
+        if len(s) == 1:
+            return CharParser(s)
+        return AndParser(*(CharParser(ch) for ch in s))

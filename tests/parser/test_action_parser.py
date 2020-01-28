@@ -13,7 +13,7 @@ def sym_to_num(*args, **kwargs):
     assert 'symbol' in kwargs
     assert isinstance(kwargs['symbol'], CharParser)
 
-    return int(kwargs['symbol'].s)
+    return int(kwargs['symbol'].ch)
 
 
 @pytest.mark.parametrize('raw_line', (

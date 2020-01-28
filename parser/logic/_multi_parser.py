@@ -34,10 +34,6 @@ class MultiParser(BaseParser):
         self._str_deep = 0
 
     def __eq__(self, other: BaseParser):
-        if len(self.parsers) == 1:
-            if self.parsers[0] == other:
-                return True
-
         _result = super().__eq__(other)
         if _result is not None:
             return _result

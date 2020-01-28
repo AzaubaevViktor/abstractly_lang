@@ -20,7 +20,7 @@ def _f(*result, chars):
     if isinstance(chars, list):
         chars = "".join(x for x in chars)
     elif isinstance(chars, CharParser):
-        chars = chars.s
+        chars = chars.ch
     elif isinstance(chars, EmptyParser):
         chars = ""
     else:
