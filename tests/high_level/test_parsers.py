@@ -1,8 +1,9 @@
 import math
 
-from parser import CharParser, KeyArgument, FuncParser, AndParser
+from parser import CharParser, KeyArgument, FuncParser, AndParser, PriorityParser
 from std_parsers import number_expressions
 from std_parsers.common import spaces
+from std_parsers.numbers import NumberPriority
 
 
 def test_vars(a):
@@ -80,3 +81,13 @@ def test_func2_parser(a):
 
     a("@ |= __test_func")
     assert a("2^5") == 7
+
+
+def test_priority_parser_generate(a):
+    a("aaa = [`x` / NumberPriority / 100]")
+    p = a("aaa")
+
+    assert isinstance(p, PriorityParser)
+    assert isinstance(p.priority, NumberPriority)
+    assert p.priority.priority == 100
+    assert p.parser == CharParser('x')

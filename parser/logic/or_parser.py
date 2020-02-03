@@ -51,6 +51,7 @@ class OrParser(MultiParser):
         super().__init__(*parsers)
         self.results: Dict[Line, List[ParseVariant]] = defaultdict(list)
         self.deep: Dict[Line, bool] = defaultdict(bool)
+        self.clear_deep: bool = False
 
     @_or_parser_error
     def parse(self, line: Line) -> Iterable[ParseVariant]:
@@ -111,6 +112,21 @@ class OrParser(MultiParser):
         else:
             self.parsers = (*self.parsers, other)
 
-        self.results.clear()
+        self.clear_cache()
 
         return self
+
+    def clear_cache(self):
+        if self.clear_deep:
+            return
+
+        self.clear_deep = True
+
+        self.results.clear()
+        self.deep.clear()
+
+        for parser in self.parsers:
+            parser.clear_cache()
+
+        self.clear_deep = False
+

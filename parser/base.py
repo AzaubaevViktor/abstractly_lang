@@ -115,6 +115,9 @@ class BaseParser(metaclass=MetaParser):
     def __iand__(self, other):
         raise NotImplementedError("Only for AndParser")
 
+    def clear_cache(self):
+        pass
+
 
 class BaseParserError(Exception):
     def __init__(self, msg: str, parser: BaseParser = None):

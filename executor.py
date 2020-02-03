@@ -8,6 +8,10 @@ from parser.base import BaseParser
 class Executor:
     def __init__(self, parser: Union[BaseParser, Callable]):
         self._parser = parser
+        self.debug = False
+
+    def change_debug(self, _to: bool):
+        self.debug = bool(_to)
 
     @property
     def parser(self):
@@ -20,7 +24,8 @@ class Executor:
             return self._execute(line)
         except Exception as e:
             print_exc()
-            raise
+            if self.debug:
+                raise
 
     def _execute(self, line: Line):
         results = list(self.parser.parse(line))
@@ -30,20 +35,26 @@ class Executor:
         if len(results) > 1:
             print(f"| ⚠️ More than one result")
 
+        exec_result = None
+
         for result in results:
-            print("|- Parsed:")
-            print(f"|  - {result}")
+            if self.debug:
+                print("|- Parsed:")
+                print(f"|  - {result}")
 
-            if result.line:
-                print(f"|- Line:")
-                print(f"|  `{result.line}`")
+                if result.line:
+                    print(f"|- Line:")
+                    print(f"|  `{result.line}`")
 
-            print(f"|- Execute:")
-            print(f"|")
+                print(f"|- Execute:")
+                print(f"|")
 
             exec_result = result.parser.calculate(self)
 
-            print(f"|- Finished. Result:")
-            print(f"   `{exec_result}`")
+            if self.debug:
+                print(f"|- Finished. Result:")
+                print(f"   `{exec_result}`")
+            else:
+                print(f"`-> {exec_result}")
 
         return exec_result

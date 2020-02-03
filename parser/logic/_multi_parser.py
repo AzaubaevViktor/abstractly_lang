@@ -1,4 +1,4 @@
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Sequence
 
 from parser.base import BaseParser
 from parser.func.key_argument import KeyArgument
@@ -28,7 +28,7 @@ class MultiParser(BaseParser):
             else:
                 _parsers.append(parser)
 
-        self.parsers = tuple(p for p in _parsers if not isinstance(p, EmptyParser))
+        self.parsers: Sequence[BaseParser] = tuple(p for p in _parsers if not isinstance(p, EmptyParser))
         self._iter_deep = False
         self._hash_deep = False
         self._str_deep = 0
@@ -86,3 +86,7 @@ class MultiParser(BaseParser):
             for parser in self.parsers:
                 yield from parser
             self._iter_deep = False
+
+    def clear_cache(self):
+        for parser in self.parsers:
+            parser.clear_cache()

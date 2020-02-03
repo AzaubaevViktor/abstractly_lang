@@ -1,6 +1,5 @@
 from parser import CharParser, FuncParser, DictParser, BasePriority, KeyArgument, PriorityParser
-
-from .base import parser_parser
+from ..common import spaces
 
 
 class PriorityDictParser(DictParser):
@@ -11,13 +10,16 @@ class PriorityDictParser(DictParser):
     def d(self):
         return {klass.__name__: klass for klass in BasePriority.__subclasses__()}
 
-def use_priority_parser(number_parser):
-    _p = KeyArgument('parser', parser_parser) & \
-         CharParser('[') & \
-         KeyArgument('priority_class', PriorityDictParser()) & \
-         CharParser.line('][') & \
-         KeyArgument('priority_value', number_parser) & \
+
+def use_priority_parser(number_parser, base_parser):
+    _p = CharParser('[') & spaces & \
+         KeyArgument('parser', base_parser) & spaces & \
+         CharParser("/") & spaces & \
+         KeyArgument('priority_class', PriorityDictParser()) & spaces & \
+         CharParser("/") & spaces & \
+         KeyArgument('priority_value', number_parser) & spaces & \
          CharParser(']')
+
 
     def _f(result, parser, priority_class, priority_value):
         print(parser, priority_class, priority_value)

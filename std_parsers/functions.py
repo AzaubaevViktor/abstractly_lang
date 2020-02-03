@@ -14,7 +14,6 @@ variables['type'] = type
 
 def use_functions(base_expr: BaseParser, priority=None):
     def _f(*result, f, arg=None, arg_left=None, arg_right=None):
-        print(arg, ';', arg_left, '<->', arg_right)
         if arg:
             return f(arg)
         elif arg_left and arg_right:
