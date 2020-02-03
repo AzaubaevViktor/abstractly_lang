@@ -8,6 +8,7 @@ def test_new_parser(a):
     a("__fp = __p => @power(a, b)")
     a("@ |= __fp")
     assert a("2 ^_^ 3") == 8
+    assert a("2 ^_^ 2 + 1") == 8
 
 
 @pytest.mark.skip("Too long :(")
