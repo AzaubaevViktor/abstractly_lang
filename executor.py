@@ -20,6 +20,7 @@ class Executor:
             return self._execute(line)
         except Exception as e:
             print_exc()
+            raise
 
     def _execute(self, line: Line):
         results = list(self.parser.parse(line))

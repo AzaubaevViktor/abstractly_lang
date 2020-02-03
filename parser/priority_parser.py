@@ -19,6 +19,9 @@ class BasePriority:
     def __hash__(self):
         return hash(self.__class__) * hash(self.priority)
 
+    def __repr__(self):
+        return f"<{self.__class__.__name__}: {self.priority}>"
+
 
 class PriorityParser(WrapperParser):
     """
@@ -63,5 +66,5 @@ class PriorityParser(WrapperParser):
 
         return False
 
-    # def __repr__(self):
-    #     return f"<PriorityParser({self.priority}) {self.parser}>"
+    def __repr__(self):
+        return f"<PriorityParser({self.priority}) {self.parser}>"

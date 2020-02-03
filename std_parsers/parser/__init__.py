@@ -41,4 +41,9 @@ parser_parser |= use_variables('@parser', parser_parser)
 
 parser_parser |= add_variable_op(parser_parser, "|=", operator.ior)
 
+
+# priority
+
+from .priority_parser import use_priority_parser
+
 __all__ = ("parser_parser", )
