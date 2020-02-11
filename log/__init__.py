@@ -1,1 +1,1 @@
-from .base import Log
+from .base import Log, LogLevel
