@@ -1,6 +1,6 @@
 import asyncio
 from asyncio import Queue, Task
-from typing import List, TypeVar, Type
+from typing import List, TypeVar, Type, Any
 
 from log import Log
 from .message import Message, Shutdown
@@ -75,6 +75,11 @@ class Service:
         await instance._queue.put(message)
         message.to = cls
         return message
+
+    @classmethod
+    async def get(cls, message: Message) -> Any:
+        msg = await cls.send(message)
+        return await msg.result()
 
     @classmethod
     def search(cls, name: str) -> Type['Service']:
