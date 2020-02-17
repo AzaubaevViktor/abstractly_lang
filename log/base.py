@@ -1,6 +1,7 @@
 import datetime
 from enum import Enum
 from colorama import Fore, Back, Style
+from traceback import format_exc
 
 
 class LogLevel(Enum):
@@ -17,7 +18,7 @@ class Log:
     TIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
     LEVEL_COLOR = {
         LogLevel.DEEP_DEBUG: Fore.LIGHTBLACK_EX,
-        LogLevel.INFO: Fore.WHITE,
+        LogLevel.DEBUG: Fore.WHITE,
         LogLevel.IMPORTANT: Back.BLUE,
         LogLevel.WARNING: Back.LIGHTCYAN_EX,
         LogLevel.EXCEPTION: Back.LIGHTRED_EX,
@@ -62,7 +63,7 @@ class Log:
         self._print(LogLevel.WARNING, *args, **kwargs)
 
     def exception(self, *args, **kwargs):
-        self._print(LogLevel.EXCEPTION, *args, **kwargs)
+        self._print(LogLevel.EXCEPTION, *args, **kwargs, _err=f'\n{format_exc()}')
 
     def error(self, *args, **kwargs):
         self._print(LogLevel.ERROR, *args, **kwargs)
