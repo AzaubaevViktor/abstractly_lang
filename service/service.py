@@ -44,7 +44,7 @@ class Service:
 
             if isinstance(msg, Shutdown):
                 self.logger.info("Shutdown")
-                await self.shutdown(msg)
+                msg.set_result(await self.shutdown(msg))
                 break
 
             new_task = asyncio.create_task(self._apply_task(msg))

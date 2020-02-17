@@ -1,7 +1,7 @@
 import asyncio
-from typing import List, Type, Dict, Any
+from typing import List, Type, Dict, Any, Sequence
 
-from service.message import Message
+from service.message import Message, Shutdown
 from service.service import Service
 from test.messages import DoTest
 
@@ -30,7 +30,7 @@ class RunTests(Service):
         good: List[Type[TestedService]] = []
         bad: Dict[Type[TestedService], Any] = {}
 
-        for service_class in TestedService.__subclasses__():
+        for service_class in await self.all_services():
             service_class: TestedService
             self.logger.info("🧪", service_class)
             message = await service_class.send(DoTest())
@@ -56,7 +56,7 @@ class RunTests(Service):
 
                 working.remove(msg)
 
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.1)
 
         self.logger.important("Tests finished!", good=len(good), bad=len(bad))
         self.logger.important("Good:")
@@ -64,3 +64,12 @@ class RunTests(Service):
             self.logger.info(service)
         for service, result in bad.items():
             self.logger.warning(service, result=result)
+
+        await self.send(Shutdown("Tasks finished"))
+
+    async def all_services(self) -> List[Type[TestedService]]:
+        return TestedService.__subclasses__()
+
+    async def shutdown(self, message: Message):
+        for service in await self.all_services():
+            await service.send(Shutdown("Task finished"))

@@ -9,7 +9,7 @@ class HelloMsg(Message):
 class Hello(TestedService):
     async def process(self, message: Message):
         if isinstance(message, HelloMsg):
-            self.logger.important("Hello, world!")
+            self.logger.info("Hello, world!")
             return "Hello, world!"
 
     async def test(self):
