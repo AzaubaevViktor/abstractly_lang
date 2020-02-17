@@ -44,7 +44,7 @@ class Log:
             _args = ' '.join(map(str, args)) if args else ''
             _kwargs = ' '.join((f"{k}={v}" for k, v in kwargs.items())) if kwargs else ''
             _level_name_colorize = f"{self.LEVEL_COLOR.get(level, '')}{level.name:^10}{Style.RESET_ALL}"
-            print(f"[{now.strftime(self.TIME_FORMAT)}] [{_level_name_colorize}] {_args} {_kwargs}")
+            print(f"[{now.strftime(self.TIME_FORMAT)}] [{_level_name_colorize}] {self.name}: {_args} {_kwargs}")
 
     def deep_debug(self, *args, **kwargs):
         self._print(LogLevel.DEEP_DEBUG, *args, **kwargs)
