@@ -1,5 +1,6 @@
 import datetime
 from enum import Enum
+from colorama import Fore, Back, Style
 
 
 class LogLevel(Enum):
@@ -14,6 +15,14 @@ class LogLevel(Enum):
 
 class Log:
     TIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
+    LEVEL_COLOR = {
+        LogLevel.DEEP_DEBUG: Fore.LIGHTBLACK_EX,
+        LogLevel.INFO: Fore.WHITE,
+        LogLevel.IMPORTANT: Back.BLUE,
+        LogLevel.WARNING: Back.LIGHTCYAN_EX,
+        LogLevel.EXCEPTION: Back.LIGHTRED_EX,
+        LogLevel.ERROR: Back.RED
+    }
 
     def __init__(self, name: str):
         self.name = name
@@ -34,7 +43,8 @@ class Log:
             now = datetime.datetime.now()
             _args = ' '.join(map(str, args)) if args else ''
             _kwargs = ' '.join((f"{k}={v}" for k, v in kwargs.items())) if kwargs else ''
-            print(f"[{now.strftime(self.TIME_FORMAT)}] [{level.name:^10}] {_args} {_kwargs}")
+            _level_name_colorize = f"{self.LEVEL_COLOR.get(level, '')}{level.name:^10}{Style.RESET_ALL}"
+            print(f"[{now.strftime(self.TIME_FORMAT)}] [{_level_name_colorize}] {_args} {_kwargs}")
 
     def deep_debug(self, *args, **kwargs):
         self._print(LogLevel.DEEP_DEBUG, *args, **kwargs)
