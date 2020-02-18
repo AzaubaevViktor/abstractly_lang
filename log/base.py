@@ -22,8 +22,8 @@ class Log:
     LEVEL_COLOR = {
         LogLevel.DEEP_DEBUG: Fore.LIGHTBLACK_EX,
         LogLevel.DEBUG: Fore.WHITE,
-        LogLevel.IMPORTANT: Back.BLUE,
-        LogLevel.WARNING: Back.LIGHTCYAN_EX,
+        LogLevel.IMPORTANT: Back.BLUE + Fore.LIGHTYELLOW_EX,
+        LogLevel.WARNING: Back.LIGHTMAGENTA_EX + Fore.LIGHTCYAN_EX,
         LogLevel.EXCEPTION: Back.LIGHTRED_EX,
         LogLevel.ERROR: Back.RED
     }
