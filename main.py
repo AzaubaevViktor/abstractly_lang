@@ -5,6 +5,7 @@ from log import Log
 from service import ServiceRunner, Message, RunService, Service
 
 import test
+import vk_utils
 
 
 async def main():
