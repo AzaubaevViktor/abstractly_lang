@@ -14,14 +14,14 @@ class Service:
 
     def __init__(self, message: Message):
         if self.__class__._instance:
-            raise RuntimeError("Service already exist")
+            raise RuntimeError("⛔️ Service already exist")
 
         self.__class__._instance = self
 
         self.logger = Log(f"Service:{self.__class__.__name__}")
         self._queue: Queue[Message] = Queue()
         self._aio_tasks: List[Task] = []
-        self.logger.info("Hello!")
+        self.logger.info("🖥 Hello!")
 
     async def warm_up(self):
         pass
@@ -33,30 +33,30 @@ class Service:
         pass
 
     async def run(self):
-        self.logger.info("Warming up")
+        self.logger.info("🔥 Warming up")
         await self.warm_up()
 
         while True:
             await self._collect_tasks()
 
             msg = await self._queue.get()
-            self.logger.info(message=msg)
+            self.logger.info("💌", message=msg)
 
             if isinstance(msg, Shutdown):
-                self.logger.info("Shutdown")
+                self.logger.info("💀 Shutdown")
                 msg.set_result(await self.shutdown(msg))
                 break
 
             new_task = asyncio.create_task(self._apply_task(msg))
             self._aio_tasks.append(new_task)
 
-        self.logger.info("Bye!")
+        self.logger.info("👋 Bye!")
 
     async def _collect_tasks(self):
         to_delete = tuple(task for task in self._aio_tasks if task.done())
 
         if to_delete:
-            self.logger.debug("Collect tasks", coutn=len(to_delete))
+            self.logger.debug("🗑 Collect tasks", count=len(to_delete))
 
         for task in to_delete:
             self._aio_tasks.remove(task)
@@ -91,3 +91,6 @@ class Service:
         raise NameError(f"Not found service with name {name}. "
                         f"Class must be subclass of `Service`",
                         name, tuple(klass.__name__ for klass in Service.__subclasses__()))
+
+    def __repr__(self):
+        return f"<Service:{self.__class__.__name__}: [{self._queue.qsize()}] / [{len(self._aio_tasks)}]>"

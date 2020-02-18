@@ -1,5 +1,8 @@
 import datetime
+import os
 from enum import Enum
+from inspect import getframeinfo, stack
+
 from colorama import Fore, Back, Style
 from traceback import format_exc
 
@@ -39,13 +42,18 @@ class Log:
             raise TypeError(type(level))
         self._level = level
 
+    def _frame(self, deep):
+        caller = getframeinfo(stack()[deep][0])
+        return os.path.relpath(caller.filename), caller.function, caller.lineno
+
     def _print(self, level: LogLevel, *args, **kwargs):
         if level.value >= self._level.value:
             now = datetime.datetime.now()
             _args = ' '.join(map(str, args)) if args else ''
             _kwargs = ' '.join((f"{k}={v}" for k, v in kwargs.items())) if kwargs else ''
             _level_name_colorize = f"{self.LEVEL_COLOR.get(level, '')}{level.name:^10}{Style.RESET_ALL}"
-            print(f"[{now.strftime(self.TIME_FORMAT)}] [{_level_name_colorize}] {self.name}: {_args} {_kwargs}")
+            file_name, fun_name, lineno = self._frame(3)
+            print(f"[{now.strftime(self.TIME_FORMAT)}] [{_level_name_colorize}] {file_name}:{lineno} {fun_name} {self.name}: {_args} {_kwargs}")
 
     def deep_debug(self, *args, **kwargs):
         self._print(LogLevel.DEEP_DEBUG, *args, **kwargs)

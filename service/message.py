@@ -36,15 +36,29 @@ class Message:
         raise AttributeError("Use .result() instead")
 
     def _additional_repr(self) -> str:
+        pass
+
+    def _get_args(self):
         if self._result:
-            return str(self._result)
+            yield "result", str(self._result)
         if self._exception:
-            return str(self._exception)
-        return ""
+            yield "exception", str(self._exception)
+
+        for name in dir(self):
+            if not name.startswith("_"):
+                attr = getattr(self, name)
+                if not callable(attr):
+                    yield name, str(attr)
 
     def __repr__(self):
         state = "✅" if self._finished.is_set() else "⏳"
-        return f"<Message:{self.__class__.__name__}[{state}]: {self._additional_repr()}>"
+        additional_repr = self._additional_repr() or dict()
+        kwargs = {**dict(self._get_args()), **additional_repr}
+        if kwargs:
+            _s = ", ".join((f"{k}={v}" for k, v in kwargs.items()))
+        else:
+            _s = ""
+        return f"<Message:{self.__class__.__name__}[{state}]: {_s}>"
 
 
 class Shutdown(Message):
@@ -57,9 +71,6 @@ class CreateService(Message):
     def __init__(self, service_class: Type["Service"]):
         super().__init__()
         self.service_class = service_class
-
-    def _additional_repr(self):
-        return f"{self.service_class.__name__}" + super()._additional_repr()
 
 
 class RunService(CreateService):
