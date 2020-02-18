@@ -1,8 +1,10 @@
 from asyncio import Event
 from typing import Type
 
+from ._searchable import SearchableSubclasses
 
-class Message:
+
+class Message(SearchableSubclasses):
     def __init__(self):
         self._result = None
         self._exception = None

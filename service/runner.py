@@ -16,7 +16,12 @@ class ServiceRunner(Service):
         await self._collect_tasks()
 
         if isinstance(message, CreateService):
-            service_class = message.service_class
+            service_class: Type[Service] = message.service_class
+
+            if service_class._instance:
+                self.logger.warning("⚠️ Instance already exist", instance=service_class._instance)
+                return service_class._instance
+
             self.logger.debug("Create instance", klass=service_class)
             instance = service_class(message)
             self.logger.debug("Add service to services")

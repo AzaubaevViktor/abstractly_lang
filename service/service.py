@@ -3,13 +3,14 @@ from asyncio import Queue, Task
 from typing import List, TypeVar, Type, Any
 
 from log import Log
+from ._searchable import SearchableSubclasses
 from .message import Message, Shutdown
 
 
-_TM = TypeVar("M", Message, Message)
+_TM = TypeVar("_TM", Message, Message)
 
 
-class Service:
+class Service(SearchableSubclasses):
     _instance: "Service" = None
 
     def __init__(self, message: Message):
@@ -80,17 +81,6 @@ class Service:
     async def get(cls, message: Message) -> Any:
         msg = await cls.send(message)
         return await msg.result()
-
-    @classmethod
-    def search(cls, name: str) -> Type['Service']:
-        for klass in Service.__subclasses__():
-            klass: Type[Service]
-            if klass.__name__ == name:
-                return klass
-
-        raise NameError(f"Not found service with name {name}. "
-                        f"Class must be subclass of `Service`",
-                        name, tuple(klass.__name__ for klass in Service.__subclasses__()))
 
     def __repr__(self):
         return f"<Service:{self.__class__.__name__}: [{self._queue.qsize()}] / [{len(self._aio_tasks)}]>"

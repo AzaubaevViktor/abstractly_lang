@@ -24,6 +24,12 @@ async def main():
 
     logger.info("Wait while ready")
 
+    if sys.argv[2]:
+        msg_klass = Message.search(sys.argv[2])
+        msg_args = sys.argv[3:]
+        logger.info("Send additional message", klass=msg_klass, args=msg_args)
+        logger.important(await klass.get(msg_klass(*msg_args)))
+
     result = await msg.result()
     logger.important(result)
 
