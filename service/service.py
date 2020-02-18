@@ -61,7 +61,8 @@ class Service(SearchableSubclasses):
             if not _shutdown_msg:
                 _shutdown_msg = Shutdown("Cancelled")
 
-            _shutdown_msg.set_result(await self.shutdown(_shutdown_msg))
+            shutdown_result = await self.shutdown(_shutdown_msg)
+            _shutdown_msg.set_result(shutdown_result)
 
         self.logger.info("👋 Bye!")
 

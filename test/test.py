@@ -27,8 +27,8 @@ class RunTests(Service):
 
         tests: List[DoTest] = []
         working: List[DoTest] = []
-        good: List[Type[TestedService]] = []
-        bad: Dict[Type[TestedService], Any] = {}
+        self.good: List[Type[TestedService]] = []
+        self.bad: Dict[Type[TestedService], Any] = {}
 
         for service_class in await self.all_services():
             service_class: TestedService
@@ -45,25 +45,18 @@ class RunTests(Service):
                     result = await msg.result()
                     if result is True:
                         self.logger.important("Test success", service=msg.to)
-                        good.append(msg.to)
+                        self.good.append(msg.to)
                     else:
                         self.logger.warning("Test failed", service=msg.to, result=result)
-                        bad[msg.to] = result
+                        self.bad[msg.to] = result
                 else:
                     exc = await msg.exception()
                     self.logger.warning("Test failed", service=msg.to, exc=exc)
-                    bad[msg.to] = exc
+                    self.bad[msg.to] = exc
 
                 working.remove(msg)
 
             await asyncio.sleep(0.1)
-
-        self.logger.important("Tests finished!", good=len(good), bad=len(bad))
-        self.logger.important("Good:")
-        for service in good:
-            self.logger.info(service)
-        for service, result in bad.items():
-            self.logger.warning(service, result=result)
 
         await self.send(Shutdown("Tasks finished"))
 
@@ -73,3 +66,13 @@ class RunTests(Service):
     async def shutdown(self, message: Message):
         for service in await self.all_services():
             await service.send(Shutdown("Task finished"))
+
+        self.logger.important("Tests finished!", good=len(self.good), bad=len(self.bad))
+
+        self.logger.important("GOOD:")
+        for service in self.good:
+            self.logger.info("✅", service)
+
+        self.logger.important("BAD:")
+        for service, result in self.bad.items():
+            self.logger.warning("⛔️", service, result=result)
