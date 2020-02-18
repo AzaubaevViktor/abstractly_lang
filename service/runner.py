@@ -1,7 +1,7 @@
 import asyncio
 from typing import Dict, Type
 
-from .message import Message, CreateService, RunService
+from .message import Message, CreateService, RunService, Shutdown
 from .service import Service
 
 
@@ -13,8 +13,6 @@ class ServiceRunner(Service):
         }
 
     async def process(self, message: Message):
-        await self._collect_tasks()
-
         if isinstance(message, CreateService):
             service_class: Type[Service] = message.service_class
 

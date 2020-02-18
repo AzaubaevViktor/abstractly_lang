@@ -1,5 +1,5 @@
 import asyncio
-from asyncio import Queue, Task
+from asyncio import Queue, Task, CancelledError
 from typing import List, TypeVar, Type, Any
 
 from log import Log
@@ -34,26 +34,38 @@ class Service(SearchableSubclasses):
         pass
 
     async def run(self):
-        self.logger.info("🔥 Warming up")
-        await self.warm_up()
+        _shutdown_msg = None
 
-        while True:
-            await self._collect_tasks()
+        try:
+            self.logger.info("🔥 Warming up")
+            await self.warm_up()
 
-            msg = await self._queue.get()
-            self.logger.info("💌", message=msg)
+            while True:
+                await self._collect_aio_tasks()
 
-            if isinstance(msg, Shutdown):
-                self.logger.info("💀 Shutdown")
-                msg.set_result(await self.shutdown(msg))
-                break
+                msg = await self._queue.get()
+                self.logger.info("💌", message=msg)
 
-            new_task = asyncio.create_task(self._apply_task(msg))
-            self._aio_tasks.append(new_task)
+                if isinstance(msg, Shutdown):
+                    _shutdown_msg = msg
+                    break
+
+                new_task = asyncio.create_task(self._apply_task(msg))
+                self._aio_tasks.append(new_task)
+
+        except CancelledError:
+            self.logger.info("⏹ Service cancelled")
+        finally:
+            await self._stop_aio_tasks()
+            self.logger.info("💀 Shutdown")
+            if not _shutdown_msg:
+                _shutdown_msg = Shutdown("Cancelled")
+
+            _shutdown_msg.set_result(await self.shutdown(_shutdown_msg))
 
         self.logger.info("👋 Bye!")
 
-    async def _collect_tasks(self):
+    async def _collect_aio_tasks(self):
         to_delete = tuple(task for task in self._aio_tasks if task.done())
 
         if to_delete:
@@ -61,6 +73,13 @@ class Service(SearchableSubclasses):
 
         for task in to_delete:
             self._aio_tasks.remove(task)
+
+    async def _stop_aio_tasks(self):
+        if self._aio_tasks:
+            self.logger.info("☠️ Cancel tasks", count=len(self._aio_tasks))
+            for task in self._aio_tasks:
+                task.cancel()
+                await task
 
     async def _apply_task(self, message: Message):
         try:
