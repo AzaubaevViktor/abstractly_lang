@@ -57,3 +57,6 @@ class VkSettings(Service):
 
         raise UnknownMessageType(self, message)
 
+    @classmethod
+    async def settings(cls) -> VkSettingsData:
+        return await cls.get(GetSettings())
