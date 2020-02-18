@@ -6,6 +6,7 @@ from service import ServiceRunner, Message, RunService, Service
 
 import test
 import vk_utils
+from service.message import Shutdown
 
 
 async def main():
@@ -29,6 +30,7 @@ async def main():
         msg_args = sys.argv[3:]
         logger.info("Send additional message", klass=msg_klass, args=msg_args)
         logger.important(await klass.get(msg_klass(*msg_args)))
+        await klass.send(Shutdown("Finished main"))
 
     result = await msg.result()
     logger.important(result)

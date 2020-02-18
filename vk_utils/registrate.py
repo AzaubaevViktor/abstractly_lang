@@ -36,8 +36,8 @@ class VkRegistration(Service):
 
             webbrowser.open_new(url)
 
-            path = await RedirectServer.get(GetPath())
-            return path
+            path: str = await RedirectServer.get(GetPath())
+            return dict(item.split('=') for item in path.split("&"))
 
         raise UnknownMessageType(self, message)
 
@@ -48,7 +48,9 @@ class VkSettings(Service):
             settings = await VkSettingsData.load("settings.yml")
 
             if not settings.token:
-                settings.token = await self.get(DoRegister(settings.client_id))
+                data = await VkRegistration.get(DoRegister(settings.client_id))
+                settings.token = data['access_token']
+                settings.user_id = data['user_id']
                 await settings.store("settings.yml")
 
             return settings
