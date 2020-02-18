@@ -30,12 +30,16 @@ class RunTests(Service):
         self.good: List[Type[TestedService]] = []
         self.bad: Dict[Type[TestedService], Any] = {}
 
-        for service_class in await self.all_services():
+        for service_class in self.all_services():
             service_class: TestedService
             self.logger.info("🧪", service_class)
-            message = await service_class.send(DoTest())
-            tests.append(message)
-            working.append(message)
+
+        tests = await asyncio.gather(*(
+            service_class.send(DoTest())
+            for service_class in self.all_services()
+        ))
+
+        working = tests[:]
 
         while working:
             ready = tuple(msg for msg in working if msg.ready())
@@ -60,11 +64,11 @@ class RunTests(Service):
 
         await self.send(Shutdown("Tasks finished"))
 
-    async def all_services(self) -> List[Type[TestedService]]:
+    def all_services(self) -> List[Type[TestedService]]:
         return TestedService.__subclasses__()
 
     async def shutdown(self, message: Message):
-        for service in await self.all_services():
+        for service in self.all_services():
             await service.send(Shutdown("Task finished"))
 
         self.logger.important("Tests finished!", good=len(self.good), bad=len(self.bad))
