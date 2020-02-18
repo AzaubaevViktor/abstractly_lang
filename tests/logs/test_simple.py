@@ -3,7 +3,7 @@ def test_simple(log):
 
 
 def test_levels(log):
-    log.deep_debug("Deep debug")
+    log.deep("Deep debug")
     log.debug("Debug")
     log.info("Info")
     log.important("Important")

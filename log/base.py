@@ -8,7 +8,7 @@ from traceback import format_exc
 
 
 class LogLevel(Enum):
-    DEEP_DEBUG = -100
+    DEEP = -100
     DEBUG = 0
     INFO = 100
     IMPORTANT = 200
@@ -20,7 +20,7 @@ class LogLevel(Enum):
 class Log:
     TIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
     LEVEL_COLOR = {
-        LogLevel.DEEP_DEBUG: Fore.LIGHTBLACK_EX,
+        LogLevel.DEEP: Fore.LIGHTBLACK_EX,
         LogLevel.DEBUG: Fore.WHITE,
         LogLevel.IMPORTANT: Back.BLUE + Fore.LIGHTYELLOW_EX,
         LogLevel.WARNING: Back.LIGHTMAGENTA_EX + Fore.LIGHTCYAN_EX,
@@ -51,12 +51,12 @@ class Log:
             now = datetime.datetime.now()
             _args = ' '.join(map(str, args)) if args else ''
             _kwargs = ' '.join((f"{k}={v}" for k, v in kwargs.items())) if kwargs else ''
-            _level_name_colorize = f"{self.LEVEL_COLOR.get(level, '')}{level.name:^10}{Style.RESET_ALL}"
+            _level_name_colorize = f"{self.LEVEL_COLOR.get(level, '')}{level.name:^9}{Style.RESET_ALL}"
             file_name, fun_name, lineno = self._frame(3)
             print(f"[{now.strftime(self.TIME_FORMAT)}] [{_level_name_colorize}] {file_name}:{lineno} {fun_name} {self.name}: {_args} {_kwargs}")
 
-    def deep_debug(self, *args, **kwargs):
-        self._print(LogLevel.DEEP_DEBUG, *args, **kwargs)
+    def deep(self, *args, **kwargs):
+        self._print(LogLevel.DEEP, *args, **kwargs)
 
     def debug(self, *args, **kwargs):
         self._print(LogLevel.DEBUG, *args, **kwargs)
