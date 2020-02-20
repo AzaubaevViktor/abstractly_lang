@@ -1,27 +1,12 @@
 import asyncio
+import inspect
 from time import time
-from typing import List, Type, Dict, Any
+from typing import List, Type, Dict, Any, Iterable
 
 from log import Log
 from service.error import UnknownMessageType
 from service.message import Message, Shutdown
 from service.service import Service
-from test.messages import DoTest
-
-
-class TestedService(Service):
-    async def _apply_task(self, message: Message):
-        if isinstance(message, DoTest):
-            try:
-                message.set_result(await self.test())
-            except Exception as e:
-                self.logger.exception(message=message)
-                message.set_error(e)
-        else:
-            await super(TestedService, self)._apply_task(message)
-
-    async def test(self):
-        return True
 
 
 class RunTests(Message):
@@ -33,41 +18,116 @@ class ListTests(Message):
 
 
 class TestReport:
-    def __init__(self, services):
-        self.logger = Log("Test:report")
-        self.services: List[Type[TestedService]] = services
-        self._goods: List[Type[TestedService]] = []
-        self._bads: Dict[Type[TestedService], Any] = {}
-        self._times: Dict[Type[TestedService], float] = {}
-        self.start_time: float = None
+    def __init__(self, klass: Type[Service], method_name: str):
+        self.klass = klass
+        self.method_name = method_name
 
-    def good(self, msg: Message):
-        self._times[msg.to] = time() - self.start_time
-        self.logger.important("Test success", service=msg.to)
-        self._goods.append(msg.to)
+        self.result = None
+        self.finished = False
+        self.start_time = 0
+        self.finish_time = 0
+        self.exc = None
 
-    def bad(self, msg: Message, result):
-        self._times[msg.to] = time() - self.start_time
-        self.logger.warning("Test failed", service=msg.to, result=result)
-        self._bads[msg.to] = result
+    def __repr__(self):
+        return f"<TestReport: {self.klass.__name__}:{self.method_name} / {self.finished} {self.result} {self.exc}>"
 
     def __str__(self):
-        result = f"Tested services: {len(self.services)}\n"
+        if not self.finished:
+            sign = "❓"
+            info = ""
+        elif self.is_good:
+            sign = "✅"
+            info = self.result if self.result is not None else ""
+        else:
+            sign = "⛔️"
+            info = repr(self.exc)
 
-        result += "GOOD:\n"
-        for service in self._goods:
-            result += f"  ✅ {service} [{self._times[service]:.2f}s]\n"
+        tm = self.finish_time - self.start_time
 
-        result += "BAD:\n"
-        for service, test_result in self._bads.items():
-            result += f"  ⛔️ {service}:[{self._times[service]:.2f}s]\n" \
-                      f"     {test_result}\n"
+        return f"{sign} {self.klass.__name__}:{self.method_name} [{tm:.2f}s] {info}"
 
-        result += f"\nSUCCESS: {len(self._goods)}"
+    @property
+    def is_good(self):
+        return self.finished and not self.exc
 
-        result += f" BAD: {len(self._bads)}\n"
+    @property
+    def is_bad(self):
+        return self.finished and self.exc
+
+
+class TestReports:
+    def __init__(self, *reports: TestReport):
+        self.reports = []
+        for report in reports:
+            if isinstance(report, TestReports):
+                self.reports += report.reports
+            else:
+                self.reports.append(report)
+
+    def append(self, report: TestReport):
+        self.reports.append(report)
+
+    def __iter__(self) -> Iterable[TestReport]:
+        yield from self.reports
+
+    def __str__(self):
+        result = f"Tested services: {len(self.reports)}\n"
+
+        for report in self.reports:
+            result += f"  {report}\n"
+
+        goods = len(tuple(filter(lambda x: x.is_good, self.reports)))
+
+        result += f"TOTAL: {len(self.reports)} SUCCESS: {goods} BAD: {len(self.reports) - goods}\n"
 
         return result
+
+
+class TestedService(Service):
+    async def _apply_task(self, message: Message):
+        if isinstance(message, ListTests):
+            try:
+                message.set_result(TestReports(*self._search_tests()))
+            except Exception as e:
+                self.logger.exception(message=message)
+                message.set_error(e)
+
+        elif isinstance(message, RunTests):
+            reports: TestReports = await self.get(ListTests())
+            try:
+                await asyncio.gather(*(
+                    self._run_test(report) for report in reports
+                ))
+                message.set_result(reports)
+            except Exception as e:
+                message.set_error(e)
+
+        else:
+            await super(TestedService, self)._apply_task(message)
+
+    async def _run_test(self, report: TestReport):
+        try:
+            method = getattr(self, report.method_name)
+            report.start_time = time()
+            report.result = await method()
+
+            report.finished = True
+            report.finish_time = time()
+        except (Exception, AssertionError) as e:
+            report.finished = True
+            report.finish_time = time()
+
+            report.exc = e
+            self.logger.exception(report=report)
+
+    def _search_tests(self) -> Iterable[TestReport]:
+        for method_name in dir(self):
+            if method_name.startswith("test_"):
+                method = getattr(self, method_name)
+                if inspect.iscoroutinefunction(method):
+                    yield TestReport(self.__class__, method_name)
+                else:
+                    raise TypeError(f"Test method must be `async def`, not {type(method)}")
 
 
 class TestsManager(Service):
@@ -78,57 +138,33 @@ class TestsManager(Service):
         if isinstance(message, ListTests):
             self.logger.info("Found tested services:")
 
-            report = TestReport(self.all_services())
-
-            for service_class in report.services:
-                service_class: TestedService
-                self.logger.info("🧪", service_class)
-
-            return report
-
-        if isinstance(message, RunTests):
-            report: TestReport = await self.get(ListTests())
-
-            report.start_time = time()
-
-            tests = await asyncio.gather(*(
-                service_class.send(DoTest())
-                for service_class in self.all_services()
+            _reports = await asyncio.gather(*(
+                service_klass.get(ListTests())
+                for service_klass in self.all_tested_services()
             ))
 
-            working = tests[:]
+            reports = TestReports(*_reports)
 
-            while working:
-                ready = tuple(msg for msg in working if msg.ready())
+            for report in reports:
+                report: TestReport
+                self.logger.info("🧪", report)
 
-                for msg in ready:
-                    if msg.ok():
-                        result = await msg.result()
-                        if result is True:
-                            report.good(msg)
-                        else:
-                            report.bad(msg, result)
-                    else:
-                        exc = await msg.exception()
-                        report.bad(msg, exc)
+            return reports
 
-                    working.remove(msg)
+        if isinstance(message, RunTests):
+            _reports = await asyncio.gather(*(
+                service_class.get(RunTests())
+                for service_class in self.all_tested_services()
+            ))
 
-                await asyncio.sleep(0.1)
-
-            self.logger.important("Good tests:", good=len(report._goods))
-            if report._bads:
-                self.logger.warning("Bad tests:", good=len(report._bads))
-
-
-            return report
+            return TestReports(*_reports)
 
         raise UnknownMessageType(self, message)
 
-    def all_services(self) -> List[Type[TestedService]]:
-        return TestedService.__subclasses__()
+    def all_tested_services(self) -> List[Type[TestedService]]:
+        return TestedService.all_subclasses()
 
     async def shutdown(self, message: Message):
         self.logger.info("Shutdown services")
-        for service in self.all_services():
+        for service in self.all_tested_services():
             await service.send(Shutdown("Task finished"))

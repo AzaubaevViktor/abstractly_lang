@@ -21,13 +21,12 @@ class One(TestedService):
         if isinstance(message, X):
             return message.value * 2
 
-    async def test(self):
+    async def test_one(self):
         results = await asyncio.gather(*(
             One.get(X(i)) for i in range(100)
         ))
 
         assert results == [x * 2 for x in range(100)]
-        return True
 
 
 class Two(TestedService):
@@ -47,9 +46,7 @@ class Two(TestedService):
 
             return sum(values)
 
-    async def test(self):
+    async def test_two(self):
         msg = await Two.send(Y(100))
 
         assert await msg.result() == 100 * 99
-
-        return True

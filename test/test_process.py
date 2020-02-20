@@ -25,13 +25,7 @@ class TestServiceProcess(TestedService):
         if isinstance(message, DoPing):
             return time()
 
-    async def test(self):
-        await self._test_ping()
-        await self._test_pid()
-
-        return True
-
-    async def _test_pid(self):
+    async def test_pid(self):
         result, pid = await self.get(DoCalc(3))
         assert pid != os.getpid()
         assert 3 ** 3 ** 2 == result
@@ -43,7 +37,7 @@ class TestServiceProcess(TestedService):
 
         return request_accept - request_start, request_end - request_start
 
-    async def _test_ping(self):
+    async def test_ping(self):
         self.logger.info("Linear ping")
 
         linear = []

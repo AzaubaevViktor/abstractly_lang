@@ -12,7 +12,6 @@ class Hello(TestedService):
             self.logger.info("Hello, world!")
             return "Hello, world!"
 
-    async def test(self):
+    async def test_hello(self):
         msg = await Hello.send(HelloMsg())
         assert "Hello, world!" == await msg.result()
-        return True

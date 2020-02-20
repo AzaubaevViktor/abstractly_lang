@@ -13,7 +13,7 @@ class TestException(TestedService):
         if isinstance(message, Z):
             return 1 / message.value
 
-    async def test(self):
+    async def test_get_exc(self):
         assert await TestException.get(Z(2)) == 1 / 2
 
         try:
@@ -21,9 +21,9 @@ class TestException(TestedService):
         except ZeroDivisionError:
             self.logger.info("Nice")
 
+    async def test_send_exc(self):
+
         msg = await TestException.send(Z(0))
 
         e = await msg.exception()
         assert isinstance(e, ZeroDivisionError)
-
-        return True
