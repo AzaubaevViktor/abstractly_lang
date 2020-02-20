@@ -60,6 +60,8 @@ async def main():
 
     logger.info("Wait while ready")
 
+    run_msg_result = None
+
     if cmd.message_name:
         msg_klass = Message.search(cmd.message_name)
 
@@ -68,15 +70,20 @@ async def main():
                     args=cmd.args,
                     kwargs=cmd.kwargs)
 
-        logger.important(await service_classs.get(
-            msg_klass(*cmd.args, **cmd.kwargs)
-        ))
+        run_msg_result = await service_classs.get(msg_klass(*cmd.args, **cmd.kwargs))
 
         logger.info("Shutdown service")
 
         await service_classs.send(Shutdown("Finished main"))
 
-    logger.important(await msg.result())
+    run_result = await msg.result()
+
+    await ServiceRunner.get(Shutdown("Finished main"))
+
+    if run_msg_result:
+        logger.important(run_msg_result)
+    else:
+        logger.important(run_result)
 
 
 if __name__ == '__main__':

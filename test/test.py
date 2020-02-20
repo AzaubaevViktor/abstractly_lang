@@ -1,6 +1,9 @@
 import asyncio
-from typing import List, Type, Dict, Any, Sequence
+from time import time
+from typing import List, Type, Dict, Any
 
+from log import Log
+from service.error import UnknownMessageType
 from service.message import Message, Shutdown
 from service.service import Service
 from test.messages import DoTest
@@ -21,62 +24,111 @@ class TestedService(Service):
         return True
 
 
-class RunTests(Service):
+class RunTests(Message):
+    pass
+
+
+class ListTests(Message):
+    pass
+
+
+class TestReport:
+    def __init__(self, services):
+        self.logger = Log("Test:report")
+        self.services: List[Type[TestedService]] = services
+        self._goods: List[Type[TestedService]] = []
+        self._bads: Dict[Type[TestedService], Any] = {}
+        self._times: Dict[Type[TestedService], float] = {}
+        self.start_time: float = None
+
+    def good(self, msg: Message):
+        self._times[msg.to] = time() - self.start_time
+        self.logger.important("Test success", service=msg.to)
+        self._goods.append(msg.to)
+
+    def bad(self, msg: Message, result):
+        self._times[msg.to] = time() - self.start_time
+        self.logger.warning("Test failed", service=msg.to, result=result)
+        self._bads[msg.to] = result
+
+    def __str__(self):
+        result = f"Tested services: {len(self.services)}\n"
+
+        result += "GOOD:\n"
+        for service in self._goods:
+            result += f"  ✅ {service} [{self._times[service]:.2f}s]\n"
+
+        result += "BAD:\n"
+        for service, test_result in self._bads.items():
+            result += f"  ⛔️ {service}:[{self._times[service]:.2f}s]\n" \
+                      f"     {test_result}\n"
+
+        result += f"\nSUCCESS: {len(self._goods)}"
+
+        result += f" BAD: {len(self._bads)}\n"
+
+        return result
+
+
+class TestsManager(Service):
     async def warm_up(self):
-        self.logger.info("Found tested services:")
+        pass
 
-        tests: List[DoTest] = []
-        working: List[DoTest] = []
-        self.good: List[Type[TestedService]] = []
-        self.bad: Dict[Type[TestedService], Any] = {}
+    async def process(self, message: Message):
+        if isinstance(message, ListTests):
+            self.logger.info("Found tested services:")
 
-        for service_class in self.all_services():
-            service_class: TestedService
-            self.logger.info("🧪", service_class)
+            report = TestReport(self.all_services())
 
-        tests = await asyncio.gather(*(
-            service_class.send(DoTest())
-            for service_class in self.all_services()
-        ))
+            for service_class in report.services:
+                service_class: TestedService
+                self.logger.info("🧪", service_class)
 
-        working = tests[:]
+            return report
 
-        while working:
-            ready = tuple(msg for msg in working if msg.ready())
+        if isinstance(message, RunTests):
+            report: TestReport = await self.get(ListTests())
 
-            for msg in ready:
-                if msg.ok():
-                    result = await msg.result()
-                    if result is True:
-                        self.logger.important("Test success", service=msg.to)
-                        self.good.append(msg.to)
+            report.start_time = time()
+
+            tests = await asyncio.gather(*(
+                service_class.send(DoTest())
+                for service_class in self.all_services()
+            ))
+
+            working = tests[:]
+
+            while working:
+                ready = tuple(msg for msg in working if msg.ready())
+
+                for msg in ready:
+                    if msg.ok():
+                        result = await msg.result()
+                        if result is True:
+                            report.good(msg)
+                        else:
+                            report.bad(msg, result)
                     else:
-                        self.logger.warning("Test failed", service=msg.to, result=result)
-                        self.bad[msg.to] = result
-                else:
-                    exc = await msg.exception()
-                    self.logger.warning("Test failed", service=msg.to, exc=exc)
-                    self.bad[msg.to] = exc
+                        exc = await msg.exception()
+                        report.bad(msg, exc)
 
-                working.remove(msg)
+                    working.remove(msg)
 
-            await asyncio.sleep(0.1)
+                await asyncio.sleep(0.1)
 
-        await self.send(Shutdown("Tasks finished"))
+            self.logger.important("Good tests:", good=len(report._goods))
+            if report._bads:
+                self.logger.warning("Bad tests:", good=len(report._bads))
+
+
+            return report
+
+        raise UnknownMessageType(self, message)
 
     def all_services(self) -> List[Type[TestedService]]:
         return TestedService.__subclasses__()
 
     async def shutdown(self, message: Message):
+        self.logger.info("Shutdown services")
         for service in self.all_services():
             await service.send(Shutdown("Task finished"))
-
-        self.logger.important("Tests finished!", good=len(self.good), bad=len(self.bad))
-
-        self.logger.important("GOOD:")
-        for service in self.good:
-            self.logger.info("✅", service)
-
-        self.logger.important("BAD:")
-        for service, result in self.bad.items():
-            self.logger.warning("⛔️", service, result=result)
