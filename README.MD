@@ -1,4 +1,3 @@
-# Abstractly [iter1]
+# Abstractly [dyploma]
 
-* log
-* tree
+Пишу диплом
