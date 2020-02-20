@@ -48,11 +48,11 @@ class TestReport:
 
     @property
     def is_good(self):
-        return self.finished and not self.exc
+        return self.finished and (self.exc is None)
 
     @property
     def is_bad(self):
-        return self.finished and self.exc
+        return self.finished and (self.exc is not None)
 
 
 class TestReports:
@@ -73,7 +73,7 @@ class TestReports:
     def __str__(self):
         result = f"Tested services: {len(self.reports)}\n"
 
-        for report in self.reports:
+        for report in sorted(self.reports, key=lambda r: r.is_bad):
             result += f"  {report}\n"
 
         goods = len(tuple(filter(lambda x: x.is_good, self.reports)))
