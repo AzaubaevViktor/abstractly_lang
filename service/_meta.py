@@ -5,8 +5,8 @@ from log import Log
 
 
 class HandlerInfo:
-    def __init__(self, message_class: "Message" = None):
-        self.message_class = message_class or self._generate_message()
+    def __init__(self, *message_classes: "Message"):
+        self.message_classes = message_classes or self._generate_message()
 
     def _generate_message(self):
         from service import Message
@@ -17,13 +17,14 @@ class HandlerInfo:
                 self.args = args
                 self.kwargs = kwargs
 
-        return GeneratedMessage
+        return (GeneratedMessage, )
 
 
 class MessageSenderAttribute:
-    def __init__(self, func, message_class):
+    def __init__(self, func, message_classes):
         self.func = func
-        self.message_class = message_class
+        self.message_classes = message_classes
+        self.message_class = self.message_classes[0]
 
     def __get__(self, instance, owner):
         async def _get(*args, **kwargs):
@@ -57,11 +58,11 @@ class HandlersOperator:
 
     def _generate_dict(self, instance):
         return {
-            k: self._process_method(v, instance)
+            k: self._inject_self(v, instance)
             for k, v in self.handlers.items()
         }
 
-    def _process_method(self, v, instance):
+    def _inject_self(self, v, instance):
         if isinstance(v, WrappedMethod):
             assert not v._self
             return WrappedMethod(v.func, instance)
@@ -78,9 +79,10 @@ class MetaService(type):
         for k, v in attrs.items():
             if hasattr(v, "__handler_info__"):
                 handler_info: HandlerInfo = v.__handler_info__
-                new_attr = MessageSenderAttribute(v, handler_info.message_class)
+                new_attr = MessageSenderAttribute(v, handler_info.message_classes)
                 new_attrs[k] = new_attr
-                handlers[handler_info.message_class] = WrappedMethod(v)
+                for message_class in handler_info.message_classes:
+                    handlers[message_class] = WrappedMethod(v)
             else:
                 new_attrs[k] = v
 
