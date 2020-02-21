@@ -1,8 +1,9 @@
 import asyncio
 from asyncio import Queue, Task, CancelledError
-from typing import List, TypeVar, Type, Any
+from typing import List, TypeVar, Any, Dict, Type, Callable, Awaitable
 
 from log import Log
+from ._meta import MetaService
 from ._searchable import SearchableSubclasses
 from .message import Message, Shutdown
 
@@ -10,7 +11,7 @@ from .message import Message, Shutdown
 _TM = TypeVar("_TM", Message, Message)
 
 
-class Service(SearchableSubclasses):
+class Service(SearchableSubclasses, metaclass=MetaService):
     _instance: "Service" = None
 
     def __init__(self, message: Message):
@@ -23,6 +24,8 @@ class Service(SearchableSubclasses):
         self._queue: Queue[Message] = Queue()
         self._aio_tasks: List[Task] = []
         self.logger.info("🖥 Hello!")
+
+        self._handlers: Dict[Type[Message], Callable[[Message], Awaitable[Any]]] = {}
 
     async def warm_up(self):
         pass
@@ -50,7 +53,9 @@ class Service(SearchableSubclasses):
                     _shutdown_msg = msg
                     break
 
-                new_task = asyncio.create_task(self._apply_task(msg))
+                custom_processor = self._found_processor(msg)
+
+                new_task = asyncio.create_task(self._apply_task(msg, custom_processor))
                 self._aio_tasks.append(new_task)
 
         except CancelledError:
@@ -65,6 +70,13 @@ class Service(SearchableSubclasses):
             _shutdown_msg.set_result(shutdown_result)
 
         self.logger.info("👋 Bye!")
+
+    def _found_processor(self, msg):
+        custom_processor = self.process
+        if type(msg) in self._handlers:
+            custom_processor = self._handlers[type(msg)]
+            self.logger.debug("Found custom processor", processor=custom_processor)
+        return custom_processor
 
     async def _collect_aio_tasks(self):
         to_delete = tuple(task for task in self._aio_tasks if task.done())
@@ -82,9 +94,11 @@ class Service(SearchableSubclasses):
                 task.cancel()
                 await task
 
-    async def _apply_task(self, message: Message):
+    async def _apply_task(self,
+                          message: Message,
+                          method: Callable[[Message], Awaitable[Any]]):
         try:
-            message.set_result(await self.process(message))
+            message.set_result(await method(message))
         except Exception as e:
             self.logger.exception(message=message)
             message.set_error(e)
@@ -104,15 +118,3 @@ class Service(SearchableSubclasses):
 
     def __repr__(self):
         return f"<Service:{self.__class__.__name__}: [{self._queue.qsize()}] / [{len(self._aio_tasks)}]>"
-
-
-def handler(*args):
-    print(args)
-
-    if isinstance(args[0], type) and issubclass(args[0], Message):
-        return handler
-
-    def _(*args, **kwargs):
-        raise NotImplementedError()
-
-    return _

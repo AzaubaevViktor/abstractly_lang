@@ -22,9 +22,13 @@ class M3(M0):
     pass
 
 
+class M4(M0):
+    pass
+
+
 class TestHandlerMethods(TestedService):
-    @classmethod
-    async def simple(cls):
+    @handler
+    async def simple(self):
         return 1
 
     async def test_simple(self):
@@ -132,10 +136,10 @@ class TestHandlerMethods(TestedService):
         assert False, "This cannot be execute"
 
     async def test_wrong_m1(self):
-        with raises(Exception):
+        with raises(TypeError):
             await self.wrong_m1(1, 2)
 
-        with raises(Exception):
+        with raises(TypeError):
             await self.__class__.wrong_m1(1, 2)
 
     @handler(M1)
@@ -170,3 +174,10 @@ class TestHandlerMethods(TestedService):
             assert 1 == await self.get(klass(1))
             message = await self.send(klass(1))
             assert 1 == await message.result()
+
+    async def process(self, message: Message):
+        # This method will be called if nothing found in processors
+        return type(message).__name__
+
+    async def test_process(self):
+        assert "M4" is await self.get(M4(100))

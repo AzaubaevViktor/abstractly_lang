@@ -88,26 +88,20 @@ class TestReports:
 
 
 class TestedService(Service):
-    async def _apply_task(self, message: Message):
-        if isinstance(message, ListTests):
-            try:
-                message.set_result(TestReports(*self._search_tests()))
-            except Exception as e:
-                self.logger.exception(message=message)
-                message.set_error(e)
+    def __init__(self, message: Message):
+        super().__init__(message)
+        self._handlers[ListTests] = self._list_tests
+        self._handlers[RunTests] = self._run_tests
 
-        elif isinstance(message, RunTests):
-            reports: TestReports = await self.get(ListTests())
-            try:
-                await asyncio.gather(*(
-                    self._run_test(report) for report in reports
-                ))
-                message.set_result(reports)
-            except Exception as e:
-                message.set_error(e)
+    async def _list_tests(self, message: ListTests):
+        return TestReports(*self._search_tests())
 
-        else:
-            await super(TestedService, self)._apply_task(message)
+    async def _run_tests(self, message: RunTests):
+        reports: TestReports = await self.get(ListTests())
+        await asyncio.gather(*(
+            self._run_test(report) for report in reports
+        ))
+        return reports
 
     async def _run_test(self, report: TestReport):
         try:
