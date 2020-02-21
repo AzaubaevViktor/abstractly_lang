@@ -58,9 +58,19 @@ class MessageSenderAttribute:
         return _owner_get
 
 
+class Context:
+    def __init__(self, message: "Message", handler_info: HandlerInfo):
+        self.message = message
+        self.handler_info = handler_info
+
+    @property
+    def GeneratedMessageClass(self):
+        return self.handler_info.generated_class
+
+
 class WrappedMethod:
     def __init__(self,
-                 func: Callable[[Any], Awaitable[Any]],
+                 func: Callable[..., Awaitable[Any]],
                  _self: "Service" = None):
         self.func = func
         self._self = _self
@@ -68,7 +78,19 @@ class WrappedMethod:
     async def __call__(self, message: "Message"):
         # assert isinstance(message, self.message_class)
         Log("attr").info("!!!!!", message)
-        return await self.func(self._self, *message.args, **message.kwargs)
+
+        f_args = message.args
+        f_kwargs = message.kwargs
+
+        if "_ctx" in inspect.getfullargspec(self.func).args or \
+                "_ctx" in inspect.getfullargspec(self.func).kwonlyargs:
+            f_kwargs['_ctx'] = Context(message, self.func.__handler_info__)
+
+        try:
+            return await self.func(self._self, *f_args, **f_kwargs)
+        except TypeError as te:
+            Log("WrappedMetgod").warning(error_args=te.args, error=te,
+                                         message=message, func=self.func)
 
     def __repr__(self):
         self_s = f"{self._self}:" if self._self else ''

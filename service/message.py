@@ -47,16 +47,18 @@ class Message(SearchableSubclasses):
         if self._result:
             yield "result", str(self._result)
         if self._exception:
-            yield "exception", str(self._exception)
+            yield "_exception", str(self._exception)
+        if self.args:
+            yield "args", self.args
 
         yield from self._kwargs()
 
     def _kwargs(self):
         for name in dir(self):
-            if not name.startswith("_") and name != "kwargs":
+            if not name.startswith("_") and name != "kwargs" and name != "args":
                 attr = getattr(self, name)
                 if not callable(attr):
-                    yield name, str(attr)
+                    yield name, attr
 
     @property
     def kwargs(self):

@@ -1,6 +1,7 @@
 """ ABS-38 """
 
 from service import Message, handler
+from service._meta import Context
 from test import TestedService, raises
 
 
@@ -65,10 +66,11 @@ class TestHandlerMethods(TestedService):
         return args
 
     async def test_simple_args(self):
-        assert (1, 2, 3) == await self.multi_arg(1, 2, 3)
-        assert tuple() == await self.multi_arg()
-        assert tuple(range(10)) == await self.multi_arg(*range(10))
-        assert tuple(range(10)) == await self.__class__.multi_arg(*range(10))
+        assert (1, 2, 3) == await self.simple_args(1, 2, 3)
+        result = await self.simple_args()
+        assert tuple() == result, result
+        assert tuple(range(10)) == await self.simple_args(*range(10))
+        assert tuple(range(10)) == await self.__class__.simple_args(*range(10))
 
     @handler
     async def arg_args_start(self, *x, y, z):
@@ -127,8 +129,8 @@ class TestHandlerMethods(TestedService):
         assert isinstance(_ctx, Context)
 
     @handler(M1)
-    async def use_m1(self, value, _ctx=None):
-        assert isinstance(_ctx.message, M1)
+    async def use_m1(self, value, _ctx: Context = None):
+        assert isinstance(_ctx.message, (M1, _ctx.GeneratedMessageClass))
         assert _ctx.message.value is value
 
         return _ctx.message.value
@@ -172,7 +174,7 @@ class TestHandlerMethods(TestedService):
     async def use_m4_m5(self, value, _ctx=None):
         assert isinstance(_ctx.message, M4) \
                or isinstance(_ctx.message, M5) \
-               or (_ctx.message, _ctx.MessageDirectCall)
+               or (_ctx.message, _ctx.GeneratedMessageClass)
 
         assert _ctx.message.value is value
 
