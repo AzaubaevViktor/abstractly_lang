@@ -78,7 +78,8 @@ class TestHandlerMethods(TestedService):
 
     async def test_arg_args_start(self):
         assert ((1, 2), 3, 4) == await self.arg_args_start(1, 2, y=3, z=4)
-        assert (tuple(), 3, 4) == await self.arg_args_start(y=3, z=4)
+        result = await self.arg_args_start(y=3, z=4)
+        assert (tuple(), 3, 4) == result, result
         assert ((1, 2, 3, 4), 3, 4) == await self.arg_args_start(1, 2, 3, 4, y=3, z=4)
 
     @handler
@@ -161,6 +162,7 @@ class TestHandlerMethods(TestedService):
         assert (1, 2) == await self.__class__.wrong_m2(1, 2)
 
         with raises(TypeError):
+            assert self._handlers[M2]
             result = await self.get(M2(4))
             assert False, result
 

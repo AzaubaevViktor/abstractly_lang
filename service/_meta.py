@@ -43,18 +43,28 @@ class HandlerInfo:
 
 
 class MessageSenderAttribute:
-    def __init__(self, func: _HandlerFuncT, handler_info: HandlerInfo):
+    def __init__(self, attr_name: str, func: _HandlerFuncT, handler_info: HandlerInfo):
+        self.attr_name = attr_name
         self.func = func
         self.message_classes = handler_info.message_classes
         self.generated_message_class = handler_info.generated_class
 
     def __get__(self, instance, owner):
-        Log("MessageSenderAttribute").warning("function creation")
-
         async def _owner_get(*args, **kwargs):
+            from service import Service
+            if args and isinstance(args[0], Service):
+                args = args[1:]
             return await owner.get(self.generated_message_class(args, kwargs))
 
         _owner_get.__name__ = f"_{self.generated_message_class.__name__}~owner.get"
+
+        Log("MessageSenderAttribute").debug(f"Inject",
+                                            method=_owner_get.__name__,
+                                            attr_name=self.attr_name
+                                            )
+
+        setattr(owner, self.attr_name, _owner_get)
+
         return _owner_get
 
 
@@ -68,10 +78,9 @@ class CallContext:
         return self.handler_info.generated_class
 
     def __repr__(self):
-        return f"<CallContext: >" \
-               # f"{self.message} "
-               # f"*{self.message.args} " \
-               # f"**{self.message.kwargs} >"
+        return f"<CallContext: " \
+               f"{type(self.message)} " \
+               f">"
 
 
 class WrappedMethod:
@@ -83,7 +92,10 @@ class WrappedMethod:
 
     async def __call__(self, message: "Message"):
         # assert isinstance(message, self.message_class)
-        Log("attr").info("!!!!!", message)
+        Log("attr").info("Call WrappedMethod",
+                         messaage=message,
+                         func=self.func,
+                         _self=self._self)
 
         f_args = message.args
         f_kwargs = message.kwargs
@@ -112,6 +124,8 @@ class HandlersManager:
     def __get__(self, instance: "Service", owner: Type["Service"]):
         if instance is None:
             return self
+
+        Log("HandlersManager").debug("Injecting")
 
         instance._handlers = self._generate_handlers_bounded_to_self(instance)
 
@@ -179,7 +193,7 @@ class MetaService(type):
             if hasattr(v, "__handler_info__"):
                 handler_info: HandlerInfo = v.__handler_info__
 
-                new_attrs[k] = MessageSenderAttribute(v, handler_info)
+                new_attrs[k] = MessageSenderAttribute(k, v, handler_info)
 
                 wrapped_method = WrappedMethod(v)
                 for message_class in handler_info.message_classes:
