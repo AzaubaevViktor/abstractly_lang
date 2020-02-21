@@ -107,8 +107,9 @@ class WrappedMethod:
         try:
             return await self.func(self._self, *f_args, **f_kwargs)
         except TypeError as te:
-            Log("WrappedMetgod").warning(error_args=te.args, error=te,
+            Log("WrappedMethod").warning(error_args=te.args, error=te,
                                          message=message, func=self.func)
+            raise
 
     def __repr__(self):
         self_s = f"{self._self}:" if self._self else ''
