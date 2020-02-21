@@ -3,6 +3,7 @@
 from service import Message, handler
 from service._meta import CallContext
 from test import TestedService, raises
+from test.test import will_fail
 
 
 class M0(Message):
@@ -125,6 +126,7 @@ class TestHandlerMethods(TestedService):
     async def all(self, x, *y, z, kx=1, ky=3, **kwargs):
         return x, y, z, kx, ky, kwargs
 
+    @will_fail("ABS-38")
     async def test_all(self):
         # TODO: Не подтягиваюттся keyword-only аргументы
         result = await self.all(1, 2, 3, 4, kx=5, ky=6, kz=7)

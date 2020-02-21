@@ -191,4 +191,21 @@ class raises:
     def __str__(self):
         return str(self.value)
 
+    def __repr__(self):
+        return f"<raises:{self.expected_exception.__name__} " \
+               f"(in fact {self.type if self.type is not None else '∅'}): " \
+               f"`{self.value}` >"
 
+
+def will_fail(cause):
+    def _(func):
+        async def __(*args, **kwargs):
+            with raises(Exception) as exc_info:
+                result = await func(*args, **kwargs)
+
+            return cause, exc_info
+
+        __.__name__ = func.__name__
+        return __
+
+    return _

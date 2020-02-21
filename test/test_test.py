@@ -1,4 +1,4 @@
-from test.test import TestedService, TestReports, ListTests
+from test.test import TestedService, TestReports, ListTests, will_fail
 
 
 class TestManager(TestedService):
@@ -11,3 +11,15 @@ class TestManager(TestedService):
                 break
 
         assert found
+
+    @will_fail("Test")
+    async def test_will_fail_assertion_error(self):
+        assert False, "It's test"
+
+    @will_fail("Test")
+    async def test_will_fail_any_error(self):
+        1 / 0
+
+    @will_fail("Test")
+    async def test_will_fail_exception(self):
+        raise Exception("Hey")
