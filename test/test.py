@@ -1,9 +1,9 @@
 import asyncio
 import inspect
 from time import time
-from typing import List, Type, Dict, Any, Iterable
+from traceback import format_exc
+from typing import List, Type, Iterable, Optional
 
-from log import Log
 from service.error import UnknownMessageType
 from service.message import Message, Shutdown
 from service.service import Service
@@ -26,7 +26,8 @@ class TestReport:
         self.finished = False
         self.start_time = 0
         self.finish_time = 0
-        self.exc = None
+        self.exc: Optional[Type[Exception]] = None
+        self.exc_message: Optional[str] = None
 
     def __repr__(self):
         return f"<TestReport: {self.klass.__name__}:{self.method_name} / {self.finished} {self.result} {self.exc}>"
@@ -41,6 +42,9 @@ class TestReport:
         else:
             sign = "⛔️"
             info = repr(self.exc)
+            if self.exc_message:
+                info += "\n"
+                info += self.exc_message
 
         tm = self.finish_time - self.start_time
 
@@ -118,6 +122,7 @@ class TestedService(Service):
             report.finish_time = time()
 
             report.exc = e
+            report.exc_message = format_exc()
             self.logger.exception(report=report)
 
     def _search_tests(self) -> Iterable[TestReport]:
