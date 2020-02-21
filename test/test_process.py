@@ -27,7 +27,7 @@ class TestServiceProcess(TestedService):
 
     async def test_pid(self):
         result, pid = await self.get(DoCalc(3))
-        assert pid != os.getpid()
+        assert pid != os.getpid(), pid
         assert 3 ** 3 ** 2 == result
 
     async def _do_ping(self):

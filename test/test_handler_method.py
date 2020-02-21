@@ -23,17 +23,30 @@ class M3(M0):
 
 
 class TestHandlerMethods(TestedService):
-    @handler
-    async def simple(self):
+    @classmethod
+    async def simple(cls):
         return 1
+
+    # async def test_simple(self):
+    #     assert 1 == await self.simple()
+    #     assert 1 == await self.__class__.simple()
 
     @handler
     async def simple_arg(self, x):
         return x
 
+    # async def test_simple_arg(self):
+    #     assert 5 == await self.simple_arg(5)
+    #     assert 5 == await self.__class__.simple_arg(5)
+
     @handler
     async def multi_arg(self, x, y, z):
         return x, y, z
+
+    async def test_multi_arg(self):
+        assert (1, 2, 3) == await self.multi_arg(1, 2, 3)
+        assert (1, 2, 3) == await self.__class__.multi_arg(1, 2, 3)
+
 
     @handler
     async def simple_args(self, *args):
@@ -82,3 +95,4 @@ class TestHandlerMethods(TestedService):
         assert isinstance(_ctx.message, M2) or isinstance(_ctx.message, M3)
 
         return _ctx.message.value
+
