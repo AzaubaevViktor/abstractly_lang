@@ -1,7 +1,7 @@
 """ ABS-38 """
 
 from service import Message, handler
-from service._meta import Context
+from service._meta import CallContext
 from test import TestedService, raises
 
 
@@ -124,16 +124,26 @@ class TestHandlerMethods(TestedService):
     async def all(self, x, *y, z, kx=1, ky=3, **kwargs):
         return x, y, z, kx, ky, kwargs
 
+    async def test_all(self):
+        result = await self.all(1, 2, 3, 4, kx=5, ky=6, kz=7)
+        assert (1, (2, 3), 4, 5, 6, {'kz': 7}) == result, result
+
     @handler
     async def get_context(self, _ctx=None):
-        assert isinstance(_ctx, Context)
+        assert isinstance(_ctx, CallContext)
 
     @handler(M1)
-    async def use_m1(self, value, _ctx: Context = None):
-        assert isinstance(_ctx.message, (M1, _ctx.GeneratedMessageClass))
-        assert _ctx.message.value is value
+    async def use_m1(self, value, _ctx: CallContext = None):
+        if isinstance(_ctx.message, M1):
+            from_msg = _ctx.message.value
+        elif isinstance(_ctx.message, _ctx.GeneratedMessageClass):
+            from_msg = _ctx.message.args[0]
+        else:
+            assert False, _ctx.message
 
-        return _ctx.message.value
+        assert from_msg is value, _ctx
+
+        return value
 
     async def test_use_m1(self):
         assert 1 == await self.use_m1(1)
@@ -144,14 +154,15 @@ class TestHandlerMethods(TestedService):
 
     @handler(M2)
     async def wrong_m2(self, value, wtf_arg):
-        assert False, "This cannot be execute"
+        return value, wtf_arg
 
     async def test_wrong_m2(self):
-        with raises(TypeError):
-            await self.wrong_m2(1, 2)
+        assert (1, 2) == await self.wrong_m2(1, 2)
+        assert (1, 2) == await self.__class__.wrong_m2(1, 2)
 
         with raises(TypeError):
-            await self.__class__.wrong_m2(1, 2)
+            result = await self.get(M2(4))
+            assert False, result
 
     @handler(M3)
     async def good_m3(self, value, wtf_arg=None):
@@ -172,19 +183,22 @@ class TestHandlerMethods(TestedService):
 
     @handler(M4, M5)
     async def use_m4_m5(self, value, _ctx=None):
-        assert isinstance(_ctx.message, M4) \
-               or isinstance(_ctx.message, M5) \
-               or (_ctx.message, _ctx.GeneratedMessageClass)
+        if isinstance(_ctx.message, (M4, M5)):
+            from_msg = _ctx.message.value
+        elif isinstance(_ctx.message, _ctx.GeneratedMessageClass):
+            from_msg = _ctx.message.args[0]
+        else:
+            assert False, _ctx.message
 
-        assert _ctx.message.value is value
+        assert from_msg is value, _ctx
 
-        return _ctx.message.value
+        return value
 
     async def test_use_m4_m5(self):
         assert 1 == await self.use_m4_m5(1)
         assert 1 == await self.__class__.use_m4_m5(1)
 
-        for klass in (M2, M3):
+        for klass in (M4, M5):
             assert 1 == await self.get(klass(1))
             message = await self.send(klass(1))
             assert 1 == await message.result()

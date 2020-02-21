@@ -58,7 +58,7 @@ class MessageSenderAttribute:
         return _owner_get
 
 
-class Context:
+class CallContext:
     def __init__(self, message: "Message", handler_info: HandlerInfo):
         self.message = message
         self.handler_info = handler_info
@@ -66,6 +66,12 @@ class Context:
     @property
     def GeneratedMessageClass(self):
         return self.handler_info.generated_class
+
+    def __repr__(self):
+        return f"<CallContext: >" \
+               # f"{self.message} "
+               # f"*{self.message.args} " \
+               # f"**{self.message.kwargs} >"
 
 
 class WrappedMethod:
@@ -84,7 +90,7 @@ class WrappedMethod:
 
         if "_ctx" in inspect.getfullargspec(self.func).args or \
                 "_ctx" in inspect.getfullargspec(self.func).kwonlyargs:
-            f_kwargs['_ctx'] = Context(message, self.func.__handler_info__)
+            f_kwargs['_ctx'] = CallContext(message, self.func.__handler_info__)
 
         try:
             return await self.func(self._self, *f_args, **f_kwargs)
@@ -195,15 +201,21 @@ class MetaService(type):
 
 def handler(*args, message_types=tuple()):
     from service import Message
+    from service.message import Shutdown
 
     if isinstance(args[0], type) and issubclass(args[0], Message):
+        for message in args:
+            if issubclass(message, Shutdown):
+                raise TypeError(f"Use `shutdown()` method instead Shutdown MessageType")
+
         def _(func):
             return handler(func, message_types=args)
 
         return _
 
     func = args[0]
-    assert inspect.iscoroutinefunction(func)
+    assert callable(func), f"{func} must be callable"
+    assert inspect.iscoroutinefunction(func), f"{func.__name__} must be `async def`"
     func.__handler_info__ = HandlerInfo(func, *message_types)
 
     return func

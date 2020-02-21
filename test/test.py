@@ -188,4 +188,7 @@ class raises:
         self.value = exc_val
         return True
 
+    def __str__(self):
+        return str(self.value)
+
 

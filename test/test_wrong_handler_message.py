@@ -5,13 +5,22 @@ from test import TestedService, raises
 
 class TestWrongHandlerMessage(TestedService):
     async def test_wrong(self):
-        with raises(ValueError) as exc_info:
+        with raises(TypeError) as exc_info:
             class S(Service):
                 @handler(Shutdown)
-                def m(self):
+                async def m(self):
                     pass
 
-        assert "Shutdown" in str(exc_info.value)
+        assert "Shutdown" in str(exc_info)
+
+    async def test_wrong_nont_in_start(self):
+        with raises(TypeError) as exc_info:
+            class S(Service):
+                @handler(Message, Shutdown)
+                async def m(self):
+                    pass
+
+        assert "Shutdown" in str(exc_info)
 
     async def test_duplicate_messages(self):
         class_name = "OhMyGod"
@@ -21,12 +30,12 @@ class TestWrongHandlerMessage(TestedService):
         with raises(TypeError) as exc_info:
             class S(Service):
                 @handler(common_message_class)
-                def one(self):
+                async def one(self):
                     pass
 
                 @handler(common_message_class)
-                def two(self):
+                async def two(self):
                     pass
 
-        assert class_name in exc_info
-        assert "one" in exc_info
+        assert class_name in str(exc_info)
+        assert "one" in str(exc_info)
