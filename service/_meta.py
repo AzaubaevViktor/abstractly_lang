@@ -31,7 +31,7 @@ class HandlerInfo:
                 def __init__(self, args, kwargs):
                     super(BaseGeneratedMessage, self).__init__()
                     self.args = args
-                    self.kwargs = kwargs
+                    self._send_kwargs = kwargs
 
             cls._BaseGeneratedMessage = BaseGeneratedMessage
 

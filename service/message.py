@@ -11,6 +11,9 @@ class Message(SearchableSubclasses):
         self._finished = Event()
         self.to: "Service" = None
 
+        self.args = tuple()
+        self._send_kwargs = {}
+
     def set_result(self, result):
         self._result = result
         self._finished.set()
@@ -40,22 +43,32 @@ class Message(SearchableSubclasses):
     def _additional_repr(self) -> str:
         pass
 
-    def _get_args(self):
+    def _get_items(self):
         if self._result:
             yield "result", str(self._result)
         if self._exception:
             yield "exception", str(self._exception)
 
+        yield from self._kwargs()
+
+    def _kwargs(self):
         for name in dir(self):
-            if not name.startswith("_"):
+            if not name.startswith("_") and name != "kwargs":
                 attr = getattr(self, name)
                 if not callable(attr):
                     yield name, str(attr)
 
+    @property
+    def kwargs(self):
+        if self._send_kwargs:
+            return self._send_kwargs
+
+        return dict(self._kwargs())
+
     def __repr__(self):
         state = "✅" if self._finished.is_set() else "⏳"
         additional_repr = self._additional_repr() or dict()
-        kwargs = {**dict(self._get_args()), **additional_repr}
+        kwargs = {**dict(self._get_items()), **additional_repr}
         if kwargs:
             _s = ", ".join((f"{k}={v}" for k, v in kwargs.items()))
         else:
