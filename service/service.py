@@ -3,7 +3,7 @@ from asyncio import Queue, Task, CancelledError
 from typing import List, TypeVar, Any, Dict, Type, Callable, Awaitable
 
 from log import Log
-from ._meta import MetaService
+from ._meta import MetaService, HandlersManager
 from ._searchable import SearchableSubclasses
 from .message import Message, Shutdown
 
@@ -14,6 +14,7 @@ _TM = TypeVar("_TM", Message, Message)
 class Service(SearchableSubclasses, metaclass=MetaService):
     _instance: "Service" = None
     _handlers: Dict[Type[Message], Callable[[Message], Awaitable[Any]]]
+    _handlers_manager: HandlersManager = None
 
     def __init__(self, message: Message):
         if self.__class__._instance:

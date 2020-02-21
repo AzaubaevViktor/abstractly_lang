@@ -26,6 +26,14 @@ class M4(M0):
     pass
 
 
+class M5(M0):
+    pass
+
+
+class M6(M0):
+    pass
+
+
 class TestHandlerMethods(TestedService):
     @handler
     async def simple(self):
@@ -132,44 +140,47 @@ class TestHandlerMethods(TestedService):
         message = await self.send(M1(1))
         assert 1 == await message.result()
 
-    @handler(M1)
-    async def wrong_m1(self, value, wtf_arg):
+    @handler(M2)
+    async def wrong_m2(self, value, wtf_arg):
         assert False, "This cannot be execute"
 
-    async def test_wrong_m1(self):
+    async def test_wrong_m2(self):
         with raises(TypeError):
-            await self.wrong_m1(1, 2)
+            await self.wrong_m2(1, 2)
 
         with raises(TypeError):
-            await self.__class__.wrong_m1(1, 2)
+            await self.__class__.wrong_m2(1, 2)
 
-    @handler(M1)
-    async def good_m1(self, value, wtf_arg=None):
+    @handler(M3)
+    async def good_m3(self, value, wtf_arg=None):
         if value == 1:
             assert wtf_arg is None
 
         return value, wtf_arg
 
-    async def test_good_m1(self):
-        assert (1, None) == await self.good_m1(1)
+    async def test_good_m3(self):
+        assert (1, None) == await self.good_m3(1)
 
-        assert (2, 2) == await self.__class__.good_m1(2, 2)
+        assert (2, 2) == await self.__class__.good_m3(2, 2)
 
-        assert 10 == await self.get(M1(10))
+        assert self._handlers[M3]
 
-    @handler(M2, M3)
-    async def use_m2_m3(self, value, _ctx=None):
-        assert isinstance(_ctx.message, M2) \
-               or isinstance(_ctx.message, M3) \
+        result = await self.get(M3(1))
+        assert (1, None) == result, result
+
+    @handler(M4, M5)
+    async def use_m4_m5(self, value, _ctx=None):
+        assert isinstance(_ctx.message, M4) \
+               or isinstance(_ctx.message, M5) \
                or (_ctx.message, _ctx.MessageDirectCall)
 
         assert _ctx.message.value is value
 
         return _ctx.message.value
 
-    async def test_use_m2_m3(self):
-        assert 1 == await self.use_m2_m3(1)
-        assert 1 == await self.__class__.use_m2_m3(1)
+    async def test_use_m4_m5(self):
+        assert 1 == await self.use_m4_m5(1)
+        assert 1 == await self.__class__.use_m4_m5(1)
 
         for klass in (M2, M3):
             assert 1 == await self.get(klass(1))
@@ -180,5 +191,5 @@ class TestHandlerMethods(TestedService):
         # This method will be called if nothing found in processors
         return type(message).__name__
 
-    async def test_process(self):
-        assert "M4" is await self.get(M4(100))
+    async def test_process_m6(self):
+        assert "M6" is await self.get(M6(100))
