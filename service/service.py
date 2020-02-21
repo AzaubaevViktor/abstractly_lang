@@ -104,3 +104,15 @@ class Service(SearchableSubclasses):
 
     def __repr__(self):
         return f"<Service:{self.__class__.__name__}: [{self._queue.qsize()}] / [{len(self._aio_tasks)}]>"
+
+
+def handler(*args):
+    print(args)
+
+    if isinstance(args[0], type) and issubclass(args[0], Message):
+        return handler
+
+    def _(*args, **kwargs):
+        raise NotImplementedError()
+
+    return _

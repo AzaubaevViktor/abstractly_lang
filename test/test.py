@@ -168,3 +168,25 @@ class TestsManager(Service):
         self.logger.info("Shutdown services")
         for service in self.all_tested_services():
             await service.send(Shutdown("Task finished"))
+
+
+class raises:
+    def __init__(self, expected_exception: Type[Exception]):
+        assert isinstance(expected_exception, type), f"{expected_exception} is not class"
+        assert issubclass(expected_exception, Exception), f"{expected_exception} must be subclass of Exception"
+        self.expected_exception = expected_exception
+        self.value = None
+        self.type = None
+
+    def __enter__(self) -> "raises":
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        assert exc_type, f"Not raised {self.expected_exception}"
+        assert issubclass(exc_type, self.expected_exception), f"Raised {exc_type} instead subclass of {self.expected_exception}"
+
+        self.type = exc_type
+        self.value = exc_val
+        return True
+
+
