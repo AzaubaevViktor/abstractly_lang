@@ -5,3 +5,5 @@ from .test_exc import TestException
 from .test_process import TestServiceProcess
 from .test_test import TestManager
 from .test_raises import TestRaises
+
+from .test_handler_method import TestHandlerMethods
