@@ -13,7 +13,7 @@ _TM = TypeVar("_TM", Message, Message)
 
 class Service(SearchableSubclasses, metaclass=MetaService):
     _instance: "Service" = None
-    _handlers = {}
+    _handlers: Dict[Type[Message], Callable[[Message], Awaitable[Any]]]
 
     def __init__(self, message: Message):
         if self.__class__._instance:
@@ -25,8 +25,6 @@ class Service(SearchableSubclasses, metaclass=MetaService):
         self._queue: Queue[Message] = Queue()
         self._aio_tasks: List[Task] = []
         self.logger.info("🖥 Hello!")
-
-        self._handlers: Dict[Type[Message], Callable[[Message], Awaitable[Any]]] = self._handlers
 
     async def warm_up(self):
         pass

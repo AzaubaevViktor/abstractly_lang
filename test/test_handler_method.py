@@ -104,11 +104,11 @@ class TestHandlerMethods(TestedService):
         return args, kwargs
 
     async def test_args_kwargs(self):
-        assert tuple(), {} == await self.args_kwargs()
-        assert tuple(), {} == await self.__class__.args_kwargs()
-        assert (1, 2, 3), {} == await self.__class__.args_kwargs(1, 2, 3)
-        assert tuple(), {'x': 4, 'y': 5, 'z': 6} == await self.__class__.args_kwargs(x=4, y=5, z=6)
-        assert (1, 2, 3), {'x': 4, 'y': 5, 'z': 6} == await self.__class__.args_kwargs(1, 2, 3, x=4, y=5, z=6)
+        assert (tuple(), {}) == await self.args_kwargs()
+        assert (tuple(), {}) == await self.__class__.args_kwargs()
+        assert ((1, 2, 3), {}) == await self.__class__.args_kwargs(1, 2, 3)
+        assert (tuple(), {'x': 4, 'y': 5, 'z': 6}) == await self.__class__.args_kwargs(x=4, y=5, z=6)
+        assert ((1, 2, 3), {'x': 4, 'y': 5, 'z': 6}) == await self.__class__.args_kwargs(1, 2, 3, x=4, y=5, z=6)
 
     @handler
     async def all(self, x, *y, z, kx=1, ky=3, **kwargs):
@@ -151,11 +151,11 @@ class TestHandlerMethods(TestedService):
         return value, wtf_arg
 
     async def test_good_m1(self):
-        assert (1, None) == await self.wrong_m1(1)
+        assert (1, None) == await self.good_m1(1)
 
-        assert (2, 2) == await self.__class__.wrong_m1(2, 2)
+        assert (2, 2) == await self.__class__.good_m1(2, 2)
 
-        assert 10 == await self.send(M1(10))
+        assert 10 == await self.get(M1(10))
 
     @handler(M2, M3)
     async def use_m2_m3(self, value, _ctx=None):
