@@ -32,7 +32,8 @@ class TestHandlerMethods(TestedService):
         return 1
 
     async def test_simple(self):
-        assert 1 == await self.simple()
+        simple_ = await self.simple()
+        assert 1 == simple_, simple_
         assert 1 == await self.__class__.simple()
 
     @handler

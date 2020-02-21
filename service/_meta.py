@@ -7,8 +7,11 @@ class HandlerInfo:
         self.message_class = message_class or self._generate_message()
 
     def _generate_message(self):
-        class GeneratedMessage:
+        from service import Message
+
+        class GeneratedMessage(Message):
             def __init__(self, args, kwargs):
+                super(GeneratedMessage, self).__init__()
                 self.args = args
                 self.kwargs = kwargs
 
@@ -22,13 +25,18 @@ class HandlerAttribute:
 
     def __get__(self, instance, owner):
         async def _get(*args, **kwargs):
-            return await owner.get(self.message_class(*args, **kwargs))
+            return await owner.get(self.message_class(args, kwargs))
         return _get
 
 
 class MetaService(type):
     def __new__(cls, name: str, bases: Tuple[Type["Service"]], attrs: Dict[str, Any]):
-        new_attrs = {}
+        # TODO: Inheritance
+        handlers = attrs.get('_handlers', {})
+
+        new_attrs = {
+            '_handlers': handlers
+        }
 
         for k, v in attrs.items():
             if hasattr(v, "__handler_info__"):
@@ -36,6 +44,7 @@ class MetaService(type):
                 new_attrs[k] = HandlerAttribute(
                     v, handler_info.message_class
                 )
+                handlers[handler_info.message_class] = v
             else:
                 new_attrs[k] = v
 
