@@ -5,6 +5,7 @@ from typing import List, TypeVar, Any, Dict, Type, Callable, Awaitable
 from log import Log
 from ._meta import MetaService, HandlersManager
 from ._searchable import SearchableSubclasses
+from .error import UnknownMessageType
 from .message import Message, Shutdown
 
 
@@ -28,12 +29,23 @@ class Service(SearchableSubclasses, metaclass=MetaService):
         self.logger.info("🖥 Hello!")
 
     async def warm_up(self):
+        """
+        Метод запускается перед запуском основного цикла программы.
+        Здесь можно подготовить сервис к работе
+        """
         pass
 
     async def process(self, message: Message):
+        """
+        Позволяет обрабатывать сообщения в общем виде
+        Если метод возвращает None -- считается, что метод ничего не обработал
+        """
         pass
 
     async def shutdown(self, message: Message):
+        """
+        Здесь можно отключить вспомогательные механизмы сервиса
+        """
         pass
 
     async def run(self):
@@ -98,7 +110,11 @@ class Service(SearchableSubclasses, metaclass=MetaService):
                           message: Message,
                           method: Callable[[Message], Awaitable[Any]]):
         try:
-            message.set_result(await method(message))
+            result = await method(message)
+            if method == self.process and result is None:
+                raise UnknownMessageType(self, message)
+
+            message.set_result(result)
         except Exception as e:
             self.logger.exception(message=message)
             message.set_error(e)

@@ -1,7 +1,7 @@
 import asyncio
 from typing import Dict, Type
 
-from .message import Message, CreateService, RunService, Shutdown
+from .message import Message, CreateService, RunService
 from .service import Service
 
 
@@ -27,23 +27,22 @@ class ServiceRunner(Service):
 
             if isinstance(message, RunService):
                 self.logger.info("Run service and wait while it ready", instance=instance)
-                return await instance.run()
+                result = await instance.run()
+                return result if result is not None else True
             elif isinstance(message, CreateService):
                 self.logger.info("Starting service", instance=instance)
 
                 self._aio_tasks.append(
                     asyncio.create_task(
-                        self._start(instance)
+                        self._just_start(instance)
                     )
                 )
                 return instance
-            else:
-                raise TypeError("Message has unknown type", type(message))
 
-    async def _start(self, instance):
+    async def _just_start(self, instance):
         try:
             await instance.run()
-        except Exception as e:
+        except Exception:
             self.logger.exception(instance=instance)
 
     @classmethod

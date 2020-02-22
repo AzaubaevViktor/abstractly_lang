@@ -182,7 +182,8 @@ class raises:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         assert exc_type, f"Not raised {self.expected_exception}"
-        assert issubclass(exc_type, self.expected_exception), f"Raised {exc_type} instead subclass of {self.expected_exception}"
+        assert issubclass(exc_type, self.expected_exception), f"Raised {exc_type} " \
+                                                              f"instead subclass of {self.expected_exception}"
 
         self.type = exc_type
         self.value = exc_val

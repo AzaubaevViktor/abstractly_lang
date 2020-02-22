@@ -2,6 +2,7 @@
 
 from service import Message, handler
 from service._meta import CallContext
+from service.error import UnknownMessageType
 from test import TestedService, raises
 from test.test import will_fail
 
@@ -33,6 +34,9 @@ class M5(M0):
 
 
 class M6(M0):
+    pass
+
+class M7(M0):
     pass
 
 
@@ -207,8 +211,16 @@ class TestHandlerMethods(TestedService):
             assert 1 == await message.result()
 
     async def process(self, message: Message):
-        # This method will be called if nothing found in processors
-        return type(message).__name__
+        # This method will be called if nothing found in handlers
+        if isinstance(message, M6):
+            return type(message).__name__
+        # Any other messages will be raise UnknownMessageType
 
     async def test_process_m6(self):
-        assert "M6" is await self.get(M6(100))
+        assert M6.__name__ == await self.get(M6(100))
+
+    async def test_unknown_m7(self):
+        with raises(UnknownMessageType) as exc_info:
+            await self.get(M7(100))
+
+        assert M7.__name__ in str(exc_info)
