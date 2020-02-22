@@ -4,7 +4,7 @@ from time import time
 from traceback import format_exc
 from typing import List, Type, Iterable, Optional
 
-from service.error import UnknownMessageType
+from service import handler
 from service.message import Message, Shutdown
 from service.service import Service
 
@@ -88,22 +88,28 @@ class TestReports:
 
 
 class TestedService(Service):
-    def __init__(self, message: Message):
-        super().__init__(message)
-        self._handlers[ListTests] = self._list_tests
-        self._handlers[RunTests] = self._run_tests
-
-    async def _list_tests(self, message: ListTests):
+    @handler(ListTests)
+    async def list_tests(self):
         return TestReports(*self._search_tests())
 
-    async def _run_tests(self, message: RunTests):
-        reports: TestReports = await self.get(ListTests())
+    def _search_tests(self) -> Iterable[TestReport]:
+        for method_name in dir(self):
+            if method_name.startswith("test_"):
+                method = getattr(self, method_name)
+                if inspect.iscoroutinefunction(method):
+                    yield TestReport(self.__class__, method_name)
+                else:
+                    raise TypeError(f"Test method must be `async def`, not {type(method)}")
+
+    @handler(RunTests)
+    async def run_tests(self):
+        reports: TestReports = await self.list_tests()
         await asyncio.gather(*(
-            self._run_test(report) for report in reports
+            self._run_single_test(report) for report in reports
         ))
         return reports
 
-    async def _run_test(self, report: TestReport):
+    async def _run_single_test(self, report: TestReport):
         try:
             method = getattr(self, report.method_name)
             report.start_time = time()
@@ -119,46 +125,36 @@ class TestedService(Service):
             report.exc_message = format_exc()
             self.logger.exception(report=report)
 
-    def _search_tests(self) -> Iterable[TestReport]:
-        for method_name in dir(self):
-            if method_name.startswith("test_"):
-                method = getattr(self, method_name)
-                if inspect.iscoroutinefunction(method):
-                    yield TestReport(self.__class__, method_name)
-                else:
-                    raise TypeError(f"Test method must be `async def`, not {type(method)}")
-
 
 class TestsManager(Service):
     async def warm_up(self):
         pass
 
-    async def process(self, message: Message):
-        if isinstance(message, ListTests):
-            self.logger.info("Found tested services:")
+    @handler(ListTests)
+    async def list_tests(self):
+        self.logger.info("Found tested services:")
 
-            _reports = await asyncio.gather(*(
-                service_klass.get(ListTests())
-                for service_klass in self.all_tested_services()
-            ))
+        _reports = await asyncio.gather(*(
+            service_klass.get(ListTests())
+            for service_klass in self.all_tested_services()
+        ))
 
-            reports = TestReports(*_reports)
+        reports = TestReports(*_reports)
 
-            for report in reports:
-                report: TestReport
-                self.logger.info("🧪", report)
+        for report in reports:
+            report: TestReport
+            self.logger.info("🧪", report)
 
-            return reports
+        return reports
 
-        if isinstance(message, RunTests):
-            _reports = await asyncio.gather(*(
-                service_class.get(RunTests())
-                for service_class in self.all_tested_services()
-            ))
+    @handler(RunTests)
+    async def run_tests(self):
+        _reports = await asyncio.gather(*(
+            service_class.get(RunTests())
+            for service_class in self.all_tested_services()
+        ))
 
-            return TestReports(*_reports)
-
-        raise UnknownMessageType(self, message)
+        return TestReports(*_reports)
 
     def all_tested_services(self) -> List[Type[TestedService]]:
         return TestedService.all_subclasses()
