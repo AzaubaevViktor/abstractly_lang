@@ -1,5 +1,4 @@
-from service import Service, Message
-from service.error import UnknownMessageType
+from service import Message, handler
 from test.test import TestedService
 from vk_utils.registrate import VkSettings
 from vk_utils.requests_service import RequestService
@@ -27,16 +26,15 @@ class VkMethod(TestedService):
             'v': "5.103"
         }
 
-    async def process(self, message: Message):
-        if isinstance(message, DoVkMethod):
-            return await RequestService.get_request(
-                f"{self.settings.api_host}{message.method}",
-                {**message.params, **self.additional_params}
-            )
-        raise UnknownMessageType(self, message)
+    @handler(DoVkMethod)
+    async def call_method(self, method, **params):
+        return await RequestService.get_request(
+            url=f"{self.settings.api_host}{method}",
+            data={**params, **self.additional_params}
+        )
 
     async def test_vk_user_get(self):
-        response = await self.get(DoVkMethod("users.get", user_ids=210700286))
+        response = await self.call_method("users.get", user_ids=210700286)
         answer = response['response'][0]
         assert answer['id'] == 210700286
         assert answer['first_name'] == 'Lindsey'

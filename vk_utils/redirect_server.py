@@ -4,20 +4,12 @@ import aiofiles
 from aiohttp import web
 from aiohttp.abc import BaseRequest
 
-from service import Service, Message
-from service.error import UnknownMessageType
+from service import Message, handler
 from service.message import Shutdown
+from test import TestedService
 
 
-class GetAddress(Message):
-    pass
-
-
-class GetPath(Message):
-    pass
-
-
-class RedirectServer(Service):
+class RedirectServer(TestedService):
     def __init__(self, message: Message):
         super().__init__(message)
         self.app: web.Application = None
@@ -25,8 +17,9 @@ class RedirectServer(Service):
         self.site: web.TCPSite = None
         self.template: str = None
 
-        self.path = None
-        self.path_event = Event()
+        self.data = None
+        self.data_received = Event()
+
         self.address = "localhost"
         self.port = 8181
 
@@ -49,19 +42,20 @@ class RedirectServer(Service):
         return web.Response(body=self.template, content_type="text/html")
 
     async def _handler_post(self, request: BaseRequest):
-        self.path = (await request.json())['answer']
-        self.path_event.set()
+        path = (await request.json())['answer']
+        self.data = dict(item.split('=') for item in path.split("&"))
+        self.data_received.set()
         return web.json_response({'status': 'ok'})
 
-    async def process(self, message: Message):
-        if isinstance(message, GetAddress):
-            return f"{self.address}:{self.port}/redirect"
-        if isinstance(message, GetPath):
-            await self.path_event.wait()
-            await self.send(Shutdown("Onetime work"))
-            return self.path
+    @handler
+    async def get_address(self):
+        return f"{self.address}:{self.port}/redirect"
 
-        raise UnknownMessageType(self, message)
+    @handler
+    async def get_data(self):
+        await self.data_received.wait()
+        await self.send(Shutdown("Onetime work"))
+        return self.data
 
     async def shutdown(self, message: Message):
         self.logger.info("Stopping WebServer")
@@ -69,3 +63,5 @@ class RedirectServer(Service):
         await self.runner.cleanup()
         await self.app.cleanup()
         self.logger.info("WebServer stopped")
+
+    # TODO: Add test

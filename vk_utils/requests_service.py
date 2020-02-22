@@ -1,9 +1,10 @@
 from enum import Enum
+from typing import Any
 
 import aiohttp
 
-from service import Service, Message
-from service.error import UnknownMessageType
+from service import Message, handler
+from test import TestedService
 
 
 class _HTTPMethods(Enum):
@@ -11,15 +12,7 @@ class _HTTPMethods(Enum):
     POST = "POST"
 
 
-class DoRequest(Message):
-    def __init__(self, method: _HTTPMethods, url: str, data: dict):
-        super().__init__()
-        self.method = method
-        self.url = url
-        self.data = data
-
-
-class RequestService(Service):
+class RequestService(TestedService):
     def __init__(self, message: Message):
         super().__init__(message)
         self.session: aiohttp.ClientSession
@@ -27,28 +20,22 @@ class RequestService(Service):
     async def warm_up(self):
         self.session = aiohttp.ClientSession()
 
-    async def process(self, message: Message):
-        if isinstance(message, DoRequest):
-            if message.method == _HTTPMethods.GET:
-                return await self._process_get(message)
-
-        raise UnknownMessageType(self, message)
-
     async def shutdown(self, message: Message):
         await self.session.close()
 
-    @classmethod
-    async def request(cls, method, url, data):
-        return await cls.get(DoRequest(
-            method, url, data
-        ))
+    @handler
+    async def _request(self, method: _HTTPMethods, url: str, data: Any = None):
+        if method is _HTTPMethods.GET:
+            return await self.get_request(url, data)
+        else:
+            raise NotImplementedError(f"Request for {method.name} not implemented yet")
 
-    @classmethod
-    async def get_request(cls, url, data):
-        return await cls.get(DoRequest(
-            _HTTPMethods.GET, url, data
-        ))
-
-    async def _process_get(self, message: DoRequest):
-        async with self.session.get(message.url, params=message.data) as resp:
+    @handler
+    async def get_request(self, url: str, data=None):
+        async with self.session.get(url, params=data) as resp:
             return await resp.json()
+
+    async def test_get_request(self):
+        answer = await self.get_request("https://youtrack.abstractly.org/api")
+        assert 'error' in answer
+        assert 'error_description' in answer

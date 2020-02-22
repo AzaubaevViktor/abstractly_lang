@@ -1,19 +1,8 @@
 import webbrowser
 
-from service import Service, Message
-from service.error import UnknownMessageType
-from vk_utils.redirect_server import RedirectServer, GetAddress, GetPath
+from service import Service, Message, handler
+from vk_utils.redirect_server import RedirectServer
 from vk_utils.settings import VkSettingsData
-
-
-class DoRegister(Message):
-    def __init__(self, client_id):
-        super().__init__()
-        self.client_id = client_id
-
-
-class GetSettings(Message):
-    pass
 
 
 class VkRegistration(Service):
@@ -22,41 +11,33 @@ class VkRegistration(Service):
         self.redirect_address: str = None
 
     async def warm_up(self):
-        self.redirect_address = await RedirectServer.get(GetAddress())
+        self.redirect_address = await RedirectServer.get_address()
 
-    async def process(self, message: Message):
-        if isinstance(message, DoRegister):
-            url = "https://oauth.vk.com/authorize" \
-                  f"?client_id={message.client_id}" \
-                  "&display=page" \
-                  f"&redirect_uri={self.redirect_address}" \
-                  "&scope=friends,wall,offline,groups" \
-                  "&response_type=token" \
-                  "&v=5.103"
+    @handler
+    async def do_register(self, client_id):
+        url = "https://oauth.vk.com/authorize" \
+              f"?client_id={client_id}" \
+              "&display=page" \
+              f"&redirect_uri={self.redirect_address}" \
+              "&scope=friends,wall,offline,groups" \
+              "&response_type=token" \
+              "&v=5.103"
 
-            webbrowser.open_new(url)
+        webbrowser.open_new(url)
 
-            path: str = await RedirectServer.get(GetPath())
-            return dict(item.split('=') for item in path.split("&"))
-
-        raise UnknownMessageType(self, message)
+        path: dict = await RedirectServer.get_data()
+        return path
 
 
 class VkSettings(Service):
-    async def process(self, message: Message):
-        if isinstance(message, GetSettings):
-            settings = await VkSettingsData.load("settings.yml")
+    @handler
+    async def settings(self) -> VkSettingsData:
+        settings = await VkSettingsData.load("settings.yml")
 
-            if not settings.token:
-                data = await VkRegistration.get(DoRegister(settings.client_id))
-                settings.token = data['access_token']
-                settings.user_id = data['user_id']
-                await settings.store("settings.yml")
+        if not settings.token:
+            data = await VkRegistration.do_register(client_id=settings.client_id)
+            settings.token = data['access_token']
+            settings.user_id = data['user_id']
+            await settings.store("settings.yml")
 
-            return settings
-
-        raise UnknownMessageType(self, message)
-
-    @classmethod
-    async def settings(cls) -> VkSettingsData:
-        return await cls.get(GetSettings())
+        return settings
