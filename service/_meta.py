@@ -6,6 +6,7 @@ from log import Log
 
 
 _HandlerFuncT = Callable[["Message"], Awaitable[Any]]
+_RawFuncT = Callable[..., Awaitable[Any]]
 
 
 class HandlerInfo:
@@ -85,7 +86,7 @@ class CallContext:
 
 class WrappedMethod:
     def __init__(self,
-                 func: Callable[..., Awaitable[Any]],
+                 func: _RawFuncT,
                  _self: "Service" = None):
         self.func = func
         self._self = _self
@@ -216,7 +217,19 @@ class MetaService(type):
         return new_attrs
 
 
-def handler(*args, message_types=tuple()):
+def handler(*args: Union["Message", _RawFuncT], _message_types=tuple()):
+    """
+      Помечает метод как обработчик события.
+      События можно указывать как аргументы декоратора.
+
+      После можно вызывать данный обработчик как через класс, так и через объект.
+    При вызове из класса не совсем правильно подтягиваются аргументы,
+    поэтому лучше указывать их через именованные аргументы.
+
+    :param args: Список типов сообщений / декорируемый метод
+    :param _message_types: Список типов сообщений для декорируемого метода
+    :return: Метод с пометкой .__handler_info__ для метакласса
+    """
     from service import Message
     from service.message import Shutdown
 
@@ -226,7 +239,7 @@ def handler(*args, message_types=tuple()):
                 raise TypeError(f"Use `shutdown()` method instead Shutdown MessageType")
 
         def _(func):
-            return handler(func, message_types=args)
+            return handler(func, _message_types=args)
 
         return _
 
@@ -234,6 +247,6 @@ def handler(*args, message_types=tuple()):
     assert callable(func), f"{func} must be callable"
     if not inspect.iscoroutinefunction(func):
         raise TypeError(f"Handler `{func.__name__}` must be coroutine, use `async def {func.__name__}(...)` instead")
-    func.__handler_info__ = HandlerInfo(func, *message_types)
+    func.__handler_info__ = HandlerInfo(func, *_message_types)
 
     return func
