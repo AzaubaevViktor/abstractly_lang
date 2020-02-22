@@ -39,3 +39,13 @@ class TestWrongHandlerMessage(TestedService):
 
         assert class_name in str(exc_info)
         assert "one" in str(exc_info)
+
+    async def test_not_async(self):
+        with raises(TypeError) as exc_info:
+            class S(Service):
+                @handler
+                def not_async(self):
+                    pass
+
+        assert "not_async" in str(exc_info)
+        assert "async def" in str(exc_info)

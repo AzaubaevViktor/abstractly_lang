@@ -232,7 +232,8 @@ def handler(*args, message_types=tuple()):
 
     func = args[0]
     assert callable(func), f"{func} must be callable"
-    assert inspect.iscoroutinefunction(func), f"{func.__name__} must be `async def`"
+    if not inspect.iscoroutinefunction(func):
+        raise TypeError(f"Handler `{func.__name__}` must be coroutine, use `async def {func.__name__}(...)` instead")
     func.__handler_info__ = HandlerInfo(func, *message_types)
 
     return func
