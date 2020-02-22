@@ -197,10 +197,12 @@ class raises:
                f"`{self.value}` >"
 
 
-def will_fail(cause):
+def will_fail(cause: str, expected_exception: Type[Exception] = None):
+    expected_exception = expected_exception or Exception
+
     def _(func):
         async def __(*args, **kwargs):
-            with raises(Exception) as exc_info:
+            with raises(expected_exception) as exc_info:
                 result = await func(*args, **kwargs)
 
             return cause, exc_info

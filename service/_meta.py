@@ -100,8 +100,10 @@ class WrappedMethod:
         f_args = message.args
         f_kwargs = message.kwargs
 
-        if "_ctx" in inspect.getfullargspec(self.func).args or \
-                "_ctx" in inspect.getfullargspec(self.func).kwonlyargs:
+        func_spec = inspect.getfullargspec(self.func)
+
+        if "_ctx" in func_spec.args or \
+                "_ctx" in func_spec.kwonlyargs:
             f_kwargs['_ctx'] = CallContext(message, self.func.__handler_info__)
 
         try:

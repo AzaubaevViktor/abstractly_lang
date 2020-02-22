@@ -126,10 +126,8 @@ class TestHandlerMethods(TestedService):
     async def all(self, x, *y, z, kx=1, ky=3, **kwargs):
         return x, y, z, kx, ky, kwargs
 
-    @will_fail("ABS-38")
     async def test_all(self):
-        # TODO: Не подтягиваюттся keyword-only аргументы
-        result = await self.all(1, 2, 3, 4, kx=5, ky=6, kz=7)
+        result = await self.all(1, 2, 3, z=4, kx=5, ky=6, kz=7)
         assert (1, (2, 3), 4, 5, 6, {'kz': 7}) == result, result
 
     @handler
