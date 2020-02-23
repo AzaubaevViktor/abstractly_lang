@@ -68,6 +68,8 @@ class VkMethod(TestedService):
             if answer['count'] <= len(all_items):
                 break
 
+        assert answer['count'] == len(all_items)
+
         return all_items
 
     @handler
@@ -129,6 +131,14 @@ class VkMethod(TestedService):
             default_step=100
         )
 
+    async def group_users(self, group: int):
+        return await self._count_offset_wrapper(
+            "groups.getMembers",
+            group_id=group,
+            sort="id_asc",
+            default_step=1000
+        )
+
     async def test_vk_user_get(self):
         answer = await self.call_method("users.get", user_ids=210700286)
 
@@ -167,3 +177,7 @@ class VkMethod(TestedService):
         for comment in answer:
             assert "id" in comment
             assert comment['post_id'] == post_id
+
+    async def test_group_users(self):
+        answer = await self.group_users(group=14444)
+        assert len(answer)
