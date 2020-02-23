@@ -45,57 +45,52 @@ class VkMethod(TestedService):
     async def get_profile_info(self):
         return await self.call_method("account.getProfileInfo")
 
-    @handler
-    async def user_friends(self,
-                           user: int,
-                           count: int = None
-                           ):
-        friends = []
+    async def _count_offset_wrapper(self, method, *, default_step, count=None, **params):
+        all_items = []
+
+        assert default_step is not None, "Set default step!"
+
         if count is not None:
             raise NotImplementedError()
 
         while True:
             answer = await self.call_method(
-                "friends.get",
-                user_id=user,
-                order='name',
-                count=5000,
-                offset=len(friends),
-                name_case="nom"
+                method, **params,
+                count=default_step,
+                offset=len(all_items)
             )
 
             items = answer['items']
-            friends.extend(items)
+            all_items.extend(items)
 
             assert len(items) != 0
 
-            if answer['count'] <= len(friends):
+            if answer['count'] <= len(all_items):
                 break
 
-        return friends
+        return all_items
+
+    @handler
+    async def user_friends(self,
+                           user: int,
+                           count: int = None
+                           ):
+        return await self._count_offset_wrapper(
+            "friends.get",
+            user_id=user,
+            order='name',
+            name_case="nom",
+            default_step=5000
+        )
 
     @handler
     async def user_groups(self, user: int):
-        groups = []
-
-        while True:
-            answer = await self.call_method(
-                "groups.get",
-                user_id=user,
-                extended=0,
-                count=1000,
-                offset=0
-            )
-
-            items = answer['items']
-            groups.extend(items)
-
-            assert len(items) != 0
-
-            if answer['count'] <= len(groups):
-                break
-
-        return groups
+        return await self._count_offset_wrapper(
+            "groups.get",
+            user_id=user,
+            extended=0,
+            default_step=1000,
+        )
 
     @handler
     async def users_info(self, *users):
@@ -105,6 +100,18 @@ class VkMethod(TestedService):
             user_ids=",".join(map(str, set(users))),
             fields="first_name,last_name,deactivated,verified",
             name_case="nom"
+        )
+
+    @handler
+    async def wall(self,
+                   owner: int):
+
+        return await self._count_offset_wrapper(
+            "wall.get",
+            owner=owner,
+            filter="all",
+            extended=0,
+            default_step=100
         )
 
     async def test_vk_user_get(self):
