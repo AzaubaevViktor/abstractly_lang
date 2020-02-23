@@ -97,11 +97,31 @@ class VkMethod(TestedService):
 
         return groups
 
+    @handler
+    async def users_info(self, *users):
+        assert len(users) <= 1000, "Not implemented yet. Implement if you want..."
+        return await self.call_method(
+            "users.get",
+            user_ids=",".join(map(str, set(users))),
+            fields="first_name,last_name,deactivated,verified",
+            name_case="nom"
+        )
+
     async def test_vk_user_get(self):
         answer = await self.call_method("users.get", user_ids=210700286)
 
         assert answer['id'] == 210700286
         assert answer['first_name'] == 'Lindsey'
+
+    async def test_users_info(self):
+        answer = await self.users_info(210700286, 210700286, 169845376)
+
+        assert len(answer) == 2
+
+        for item in answer:
+            assert 'id' in item, item.keys()
+            assert 'first_name' in item, item.keys()
+            assert 'last_name' in item, item.keys()
 
     async def test_user_friends9000(self):
         friends = await self.user_friends(169845376)
