@@ -114,6 +114,21 @@ class VkMethod(TestedService):
             default_step=100
         )
 
+    @handler
+    async def wall_post(self,
+                        owner: int,
+                        post: int):
+        return await self._count_offset_wrapper(
+            "wall.getComments",
+            owner_id=owner,
+            post_id=post,
+            need_likes=1,
+            sort="asc",  # or desc
+            preview_length=0,
+            extended=0,
+            default_step=100
+        )
+
     async def test_vk_user_get(self):
         answer = await self.call_method("users.get", user_ids=210700286)
 
@@ -133,3 +148,22 @@ class VkMethod(TestedService):
     async def test_user_friends9000(self):
         friends = await self.user_friends(169845376)
         assert len(friends) > 6000, len(friends)
+
+    async def test_wall(self):
+        answer = await self.wall(owner=-86529522)
+        assert answer
+        for post in answer:
+            assert "id" in post
+            assert "post_type" in post
+
+    async def test_wall_post(self):
+        post_id = 3199
+        answer = await self.wall_post(
+            owner=85635407,
+            post=post_id
+        )
+
+        assert answer
+        for comment in answer:
+            assert "id" in comment
+            assert comment['post_id'] == post_id
