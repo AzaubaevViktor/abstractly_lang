@@ -46,43 +46,56 @@ class VkMethod(TestedService):
         return await self.call_method("account.getProfileInfo")
 
     @handler
-    async def get_friends(self,
-                          user: int,
-                          count: int = None
-                          ):
+    async def user_friends(self,
+                           user: int,
+                           count: int = None
+                           ):
         friends = []
         if count is not None:
             raise NotImplementedError()
 
-        answer = await self.call_method(
-            "friends.get",
-            user_id=user,
-            order='name',
-            count=5000,
-            offset=len(friends),
-            fields="nickname,domain,sex,bdate,city,country,timezone,"
-                   "photo_50,photo_100,photo_200_orig,has_mobile,contacts,"
-                   "education,online,relation,last_seen,status,"
-                   "can_write_private_message,can_see_all_posts,can_post,universities",
-            name_case="nom"
-        )
-
-        items = answer['items']
-        friends.extend(items)
-
-        if answer['count'] == 5000:
+        while True:
             answer = await self.call_method(
                 "friends.get",
                 user_id=user,
                 order='name',
                 count=5000,
-                offset=5000,
+                offset=len(friends),
                 name_case="nom"
             )
 
-            friends.extend(answer['items'])
+            items = answer['items']
+            friends.extend(items)
+
+            assert len(items) != 0
+
+            if answer['count'] <= len(friends):
+                break
 
         return friends
+
+    @handler
+    async def user_groups(self, user: int):
+        groups = []
+
+        while True:
+            answer = await self.call_method(
+                "groups.get",
+                user_id=user,
+                extended=0,
+                count=1000,
+                offset=0
+            )
+
+            items = answer['items']
+            groups.extend(items)
+
+            assert len(items) != 0
+
+            if answer['count'] <= len(groups):
+                break
+
+        return groups
 
     async def test_vk_user_get(self):
         answer = await self.call_method("users.get", user_ids=210700286)
@@ -90,6 +103,6 @@ class VkMethod(TestedService):
         assert answer['id'] == 210700286
         assert answer['first_name'] == 'Lindsey'
 
-    async def test_get_friends9000(self):
-        friends = await self.get_friends(169845376)
+    async def test_user_friends9000(self):
+        friends = await self.user_friends(169845376)
         assert len(friends) > 6000, len(friends)
