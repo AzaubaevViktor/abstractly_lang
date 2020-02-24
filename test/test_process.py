@@ -1,15 +1,17 @@
 import asyncio
 import os
-from time import time
+import signal
+from time import time, sleep
 
-from service import Message
+from service import Message, handler
 from test.test import TestedService
 
 
 class DoCalc(Message):
-    def __init__(self, value: int):
+    def __init__(self, value: int, sync_delay = 0):
         super().__init__()
         self.value = value
+        self.sync_delay = sync_delay
 
 
 class DoPing(Message):
@@ -19,16 +21,34 @@ class DoPing(Message):
 class TestServiceProcess(TestedService):
     cpu_bound = True
 
-    async def process(self, message: Message):
-        if isinstance(message, DoCalc):
-            return message.value ** message.value ** 2, os.getpid()
-        if isinstance(message, DoPing):
-            return time()
+    @handler(DoCalc)
+    async def do_calc(self, value, sync_delay=0):
+        if sync_delay:
+            self.logger.info("Do sync delay...")
+            sleep(sync_delay)
+        return value ** value ** 2, os.getpid()
+
+    @handler(DoPing)
+    async def do_ping(self):
+        return time()
 
     async def test_pid(self):
         result, pid = await self.get(DoCalc(3))
         assert pid != os.getpid(), pid
         assert 3 ** 3 ** 2 == result
+
+    async def test_kill(self):
+        result, pid = await self.do_calc(0, 0)
+        assert result == 1
+        assert pid != os.getpid()
+
+        msg = await self.send(DoCalc(3, 10))
+
+        os.kill(pid, signal.SIGKILL)
+
+        result, new_pid = msg.result()
+        assert result == 3 ** 3 ** 2
+        assert pid != new_pid
 
     async def _do_ping(self):
         request_start = time()
