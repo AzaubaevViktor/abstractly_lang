@@ -3,8 +3,7 @@ import weakref
 from typing import Type, List, Dict, Any, Tuple, Awaitable, Union, Callable
 
 from log import Log
-
-
+from .error import *
 _HandlerFuncT = Callable[["Message"], Awaitable[Any]]
 _RawFuncT = Callable[..., Awaitable[Any]]
 
@@ -18,6 +17,25 @@ class HandlerInfo:
         self.message_classes = (
             self._generate_message_class(),
             *additional_message_classes)
+
+        self._check()
+
+    def _check(self):
+        from service.message import Shutdown
+        for message_class in self.message_classes:
+            if issubclass(message_class, Shutdown):
+                raise WrongHandlerMessageType(message_class,
+                                              f"Use `shutdown()` method instead")
+
+        func = self.func_ref()
+
+        if not callable(func):
+            raise WrongHandlerFunc(f"{func} must be callable object")
+
+        if not inspect.iscoroutinefunction(func):
+            raise WrongHandlerFunc(
+                f"Handler `{func.__name__}` must be coroutine, "
+                f"use `async def {func.__name__}(...)` instead")
 
     @property
     def generated_class(self):
@@ -202,10 +220,8 @@ class MetaService(type):
                 wrapped_method = WrappedMethod(v)
                 for message_class in handler_info.message_classes:
                     if message_class in message_class_used:
-                        raise TypeError(
-                            f"For handler `{k}`: "
-                            f"message type `{message_class.__name__}` already used in other handler"
-                            f"`{handlers[message_class]}`"
+                        raise HandlerMessageBooked(
+                            k, message_class, handlers
                         )
                     handlers[message_class] = wrapped_method
                     message_class_used.append(message_class)
@@ -217,7 +233,7 @@ class MetaService(type):
         return new_attrs
 
 
-def handler(*args: Union["Message", _RawFuncT], _message_types=tuple()):
+def handler(*args: Union[Type["Message"], _RawFuncT], _message_types=tuple()):
     """
       Помечает метод как обработчик события.
       События можно указывать как аргументы декоратора.
@@ -231,22 +247,14 @@ def handler(*args: Union["Message", _RawFuncT], _message_types=tuple()):
     :return: Метод с пометкой .__handler_info__ для метакласса
     """
     from service import Message
-    from service.message import Shutdown
 
     if isinstance(args[0], type) and issubclass(args[0], Message):
-        for message in args:
-            if issubclass(message, Shutdown):
-                raise TypeError(f"Use `shutdown()` method instead Shutdown MessageType")
-
         def _(func):
             return handler(func, _message_types=args)
 
         return _
 
     func = args[0]
-    assert callable(func), f"{func} must be callable"
-    if not inspect.iscoroutinefunction(func):
-        raise TypeError(f"Handler `{func.__name__}` must be coroutine, use `async def {func.__name__}(...)` instead")
     func.__handler_info__ = HandlerInfo(func, *_message_types)
 
     return func

@@ -1,11 +1,11 @@
-from service import Service, handler
+from service import Service, handler, WrongHandlerMessageType, WrongHandlerFunc, HandlerMessageBooked
 from service.message import Shutdown, Message
 from test import TestedService, raises
 
 
 class TestWrongHandlerMessage(TestedService):
     async def test_wrong(self):
-        with raises(TypeError) as exc_info:
+        with raises(WrongHandlerMessageType) as exc_info:
             class S(Service):
                 @handler(Shutdown)
                 async def m(self):
@@ -14,7 +14,7 @@ class TestWrongHandlerMessage(TestedService):
         assert "Shutdown" in str(exc_info)
 
     async def test_wrong_nont_in_start(self):
-        with raises(TypeError) as exc_info:
+        with raises(WrongHandlerMessageType) as exc_info:
             class S(Service):
                 @handler(Message, Shutdown)
                 async def m(self):
@@ -27,7 +27,7 @@ class TestWrongHandlerMessage(TestedService):
 
         common_message_class = type(class_name, (Message, ), {})
 
-        with raises(TypeError) as exc_info:
+        with raises(HandlerMessageBooked) as exc_info:
             class S(Service):
                 @handler(common_message_class)
                 async def one(self):
@@ -41,7 +41,7 @@ class TestWrongHandlerMessage(TestedService):
         assert "one" in str(exc_info)
 
     async def test_not_async(self):
-        with raises(TypeError) as exc_info:
+        with raises(WrongHandlerFunc) as exc_info:
             class S(Service):
                 @handler
                 def not_async(self):
