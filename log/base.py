@@ -39,7 +39,8 @@ class Log:
     @level.setter
     def level(self, level: LogLevel):
         if not isinstance(level, LogLevel):
-            raise TypeError(type(level))
+            raise TypeError(f"{level} isn't correct type for Log level. "
+                            f"Try to use {LogLevel.__name__} values")
         self._level = level
 
     def _frame(self, deep):

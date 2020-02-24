@@ -55,3 +55,12 @@ class WrongHandlerMessageType(MetaServiceError):
 class WrongHandlerFunc(MetaServiceError):
     pass
 
+
+class ServiceExist(BaseServiceError):
+    def __init__(self, service_instance):
+        self.instance = service_instance
+
+    def __str__(self):
+        return f"⚠️ 🔥 SYSTEM ERROR 🔥 ⚠️: " \
+               f"Instance of Service {self.instance.__class__.__name__} already exist"
+

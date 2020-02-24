@@ -5,7 +5,7 @@ from typing import List, TypeVar, Any, Dict, Type, Callable, Awaitable
 from log import Log
 from ._meta import MetaService, HandlersManager
 from ._searchable import SearchableSubclasses
-from .error import UnknownMessageType
+from .error import UnknownMessageType, ServiceExist
 from .message import Message, Shutdown
 
 
@@ -19,7 +19,7 @@ class Service(SearchableSubclasses, metaclass=MetaService):
 
     def __init__(self, message: Message):
         if self.__class__._instance:
-            raise RuntimeError("⛔️ Service already exist")
+            raise ServiceExist(self.__class__._instance)
 
         self.__class__._instance = self
 

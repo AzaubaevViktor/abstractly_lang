@@ -4,7 +4,7 @@ from time import time
 from traceback import format_exc
 from typing import List, Type, Iterable, Optional
 
-from service import handler
+from service import handler, BaseServiceError
 from service.message import Message, Shutdown
 from service.service import Service
 
@@ -87,6 +87,17 @@ class TestReports:
         return result
 
 
+class MakeTestError(BaseServiceError):
+    def __init__(self, instance, method_name, cause):
+        self.instance = instance
+        self.method_name = method_name
+        self.cause = cause
+
+    def __str__(self):
+        return f"{self.instance.__class__.__name__}:{self.method_name} : " \
+               f"{self.cause}"
+
+
 class TestedService(Service):
     @handler(ListTests)
     async def list_tests(self):
@@ -99,7 +110,9 @@ class TestedService(Service):
                 if inspect.iscoroutinefunction(method):
                     yield TestReport(self.__class__, method_name)
                 else:
-                    raise TypeError(f"Test method must be `async def`, not {type(method)}")
+                    raise MakeTestError(
+                        self, method_name,
+                        f"Test is not coroutine (use `async def {method_name}(...)` instead")
 
     @handler(RunTests)
     async def run_tests(self):
