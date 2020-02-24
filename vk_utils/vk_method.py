@@ -29,6 +29,22 @@ class VkMethod(TestedService):
             'lang': 'ru',
             'v': "5.103"
         }
+        self.user_fields = ",".join([
+            "first_name", "last_name", "deactivated", "verified",
+            "sex", "bdate",
+            "city",  # TODO: https://vk.com/dev/places.getCityById
+            "country",  # TODO: https://vk.com/dev/places.getCountryById
+            "home_town",
+            "photo_400_orig",
+            "online",
+            "has_mobile",
+            "contacts",
+            "education",
+            "universities",
+            "schools",
+            "last_seen",
+            "occupation"
+        ])
 
     @handler(DoVkMethod)
     async def call_method(self, method, **params):
@@ -100,7 +116,7 @@ class VkMethod(TestedService):
         return await self.call_method(
             "users.get",
             user_ids=",".join(map(str, set(users))),
-            fields="first_name,last_name,deactivated,verified",
+            fields=self.user_fields,
             name_case="nom"
         )
 
@@ -154,6 +170,7 @@ class VkMethod(TestedService):
             assert 'id' in item, item.keys()
             assert 'first_name' in item, item.keys()
             assert 'last_name' in item, item.keys()
+            assert "online" in item, item.keys()
 
     async def test_user_friends9000(self):
         friends = await self.user_friends(169845376)
