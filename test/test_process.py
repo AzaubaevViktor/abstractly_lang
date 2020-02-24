@@ -1,9 +1,10 @@
 import asyncio
 import os
 import signal
+from random import randint
 from time import time, sleep
 
-from service import Message, handler
+from service import Message, handler, Service
 from test.test import TestedService
 
 
@@ -40,14 +41,14 @@ class TestServiceProcess(TestedService):
     async def test_kill(self):
         result, pid = await self.do_calc(0, 0)
         assert result == 1
-        assert pid != os.getpid()
+        assert pid != os.getpid(), pid
 
         msg = await self.send(DoCalc(3, 10))
 
         os.kill(pid, signal.SIGKILL)
 
         result, new_pid = msg.result()
-        assert result == 3 ** 3 ** 2
+        assert result == (3 ** 3) ** 2
         assert pid != new_pid
 
     async def _do_ping(self):
@@ -88,4 +89,54 @@ class TestServiceProcess(TestedService):
         }
 
 
+class TestLocal(Service):
+    async def warm_up(self):
+        self.rnd_num = randint(0, 1000000000)
 
+    @handler
+    async def get_my_pid(self):
+        return os.getpid(), self.rnd_num
+
+
+class TestProcessSendBack(TestedService):
+    cpu_bound = True
+
+    @handler
+    async def do_work(self):
+        return os.getpid(), await TestLocal.get_my_pid()
+
+    async def test_call_local(self):
+        local_pid, rnd_num = await TestLocal.get_my_pid()
+
+        sb_pid, (local_pid_returned, rnd_num_returned) = await self.do_work()
+
+        assert local_pid == os.getpid(), (local_pid, os.getpid())
+        assert sb_pid != local_pid, sb_pid
+        assert local_pid == local_pid_returned, (local_pid, local_pid_returned)
+        assert rnd_num == rnd_num_returned, (rnd_num, rnd_num_returned)
+
+    @handler
+    async def do_hark_work(self, value, epsilon):
+        result, other_pid = await TestServiceProcess.do_calc(value=value)
+        result = result ** 0.5
+
+        x = 0
+
+        # Naive realization, be careful
+
+        while abs(x ** x - result) > epsilon:
+            x -= (x ** x - result) * 0.00001
+            self.logger.debug(x)
+
+        return x, other_pid, os.getpid()
+
+    async def test_call_other_cpu_bound(self):
+        # TODO: Parametrize
+        x_orig = 0
+        epsilon = 0.1
+
+        x, other_pid, sb_pid = await self.do_hark_work(x_orig, epsilon)
+        assert abs(x - x_orig) < epsilon
+        assert os.getpid() != other_pid
+        assert os.getpid() != sb_pid
+        assert sb_pid != other_pid

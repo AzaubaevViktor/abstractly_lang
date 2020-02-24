@@ -49,6 +49,10 @@ class Service(SearchableSubclasses, metaclass=MetaService):
         pass
 
     async def run(self):
+        """
+        Точка входа для сервиса
+        :return:
+        """
         _shutdown_msg = None
 
         try:
@@ -121,7 +125,11 @@ class Service(SearchableSubclasses, metaclass=MetaService):
 
     @classmethod
     async def send(cls, message: _TM) -> _TM:
+        """
+        Позволяет отправить в сервис сообщение
+        """
         from service import ServiceRunner
+        # TODO: Replace to cls._instance, it seems strange
         instance: cls = await ServiceRunner.get_instance(cls)
         await instance._queue.put(message)
         message.to = cls
@@ -129,6 +137,9 @@ class Service(SearchableSubclasses, metaclass=MetaService):
 
     @classmethod
     async def get(cls, message: Message) -> Any:
+        """
+        Позволяет получить результат вычислений
+        """
         msg = await cls.send(message)
         return await msg.result()
 

@@ -1,3 +1,5 @@
+import asyncio
+
 from service import Message, handler
 from test.test import TestedService
 from vk_utils.registrate import VkSettings
@@ -48,6 +50,8 @@ class VkMethod(TestedService):
 
     @handler(DoVkMethod)
     async def call_method(self, method, **params):
+        await asyncio.sleep(1 / 3)
+
         result = await RequestService.get_request(url=f"{self.settings.api_host}{method}",
                                                   data={**params, **self.additional_params})
         assert 'response' in result, result

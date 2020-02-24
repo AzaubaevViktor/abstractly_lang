@@ -32,7 +32,7 @@ class RequestService(TestedService):
 
     @handler
     async def get_request(self, url: str, data=None):
-        async with self.session.get(url, params=data) as resp:
+        async with self.session.get(url, params=data, timeout=10) as resp:
             return await resp.json()
 
     async def test_get_request(self):
