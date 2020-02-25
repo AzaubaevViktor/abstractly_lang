@@ -1,5 +1,5 @@
 from .service import Service
-from ._meta import handler
+from ._meta import handler, CallContext
 from .message import Message, RunService
 from .runner import ServiceRunner
 from .error import *

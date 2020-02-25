@@ -78,7 +78,10 @@ class Message(SearchableSubclasses):
             _s = ", ".join((f"{k}={v}" for k, v in kwargs.items()))
         else:
             _s = ""
-        return f"<Message:{self.__class__.__name__}[{state}]: {_s}>"
+
+        to = self.to.__name__ if self.to is not None else "?"
+
+        return f"<Message=>{to}:{self.__class__.__name__}[{state}]: {_s}>"
 
 
 class Shutdown(Message):

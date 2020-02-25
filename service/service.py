@@ -18,6 +18,8 @@ class Service(SearchableSubclasses, metaclass=MetaService):
     _handlers: Dict[Type[Message], Callable[[Message], Awaitable[Any]]]
     _handlers_manager: HandlersManager = None
 
+    main_queue: asyncio.Queue = None
+
     def __init__(self, message: Message):
         if self.__class__._instance:
             raise ServiceExist(self.__class__._instance)
@@ -66,7 +68,7 @@ class Service(SearchableSubclasses, metaclass=MetaService):
                 msg = await self._queue.get()
                 self.logger.info("💌", message=msg)
 
-                if isinstance(msg, Shutdown):
+                if isinstance(msg, Shutdown) and msg.to is self.__class__:
                     _shutdown_msg = msg
                     break
 
@@ -77,6 +79,9 @@ class Service(SearchableSubclasses, metaclass=MetaService):
 
         except CancelledError:
             self.logger.info("⏹ Service cancelled")
+        except Exception as e:
+            self.logger.exception()
+            raise
         finally:
             await self._stop_aio_tasks()
             self.logger.info("💀 Shutdown")
@@ -129,11 +134,8 @@ class Service(SearchableSubclasses, metaclass=MetaService):
         """
         Позволяет отправить в сервис сообщение
         """
-        from service import ServiceRunner
-        # TODO: Replace to cls._instance, it seems strange
-        instance: cls = await ServiceRunner.get_instance(cls)
-        await instance._queue.put(message)
         message.to = cls
+        await cls.main_queue.put(message)
         return message
 
     @classmethod

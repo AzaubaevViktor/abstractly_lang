@@ -52,6 +52,8 @@ async def main():
     logger.info("Search service", service=cmd.service_name)
     service_classs = Service.search(cmd.service_name)
 
+    Service.main_queue = asyncio.Queue()
+
     msg = await ServiceRunner.send(RunService(service_classs))
 
     logger.info("Run ServiceRunner")

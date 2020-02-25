@@ -2,15 +2,19 @@ import asyncio
 from typing import Dict, Type
 
 from .message import Message, CreateService, RunService
+from .queue_manager import QueueManager, QueueManagerInit
 from .service import Service
 
 
 class ServiceRunner(Service):
-    def __init__(self, message: Message):
-        super().__init__(message)
-        self.services: Dict[Type[Service], Service] = {
-            ServiceRunner: self
-        }
+    async def warm_up(self):
+        self._aio_tasks.append(
+            asyncio.create_task(
+                QueueManager(
+                    QueueManagerInit(self)
+                ).run()
+            )
+        )
 
     async def process(self, message: Message):
         if isinstance(message, CreateService):
@@ -22,8 +26,8 @@ class ServiceRunner(Service):
 
             self.logger.debug("Create instance", klass=service_class)
             instance = service_class(message)
-            self.logger.debug("Add service to services")
-            self.services[service_class] = instance
+            self.logger.debug("Register service", instance=instance)
+            await QueueManager.register(instance=instance)
 
             if isinstance(message, RunService):
                 self.logger.info("Run service and wait while it ready", instance=instance)
@@ -44,13 +48,3 @@ class ServiceRunner(Service):
             await instance.run()
         except Exception:
             self.logger.exception(instance=instance)
-
-    @classmethod
-    async def get_instance(cls, service_class):
-        self: ServiceRunner = cls._instance
-
-        if service_class in self.services:
-            return self.services[service_class]
-        else:
-            create_service_message = await ServiceRunner.send(CreateService(service_class))
-            return await create_service_message.result()
