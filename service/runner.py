@@ -8,11 +8,9 @@ from .service import Service
 
 class ServiceRunner(Service):
     async def warm_up(self):
-        self._aio_tasks.append(
-            asyncio.create_task(
-                QueueManager(
-                    QueueManagerInit(self)
-                ).run()
+        await self._just_start(
+            QueueManager(
+                QueueManagerInit(self)
             )
         )
 
@@ -36,15 +34,15 @@ class ServiceRunner(Service):
             elif isinstance(message, CreateService):
                 self.logger.info("Starting service", instance=instance)
 
-                self._aio_tasks.append(
-                    asyncio.create_task(
-                        self._just_start(instance)
-                    )
-                )
+                await self._just_start(instance)
                 return instance
 
     async def _just_start(self, instance):
         try:
-            await instance.run()
+            self._aio_tasks.append(
+                asyncio.create_task(
+                    instance.run()
+                )
+            )
         except Exception:
             self.logger.exception(instance=instance)
