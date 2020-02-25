@@ -3,7 +3,7 @@ import sys
 from typing import Sequence
 
 from log import Log
-from service import ServiceRunner, Message, RunService, Service
+from service import ServiceRunner, Message, Service, RunService
 
 import test
 import vk_utils

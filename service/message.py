@@ -1,5 +1,4 @@
 from asyncio import Event
-from typing import Type
 
 from ._searchable import SearchableSubclasses
 
@@ -90,11 +89,3 @@ class Shutdown(Message):
         self.cause = cause
 
 
-class CreateService(Message):
-    def __init__(self, service_class: Type["Service"]):
-        super().__init__()
-        self.service_class = service_class
-
-
-class RunService(CreateService):
-    pass

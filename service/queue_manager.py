@@ -25,8 +25,7 @@ class QueueManager(Service):
         assert message.to
         if message.to not in self._queues:
             from service import ServiceRunner
-            from service.message import CreateService
-            msg = await ServiceRunner.send(CreateService(message.to))
+            msg = await ServiceRunner.create_service(message.to)
             instance = await msg.result()
             queue = instance._queue
         else:
