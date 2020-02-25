@@ -17,46 +17,97 @@ class ListTests(Message):
     pass
 
 
+class TestResult:
+    result_id = "UNKNOWN"
+    sort_id = 0
+    sign = "∅"
+
+    def __str__(self):
+        raise NotImplementedError()
+
+
+class TestInProgress(TestResult):
+    result_id = "IN_PROGRESS"
+    sort_id = 1
+    sign = "❓"
+
+    def __str__(self):
+        return ""
+
+
+class TestGood(TestResult):
+    result_id = "GOOD"
+    sort_id = 3
+    sign = "✅"
+
+    def __init__(self, result):
+        self.result = result
+
+    def __str__(self):
+        return "" if self.result is None else str(self.result)
+
+
+class TestFailed(TestResult):
+    result_id = "FAILED"
+    sort_id = 100
+    sign = "⛔️"
+
+    def __init__(self, exc, msg):
+        self.exc = exc
+        self.msg = msg
+
+    def __str__(self):
+        return f"{self.exc}:\n {self.msg}"
+
+
+class TestSkipped(TestResult):
+    result_id = "SKIPPED"
+    sort_id = 2
+    sign = "⏩"
+
+    def __init__(self, cause):
+        self.cause = cause
+
+    def __str__(self):
+        return str(self.cause)
+
+
+class TestMustFailed(TestResult):
+    result_id = "MUST FAILED"
+    sort_id = 4
+    sign = "⚠️"
+
+    def __init__(self, cause, exc_info):
+        self.cause = cause
+        self.exc_info = exc_info
+
+    def __str__(self):
+        return f"{self.cause}: {self.exc_info}"
+
+
 class TestReport:
     def __init__(self, klass: Type[Service], method_name: str):
         self.klass = klass
         self.method_name = method_name
 
-        self.result = None
-        self.finished = False
+        self.result: TestResult = TestInProgress()
         self.start_time = 0
         self.finish_time = 0
-        self.exc: Optional[Type[Exception]] = None
-        self.exc_message: Optional[str] = None
+
+    @property
+    def sort_id(self):
+        return self.result.sort_id
 
     def __repr__(self):
-        return f"<TestReport: {self.klass.__name__}:{self.method_name} / {self.finished} {self.result} {self.exc}>"
+        return f"<TestReport: {self.klass.__name__}:{self.method_name} / {self.result}>"
 
     def __str__(self):
-        if not self.finished:
-            sign = "❓"
-            info = ""
-        elif self.is_good:
-            sign = "✅"
-            info = self.result if self.result is not None else ""
-        else:
-            sign = "⛔️"
-            info = repr(self.exc)
-            if self.exc_message:
-                info += "\n"
-                info += self.exc_message
+        sign = self.result.sign
+        info = str(self.result)
 
         tm = self.finish_time - self.start_time
 
         return f"{sign} {self.klass.__name__}:{self.method_name} [{tm:.2f}s] {info}"
-
-    @property
-    def is_good(self):
-        return self.finished and (self.exc is None)
-
-    @property
-    def is_bad(self):
-        return self.finished and (self.exc is not None)
 
 
 class TestReports:
@@ -77,12 +128,22 @@ class TestReports:
     def __str__(self):
         result = f"Tested services: {len(self.reports)}\n"
 
-        for report in sorted(self.reports, key=lambda r: r.is_bad):
+        for report in sorted(self.reports, key=lambda r: r.sort_id):
             result += f"  {report}\n"
 
-        goods = len(tuple(filter(lambda x: x.is_good, self.reports)))
 
-        result += f"TOTAL: {len(self.reports)} SUCCESS: {goods} BAD: {len(self.reports) - goods}\n"
+        by_result_ids = {}
+
+        for klass in sorted(TestResult.__subclasses__(), key=lambda k: k.sort_id):  # type: Type[TestResult]
+            by_result_ids[klass] = 0
+
+        for report in self.reports:
+            by_result_ids[type(report.result)] += 1
+
+        result += f"TOTAL: {len(self.reports)}\n"
+
+        for klass, count in by_result_ids.items():
+            result += f"  {klass.sign} {klass.result_id}: {count}\n"
 
         return result
 
@@ -126,7 +187,8 @@ class TestedService(Service):
         try:
             method = getattr(self, report.method_name)
             report.start_time = time()
-            report.result = await method()
+            result = await method()
+            report.result = result if isinstance(result, TestResult) else TestGood(result)
 
             report.finished = True
             report.finish_time = time()
@@ -134,8 +196,8 @@ class TestedService(Service):
             report.finished = True
             report.finish_time = time()
 
-            report.exc = e
-            report.exc_message = format_exc()
+            report.result = TestFailed(e, format_exc())
+
             self.logger.exception(report=report)
 
 
@@ -215,7 +277,7 @@ def will_fail(cause: str, expected_exception: Type[Exception] = None):
             with raises(expected_exception) as exc_info:
                 result = await func(*args, **kwargs)
 
-            return cause, exc_info
+            return TestMustFailed(cause, exc_info)
 
         __.__name__ = func.__name__
         return __
