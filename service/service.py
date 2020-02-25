@@ -13,6 +13,7 @@ _TM = TypeVar("_TM", Message, Message)
 
 
 class Service(SearchableSubclasses, metaclass=MetaService):
+    cpu_bound = False
     _instance: "Service" = None
     _handlers: Dict[Type[Message], Callable[[Message], Awaitable[Any]]]
     _handlers_manager: HandlersManager = None
