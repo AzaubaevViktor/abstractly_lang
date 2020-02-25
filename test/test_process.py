@@ -5,7 +5,7 @@ from random import randint
 from time import time, sleep
 
 from service import Message, handler, Service
-from test.test import TestedService
+from test.test import TestedService, raises
 
 
 class DoCalc(Message):
@@ -32,6 +32,10 @@ class TestServiceProcess(TestedService):
     @handler(DoPing)
     async def do_ping(self):
         return time()
+
+    @handler
+    async def do_error(self):
+        return 1 / 0
 
     async def test_pid(self):
         result, pid = await self.get(DoCalc(3))
@@ -87,6 +91,10 @@ class TestServiceProcess(TestedService):
             'mid': f"{sorted(times)[len(times) // 2] * 1000:.3f}ms",
             'max': f"{max(times) * 1000:.3f}ms",
         }
+
+    async def test_error(self):
+        with raises(ZeroDivisionError):
+            await self.do_error()
 
 
 class TestLocal(Service):
