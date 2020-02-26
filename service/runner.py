@@ -39,10 +39,8 @@ class ServiceRunner(Service):
 
     async def _just_start(self, instance):
         try:
-            self._aio_tasks.append(
-                asyncio.create_task(
-                    instance.run()
-                )
+            self._run_background(
+                instance.run()
             )
         except Exception:
             self.logger.exception(instance=instance)

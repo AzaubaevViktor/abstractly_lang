@@ -1,6 +1,6 @@
 import asyncio
 from asyncio import Queue, Task, CancelledError
-from typing import List, TypeVar, Any, Dict, Type, Callable, Awaitable
+from typing import List, TypeVar, Any, Dict, Type, Callable, Awaitable, Coroutine
 
 from log import Log
 from ._meta import MetaService, HandlersManager
@@ -30,6 +30,11 @@ class Service(SearchableSubclasses, metaclass=MetaService):
         self._queue: Queue[Message] = Queue()
         self._aio_tasks: List[Task] = []
         self.logger.info("🖥 Hello!")
+
+    def _run_background(self, coro: Coroutine):
+        self._aio_tasks.append(
+            asyncio.create_task(coro)
+        )
 
     async def warm_up(self):
         """
@@ -74,8 +79,9 @@ class Service(SearchableSubclasses, metaclass=MetaService):
 
                 custom_processor = self._found_processor(msg)
 
-                new_task = asyncio.create_task(self._apply_task(msg, custom_processor))
-                self._aio_tasks.append(new_task)
+                self._run_background(
+                    self._apply_task(msg, custom_processor)
+                )
 
         except CancelledError:
             self.logger.info("⏹ Service cancelled")
