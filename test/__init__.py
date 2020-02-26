@@ -8,3 +8,5 @@ from .test_raises import TestRaises
 
 from .test_handler_method import TestHandlerMethods
 from .test_wrong_handler_message import TestWrongHandlerMessage
+
+from .test_serialize import TestSerialize

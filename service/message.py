@@ -42,7 +42,7 @@ class Message(SearchableSubclasses):
     def _additional_repr(self) -> str:
         pass
 
-    def _get_items(self):
+    def __iter__(self):
         if self._result:
             yield "result", str(self._result)
         if self._exception:
@@ -72,7 +72,7 @@ class Message(SearchableSubclasses):
     def __repr__(self):
         state = "✅" if self._finished.is_set() else "⏳"
         additional_repr = self._additional_repr() or dict()
-        kwargs = {**dict(self._get_items()), **additional_repr}
+        kwargs = {**dict(self), **additional_repr}
         if kwargs:
             _s = ", ".join((f"{k}={v}" for k, v in kwargs.items()))
         else:
