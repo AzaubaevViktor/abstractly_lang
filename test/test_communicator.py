@@ -1,6 +1,7 @@
 from service import Message
 from service.communicator import BaseCommunicator
 from test import TestedService
+from test.test import will_fail
 
 
 class SimpleM(Message):
@@ -8,6 +9,7 @@ class SimpleM(Message):
 
 
 class TestCommunicator(TestedService):
+    @will_fail("Communicator")
     async def test_simple(self):
         server: BaseCommunicator = Communicator()
         self._run_background(server.run())

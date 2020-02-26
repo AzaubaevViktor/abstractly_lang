@@ -12,14 +12,14 @@ class TestManager(TestedService):
 
         assert found
 
-    @will_fail("Test")
+    @will_fail("Self test")
     async def test_will_fail_assertion_error(self):
         assert False, "It's test"
 
-    @will_fail("Test")
+    @will_fail("Self test")
     async def test_will_fail_any_error(self):
         1 / 0
 
-    @will_fail("Test")
+    @will_fail("Self test")
     async def test_will_fail_exception(self):
         raise Exception("Hey")
