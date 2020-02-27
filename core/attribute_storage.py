@@ -7,15 +7,21 @@ from .searchable import SearchableSubclasses
 
 
 class Attribute:
-    def __init__(self, description: Optional[str] = None):
+    class _DefaultNone:
+        pass
+
+    def __init__(self, description: Optional[str] = None, default=_DefaultNone()):
         self.name = None
         self.description = description
+        self.default = default
 
     def __get__(self, instance: "AttributeStorage", owner: Type["AttributeStorage"]):
         if instance is None:
             return self
 
-        return instance._storage[self.name]
+        value = instance._storage.get(self.name, self.default)
+        assert not isinstance(value, self._DefaultNone)
+        return value
 
     def __set__(self, instance: "AttributeStorage", value: "Any"):
         instance._storage[self.name] = value
@@ -76,8 +82,8 @@ class AttributeStorage(SearchableSubclasses, metaclass=MetaAttributeStorage):
         self._storage = {}
 
         for k in self.__attributes__:
-            if k not in kwargs:
-                raise TypeError(f"Missed argument: {k}")
+            if k not in kwargs and isinstance(self.__attributes__[k].default, Attribute._DefaultNone):
+                raise TypeError(f"Missed argument: {k}; Set value or set default")
 
         for k, v in kwargs.items():
             if k not in self.__attributes__:
@@ -99,8 +105,22 @@ class AttributeStorage(SearchableSubclasses, metaclass=MetaAttributeStorage):
                             f"instead {type(obj).__name__}")
         return obj
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if not isinstance(other, self.__class__):
             return False
 
         return self._storage == other._storage
+
+    def __repr__(self) -> str:
+        attrs = "; ".join(
+            f"{k}={getattr(self, k, None)}" for k in self.__attributes__
+        )
+        additional_repr = self._additional_repr()
+        if additional_repr:
+            additional_repr = f" {additional_repr} "
+
+        return f"<{self.__class__.__name__}{additional_repr}{attrs}>"
+
+    def _additional_repr(self) -> str:
+        return ""
+

@@ -85,3 +85,39 @@ def test_wrong_init_extra():
         A4(first_attr=1, second_attr=2, extra_attr=5)
 
     assert "extra_attr" in str(exc_info)
+
+
+class AD(AttributeStorage):
+    default = Attribute(default=100)
+    required = Attribute()
+
+
+def test_missing_required():
+    with pytest.raises(TypeError) as exc_info:
+        AD()
+
+    assert "required" in str(exc_info)
+
+
+def test_default():
+    ad = AD(required=500)
+
+    assert ad.default == 100
+    assert ad.required == 500
+
+
+def test_default_value():
+    ad = AD(required=500, default=1000)
+
+    assert ad.default == 1000
+    assert ad.required == 500
+
+
+@pytest.mark.parametrize(
+    'obj', (AD(required=500),
+            AD(required=500, default=1000))
+)
+def test_default_serialize(obj: AD):
+    data = obj.serialize()
+
+    assert AD.deserialize(data) == obj
