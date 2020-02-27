@@ -1,6 +1,6 @@
 import pytest
 
-from core import AttributeStorage, Attribute
+from core import AttributeStorage, Attribute, KwargsAttribute
 
 
 class A1(AttributeStorage):
@@ -121,3 +121,64 @@ def test_default_serialize(obj: AD):
     data = obj.serialize()
 
     assert AD.deserialize(data) == obj
+
+
+class AK(AttributeStorage):
+    x = Attribute()
+    params = KwargsAttribute()
+
+
+def test_kwargs_meta():
+    assert AK.__kwargs_attribute__ is AK.params
+    assert "params" not in AK.__attributes__
+
+
+def test_kwargs():
+    params = {'a': 1, 'b': 2, 'c': 3}
+    ak = AK(x=10, **params)
+    assert ak.x == 10
+    assert ak.params is not params
+    assert ak.params == params
+
+
+def test_kwargs_serialize():
+    params = {'a': 1, 'b': 2, 'c': 3}
+    ak = AK(x=10, **params)
+
+    data = ak.serialize()
+
+    assert data
+
+    obj_r = AK.deserialize(data)
+
+    assert ak.params == obj_r.params, data
+    assert ak == obj_r
+
+
+
+def test_empty_kwargs():
+    ak = AK(x=5)
+    assert ak.x == 5
+    assert ak.params == {}
+
+
+def test_two_kwargs():
+    with pytest.raises(NameError) as exc_info:
+        class XX(AttributeStorage):
+            b = Attribute()
+            xx_kwargs = KwargsAttribute()
+            c = Attribute()
+            yy_kwargs = KwargsAttribute()
+
+    assert "xx_kwargs" in str(exc_info)
+    assert "yy_kwargs" in str(exc_info)
+
+
+def test_two_kwargs_inh():
+    with pytest.raises(NameError) as exc_info:
+        class XX(AK):
+            c = Attribute()
+            yy_kwargs = KwargsAttribute()
+
+    assert "params" in str(exc_info)
+    assert "yy_kwargs" in str(exc_info)
