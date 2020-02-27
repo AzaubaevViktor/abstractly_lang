@@ -49,9 +49,9 @@ class Message(SearchableSubclasses):
             yield "_exception", str(self._exception)
         if self.args:
             yield "args", self.args
-        kwargs = self.kwargs
-        if kwargs:
-            yield "kwargs", kwargs
+        kwargs = self.kwargs  # TODO: WTF???
+        if self._send_kwargs:
+            yield "kwargs", self._send_kwargs
 
         yield from self._kwargs()
 

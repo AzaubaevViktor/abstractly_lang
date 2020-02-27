@@ -72,6 +72,6 @@ class TestSerialize(TestedService):
         assert msg.c == obj.c
         assert msg.d == obj.d
 
-    @will_fail
+    @will_fail("Oops")
     async def test_args(self):
         raise NotImplementedError()
