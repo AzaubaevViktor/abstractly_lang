@@ -94,7 +94,13 @@ class AttributeStorage(SearchableSubclasses, metaclass=MetaAttributeStorage):
     @classmethod
     def deserialize(cls: Type[AS_T], data: str, force=False) -> AS_T:
         obj = json.loads(data, object_hook=_attribute_storage_hook)
-        if not isinstance(obj, cls) and not force:
+        if (type(obj) is not cls) and not force:
             raise TypeError(f"Deserialized object must be {cls.__name__} type "
                             f"instead {type(obj).__name__}")
         return obj
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self._storage == other._storage

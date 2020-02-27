@@ -51,7 +51,7 @@ def test_serialize_inheritance():
 
 
 def test_serialize_as_inside():
-    obj = A2S(a=(AS(a=1, b=2), AS(a=3, b=4)),
+    obj = A2S(a=[AS(a=1, b=2), ],
               b=[AS(a=5, b=6), AS(a=7, b=8)],
               c={'x': AS(a=9, b=10),
                  'y': AS(a=11, b=12)})
@@ -82,8 +82,8 @@ def test_serialize_wrong_class():
     with pytest.raises(TypeError) as exc_info:
         AS.deserialize(data)
 
-    assert "A2S" in exc_info
-    assert "AS" in exc_info
+    assert "A2S" in str(exc_info)
+    assert "AS" in str(exc_info)
 
 
 def test_serialize_wrong_class_force():
