@@ -1,6 +1,6 @@
 from asyncio import Event
 
-from ._searchable import SearchableSubclasses
+from core import SearchableSubclasses
 
 
 class Message(SearchableSubclasses):

@@ -39,6 +39,15 @@ def test_attr_inheritance_a1():
     assert len(A1.__attributes__) == 2
 
 
+@pytest.mark.parametrize(
+    'klass', (A1, A2, A3)
+)
+def test_attrs(klass):
+    for k, attr in klass.__attributes__.items():
+        assert getattr(klass, k) is attr
+        assert attr.name == k
+
+
 def test_attrs_get_set():
     a1 = A1(a=1, b=2)
 

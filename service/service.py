@@ -4,7 +4,7 @@ from typing import List, TypeVar, Any, Dict, Type, Callable, Awaitable, Coroutin
 
 from log import Log
 from ._meta import MetaService, HandlersManager
-from ._searchable import SearchableSubclasses
+from core import SearchableSubclasses
 from .error import UnknownMessageType, ServiceExist
 from .message import Message, Shutdown
 
