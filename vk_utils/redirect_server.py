@@ -54,7 +54,7 @@ class RedirectServer(TestedService):
     @handler
     async def get_data(self):
         await self.data_received.wait()
-        await self.send(Shutdown("Onetime work"))
+        await self.send(Shutdown(casue="Onetime work"))
         return self.data
 
     async def shutdown(self, message: Message):

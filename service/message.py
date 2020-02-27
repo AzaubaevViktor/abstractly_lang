@@ -4,7 +4,7 @@ from core import AttributeStorage, Attribute
 
 
 class Message(AttributeStorage):
-    to: "Service" = Attribute("class receiver")
+    to: "Service" = Attribute("class receiver", default=None)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

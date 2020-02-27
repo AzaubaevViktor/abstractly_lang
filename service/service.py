@@ -92,7 +92,7 @@ class Service(SearchableSubclasses, metaclass=MetaService):
             await self._stop_aio_tasks()
             self.logger.info("💀 Shutdown")
             if not _shutdown_msg:
-                _shutdown_msg = Shutdown("Cancelled")
+                _shutdown_msg = Shutdown(cause="Cancelled")
 
             shutdown_result = await self.shutdown(_shutdown_msg)
             _shutdown_msg.set_result(shutdown_result)

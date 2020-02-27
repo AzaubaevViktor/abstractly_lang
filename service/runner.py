@@ -11,7 +11,7 @@ class ServiceRunner(Service):
     async def warm_up(self):
         await self._just_start(
             QueueManager(
-                QueueManagerInit(self)
+                QueueManagerInit(instances=(self, ))
             )
         )
 
@@ -48,11 +48,11 @@ class ServiceRunner(Service):
 
     @classmethod
     async def run_service(cls, service_class: Type[Service]):
-        return await cls.get(RunService(service_class))
+        return await cls.get(RunService(service_class=service_class))
 
     @classmethod
     async def create_service(cls, service_class: Type[Service]):
-        return await cls.send(_CreateService(service_class))
+        return await cls.send(_CreateService(service_class=service_class))
 
 
 class _CreateService(Message):

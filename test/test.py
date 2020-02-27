@@ -131,7 +131,6 @@ class TestReports:
         for report in sorted(self.reports, key=lambda r: r.sort_id):
             result += f"  {report}\n"
 
-
         by_result_ids = {}
 
         for klass in sorted(TestResult.__subclasses__(), key=lambda k: k.sort_id):  # type: Type[TestResult]
@@ -237,7 +236,7 @@ class TestsManager(Service):
     async def shutdown(self, message: Message):
         self.logger.info("Shutdown services")
         for service in self.all_tested_services():
-            await service.send(Shutdown("Task finished"))
+            await service.send(Shutdown(cause="Task finished"))
 
 
 class raises:

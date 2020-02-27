@@ -152,8 +152,8 @@ class TestHandlerMethods(TestedService):
     async def test_use_m1(self):
         assert 1 == await self.use_m1(1)
         assert 1 == await self.__class__.use_m1(1)
-        assert 1 == await self.get(M1(1))
-        message = await self.send(M1(1))
+        assert 1 == await self.get(M1(value=1))
+        message = await self.send(M1(value=1))
         assert 1 == await message.result()
 
     @handler(M2)
@@ -166,7 +166,7 @@ class TestHandlerMethods(TestedService):
 
         with raises(TypeError):
             assert self._handlers[M2]
-            result = await self.get(M2(4))
+            result = await self.get(M2(value=4))
             assert False, result
 
     @handler(M3)
@@ -183,7 +183,7 @@ class TestHandlerMethods(TestedService):
 
         assert self._handlers[M3]
 
-        result = await self.get(M3(1))
+        result = await self.get(M3(value=1))
         assert (1, None) == result, result
 
     @handler(M4, M5)
@@ -204,8 +204,8 @@ class TestHandlerMethods(TestedService):
         assert 1 == await self.__class__.use_m4_m5(1)
 
         for klass in (M4, M5):
-            assert 1 == await self.get(klass(1))
-            message = await self.send(klass(1))
+            assert 1 == await self.get(klass(value=1))
+            message = await self.send(klass(value=1))
             assert 1 == await message.result()
 
     async def process(self, message: Message):
@@ -215,10 +215,10 @@ class TestHandlerMethods(TestedService):
         # Any other messages will be raise UnknownMessageType
 
     async def test_process_m6(self):
-        assert M6.__name__ == await self.get(M6(100))
+        assert M6.__name__ == await self.get(M6(value=100))
 
     async def test_unknown_m7(self):
         with raises(UnknownMessageType) as exc_info:
-            await self.get(M7(100))
+            await self.get(M7(value=100))
 
         assert M7.__name__ in str(exc_info)

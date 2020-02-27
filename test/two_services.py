@@ -20,7 +20,7 @@ class One(TestedService):
 
     async def test_one(self):
         results = await asyncio.gather(*(
-            One.get(X(i)) for i in range(100)
+            One.get(X(value=i)) for i in range(100)
         ))
 
         assert results == [x * 2 for x in range(100)]
@@ -32,7 +32,7 @@ class Two(TestedService):
             messages = []
 
             for value in range(message.max_value):
-                messages.append(await One.send(X(value)))
+                messages.append(await One.send(X(value=value)))
 
             values = []
 
@@ -44,6 +44,6 @@ class Two(TestedService):
             return sum(values)
 
     async def test_two(self):
-        msg = await Two.send(Y(100))
+        msg = await Two.send(Y(max_value=100))
 
         assert await msg.result() == 100 * 99

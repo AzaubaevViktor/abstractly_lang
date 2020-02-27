@@ -65,16 +65,18 @@ class MessageSenderAttribute:
         self.attr_name = attr_name
         self.func = func
         self.message_classes = handler_info.message_classes
-        self.generated_message_class = handler_info.generated_class
+        self.GeneratedMessageClass: "Message" = handler_info.generated_class
 
     def __get__(self, instance, owner):
         async def _owner_get(*args, **kwargs):
             from service import Service
             if args and isinstance(args[0], Service):
                 args = args[1:]
-            return await owner.get(self.generated_message_class(args, kwargs))
+            return await owner.get(self.GeneratedMessageClass(
+                args=args,
+                kwargs=kwargs))
 
-        _owner_get.__name__ = f"_{self.generated_message_class.__name__}~owner.get"
+        _owner_get.__name__ = f"_{self.GeneratedMessageClass.__name__}~owner.get"
 
         Log("MessageSenderAttribute").debug(f"Inject",
                                             method=_owner_get.__name__,
@@ -115,8 +117,13 @@ class WrappedMethod:
                          func=self.func,
                          _self=self._self)
 
-        f_args = message.args
-        f_kwargs = message.kwargs
+        f_args = tuple()
+        if isinstance(message, HandlerInfo._BaseGeneratedMessage):
+            f_args = message.args
+            f_kwargs = message.kwargs
+        else:
+            f_kwargs = dict(message)
+            del f_kwargs['to']
 
         func_spec = inspect.getfullargspec(self.func)
 

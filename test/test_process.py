@@ -38,7 +38,7 @@ class TestServiceProcess(TestedService):
 
     @will_fail("ABS-3")
     async def test_pid(self):
-        result, pid = await self.get(DoCalc(3))
+        result, pid = await self.get(DoCalc(value=3))
         assert pid != os.getpid(), pid
         assert 3 ** 3 ** 2 == result
 
@@ -48,7 +48,7 @@ class TestServiceProcess(TestedService):
         assert result == 1
         assert pid != os.getpid(), pid
 
-        msg = await self.send(DoCalc(3, 10))
+        msg = await self.send(DoCalc(value=3, sync_delay=10))
 
         os.kill(pid, signal.SIGKILL)
 
