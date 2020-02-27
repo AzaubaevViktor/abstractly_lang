@@ -1,11 +1,10 @@
+from core import Attribute
 from service import Message
 from test.test import TestedService
 
 
 class Z(Message):
-    def __init__(self, value):
-        super().__init__()
-        self.value = value
+    value = Attribute()
 
 
 class TestException(TestedService):

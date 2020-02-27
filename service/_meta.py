@@ -2,6 +2,7 @@ import inspect
 import weakref
 from typing import Type, List, Dict, Any, Tuple, Awaitable, Union, Callable
 
+from core import Attribute
 from log import Log
 from .error import *
 _HandlerFuncT = Callable[["Message"], Awaitable[Any]]
@@ -47,10 +48,8 @@ class HandlerInfo:
             from service import Message
 
             class BaseGeneratedMessage(Message):
-                def __init__(self, args, kwargs):
-                    super(BaseGeneratedMessage, self).__init__()
-                    self.args = args
-                    self._send_kwargs = kwargs
+                args: Tuple = Attribute()
+                kwargs: Dict = Attribute()
 
             cls._BaseGeneratedMessage = BaseGeneratedMessage
 

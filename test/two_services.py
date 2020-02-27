@@ -1,19 +1,16 @@
 import asyncio
 
+from core import Attribute
 from service import Message
 from test.test import TestedService
 
 
 class X(Message):
-    def __init__(self, value):
-        super().__init__()
-        self.value = value
+    value = Attribute()
 
 
 class Y(Message):
-    def __init__(self, max_value):
-        super().__init__()
-        self.max_value = max_value
+    max_value = Attribute()
 
 
 class One(TestedService):

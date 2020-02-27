@@ -4,15 +4,14 @@ import signal
 from random import randint
 from time import time, sleep
 
+from core import Attribute
 from service import Message, handler, Service
 from test.test import TestedService, raises, will_fail
 
 
 class DoCalc(Message):
-    def __init__(self, value: int, sync_delay = 0):
-        super().__init__()
-        self.value = value
-        self.sync_delay = sync_delay
+    value: int = Attribute()
+    sync_delay: int = Attribute(default=0)
 
 
 class DoPing(Message):

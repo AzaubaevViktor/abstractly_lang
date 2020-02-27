@@ -1,6 +1,7 @@
 import asyncio
 from typing import Dict, Type
 
+from core import Attribute
 from .message import Message
 from .queue_manager import QueueManager, QueueManagerInit
 from .service import Service
@@ -55,9 +56,7 @@ class ServiceRunner(Service):
 
 
 class _CreateService(Message):
-    def __init__(self, service_class: Type["Service"]):
-        super().__init__()
-        self.service_class = service_class
+    service_class: Type["Service"] = Attribute()
 
 
 class RunService(_CreateService):

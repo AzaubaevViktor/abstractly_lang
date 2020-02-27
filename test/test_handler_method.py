@@ -1,5 +1,5 @@
 """ ABS-38 """
-
+from core import Attribute
 from service import Message, handler
 from service._meta import CallContext
 from service.error import UnknownMessageType
@@ -8,9 +8,7 @@ from test.test import will_fail
 
 
 class M0(Message):
-    def __init__(self, value):
-        super().__init__()
-        self.value = value
+    value = Attribute()
 
 
 class M1(M0):

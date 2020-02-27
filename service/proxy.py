@@ -1,5 +1,6 @@
 from typing import Type
 
+from core import Attribute
 from service import Service, handler, Message
 from .communicator import BaseCommunicator
 
@@ -11,9 +12,7 @@ class ProcessSpawner(Service):
 
 
 class ProxyInit(Message):
-    def __init__(self, communicator: BaseCommunicator):
-        super().__init__()
-        self.communicator = communicator
+    communicator: BaseCommunicator = Attribute()
 
 
 class ProxyClient(Service):

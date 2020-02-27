@@ -1,4 +1,4 @@
-from core.serialize import serialize, deserialize
+from core import Attribute
 from service import Message
 from test import TestedService
 from test.test import will_fail
@@ -9,61 +9,34 @@ class SimpleMessage(Message):
 
 
 class HardMessage(Message):
-    def __init__(self, a, b, c, d):
-        super().__init__()
-        self.a = a
-        self.b = b
-        self.c = c
-        self.d = d
-
-
-class ArgsMessage(Message):
-    def __init__(self, a, *args):
-        super().__init__()
-        self.a = a
-        self.args = args
+    a = Attribute()
+    b = Attribute()
+    c = Attribute()
+    d = Attribute()
 
 
 class TestSerialize(TestedService):
-    object_collection = (
-        None,
-        10000000000,
-        1.1,
-        "test",
-        [1, 2, 3, 4],
-        {"lol": 2, "3": [1, 2, 3], "%": {"inside": "out"}}
-    )
-
-    async def test_objects(self):
-        for item in self.object_collection:
-            data = serialize(item)
-
-            assert data
-
-            obj = deserialize(data)
-
-            assert obj == item, (obj, item)
-            if obj is not None:
-                assert not (obj is item), (obj, item)
-
     async def test_simple(self):
         msg = SimpleMessage()
 
-        data = serialize(msg)
+        data = msg.serialize()
 
         assert "kwargs" not in data, data
         assert "args" not in data, data
 
-        obj = deserialize(data)
+        obj = SimpleMessage.deserialize(data)
 
         assert obj
         assert isinstance(obj, SimpleMessage)
         assert obj is not msg
 
     async def test_hard(self):
-        msg = HardMessage(100000, "test", [1, 2, 32, 3], {"lol": 2, "3": [1, 2, 3], "%": {"inside": "out"}})
+        msg = HardMessage(a=100000,
+                          b="test",
+                          c=[1, 2, 32, 3],
+                          d={"lol": 2, "3": [1, 2, 3], "%": {"inside": "out"}})
 
-        obj = deserialize(serialize(msg))
+        obj = HardMessage.deserialize(msg.serialize())
 
         assert obj
         assert isinstance(obj, HardMessage)

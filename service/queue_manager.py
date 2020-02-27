@@ -1,13 +1,12 @@
 import asyncio
-from typing import Dict, Type, Callable, Any, Awaitable
+from typing import Dict, Type, Callable, Any, Awaitable, Sequence
 
+from core import Attribute
 from service import Service, Message, handler
 
 
 class QueueManagerInit(Message):
-    def __init__(self, *instances: Service):
-        super().__init__()
-        self.instances = instances
+    instances: Sequence[Service] = Attribute()
 
 
 class QueueManager(Service):

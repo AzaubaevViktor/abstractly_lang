@@ -1,17 +1,16 @@
 from asyncio import Event
 
-from core import SearchableSubclasses
+from core import AttributeStorage, Attribute
 
 
-class Message(SearchableSubclasses):
-    def __init__(self):
+class Message(AttributeStorage):
+    to: "Service" = Attribute("class receiver")
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self._result = None
         self._exception = None
         self._finished = Event()
-        self.to: "Service" = None
-
-        self.args = tuple()
-        self._send_kwargs = {}
 
     def set_result(self, result):
         self._result = result
@@ -40,52 +39,18 @@ class Message(SearchableSubclasses):
         raise AttributeError("Use .result() instead")
 
     def _additional_repr(self) -> str:
-        pass
-
-    def __iter__(self):
-        if self._result:
-            yield "result", str(self._result)
-        if self._exception:
-            yield "_exception", str(self._exception)
-        if self.args:
-            yield "args", self.args
-        kwargs = self.kwargs  # TODO: WTF???
-        if self._send_kwargs:
-            yield "kwargs", self._send_kwargs
-
-        yield from self._kwargs()
-
-    def _kwargs(self):
-        for name in dir(self):
-            if not name.startswith("_") and name != "kwargs" and name != "args":
-                attr = getattr(self, name)
-                if not callable(attr):
-                    yield name, attr
-
-    @property
-    def kwargs(self):
-        if self._send_kwargs:
-            return self._send_kwargs
-
-        return dict(self._kwargs())
-
-    def __repr__(self):
-        state = "✅" if self._finished.is_set() else "⏳"
-        additional_repr = self._additional_repr() or dict()
-        kwargs = {**dict(self), **additional_repr}
-        if kwargs:
-            _s = ", ".join((f"{k}={v}" for k, v in kwargs.items()))
+        if self._finished.is_set():
+            if self._result:
+                state = f"✅ [{self._result}]"
+            elif self._exception:
+                state = f"⚠️ [{self._exception}]"
+            else:
+                state = f"❓"
         else:
-            _s = ""
+            state = "⏳"
 
-        to = self.to.__name__ if self.to is not None else "?"
-
-        return f"<Message=>{to}:{self.__class__.__name__}[{state}]: {_s}>"
+        return state
 
 
 class Shutdown(Message):
-    def __init__(self, cause):
-        super().__init__()
-        self.cause = cause
-
-
+    cause: str = Attribute()
