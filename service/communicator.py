@@ -97,7 +97,6 @@ class SocketIOCommunicator(BaseCommunicator):
 
         self.task = asyncio.create_task(self.sio.wait())
 
-
     async def _connect(self, *args):
         self.logger.important("Connected to", *args)
 
@@ -145,6 +144,8 @@ class SocketIOCommunicator(BaseCommunicator):
         return await self._messages_queue.get()
 
     async def close(self):
+        self.logger.info("Stop")
+
         if hasattr(self, "site"):
             await self.site.stop()
 
@@ -155,4 +156,8 @@ class SocketIOCommunicator(BaseCommunicator):
             await self.app.cleanup()
 
         if self.task:
-            await self.task.cancel()
+            self.task.cancel()
+            try:
+                await self.task
+            except CancelledError:
+                pass
