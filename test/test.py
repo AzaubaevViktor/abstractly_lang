@@ -4,17 +4,18 @@ from time import time
 from traceback import format_exc
 from typing import List, Type, Iterable, Optional, Union, Callable
 
+from core import Attribute
 from service import handler, BaseServiceError
 from service.message import Message, Shutdown
 from service.service import Service
 
 
 class RunTests(Message):
-    pass
+    filter_by_name = Attribute(default=None)
 
 
 class ListTests(Message):
-    pass
+    filter_by_name = Attribute(default=None)
 
 
 class TestResult:
@@ -98,8 +99,12 @@ class TestReport:
     def sort_id(self):
         return self.result.sort_id
 
+    @property
+    def full_name(self):
+        return f"{self.klass.__name__}:{self.method_name}"
+
     def __repr__(self):
-        return f"<TestReport: {self.klass.__name__}:{self.method_name} / {self.result}>"
+        return f"<TestReport: {self.full_name} / {self.result}>"
 
     def __str__(self):
         sign = self.result.sign
@@ -160,23 +165,25 @@ class MakeTestError(BaseServiceError):
 
 class TestedService(Service):
     @handler(ListTests)
-    async def list_tests(self):
-        return TestReports(*self._search_tests())
+    async def list_tests(self, filter_by_name: Optional[str]):
+        return TestReports(*self._search_tests(filter_by_name))
 
-    def _search_tests(self) -> Iterable[TestReport]:
+    def _search_tests(self, filter_by_name) -> Iterable[TestReport]:
         for method_name in dir(self):
             if method_name.startswith("test_"):
                 method = getattr(self, method_name)
                 if inspect.iscoroutinefunction(method):
-                    yield TestReport(self.__class__, method_name)
+                    report = TestReport(self.__class__, method_name)
+                    if filter_by_name is None or (filter_by_name in report.full_name):
+                        yield report
                 else:
                     raise MakeTestError(
                         self, method_name,
                         f"Test is not coroutine (use `async def {method_name}(...)` instead")
 
     @handler(RunTests)
-    async def run_tests(self):
-        reports: TestReports = await self.list_tests()
+    async def run_tests(self, filter_by_name):
+        reports: TestReports = await self.list_tests(filter_by_name)
         await asyncio.gather(*(
             self._run_single_test(report) for report in reports
         ))
@@ -205,11 +212,11 @@ class TestsManager(Service):
         pass
 
     @handler(ListTests)
-    async def list_tests(self):
+    async def list_tests(self, filter_by_name):
         self.logger.info("Found tested services:")
 
         _reports = await asyncio.gather(*(
-            service_klass.get(ListTests())
+            service_klass.get(ListTests(filter_by_name=filter_by_name))
             for service_klass in self.all_tested_services()
         ))
 
@@ -222,9 +229,9 @@ class TestsManager(Service):
         return reports
 
     @handler(RunTests)
-    async def run_tests(self):
+    async def run_tests(self, filter_by_name):
         _reports = await asyncio.gather(*(
-            service_class.get(RunTests())
+            service_class.get(RunTests(filter_by_name=filter_by_name))
             for service_class in self.all_tested_services()
         ))
 
@@ -285,7 +292,6 @@ def will_fail(cause: str, expected_exception: Type[Exception] = None):
 
 
 def skip(cause: Union[Callable, str]):
-
     def _(func):
         async def __(*args, **kwargs):
             return TestSkipped(cause)

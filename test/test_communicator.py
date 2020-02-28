@@ -9,7 +9,7 @@ class SimpleM(Message):
 
 
 class TestCommunicator(TestedService):
-    @skip("Not ready")
+    # @skip("Not ready")
     async def test_simple(self):
         server = None
         client = None

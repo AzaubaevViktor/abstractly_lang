@@ -127,7 +127,8 @@ class AttributeStorage(SearchableSubclasses, metaclass=MetaAttributeStorage):
             setattr(self, self.__class__.__kwargs_attribute__.name, kwargs)
         else:
             if kwargs:
-                raise TypeError(f"Extra arguments: {','.join(kwargs.keys())}. "
+                raise TypeError(f"In class {self.__class__.__name__}, "
+                                f"extra arguments: {','.join(kwargs.keys())}. "
                                 f"Try one of: {self.__attributes__.keys()}")
 
     def __iter__(self) -> Iterable[Tuple[str, Any]]:
