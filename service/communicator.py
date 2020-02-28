@@ -1,4 +1,5 @@
 import asyncio
+from asyncio import CancelledError
 from random import randint
 from typing import Any, Optional
 
@@ -96,6 +97,7 @@ class SocketIOCommunicator(BaseCommunicator):
 
         self.task = asyncio.create_task(self.sio.wait())
 
+
     async def _connect(self, *args):
         self.logger.important("Connected to", *args)
 
@@ -121,7 +123,7 @@ class SocketIOCommunicator(BaseCommunicator):
     async def _disconnect(self, *args):
         self.logger.important("Disconnect", args)
 
-    async def send_msg(self, msg: Message):
+    async def _send_msg(self, msg: Message):
         data = msg.serialize()
         answer = await self.sio.call("message", data)
         self.logger.important(answer)
@@ -133,10 +135,13 @@ class SocketIOCommunicator(BaseCommunicator):
         else:
             raise ValueError(answer)
 
+    async def send_msg(self, msg: Message):
+        asyncio.create_task(self._send_msg(msg))
         return msg
 
     async def receive_msg(self) -> Message:
         self.logger.important("Wait message")
+
         return await self._messages_queue.get()
 
     async def close(self):
