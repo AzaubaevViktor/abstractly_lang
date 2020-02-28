@@ -2,7 +2,7 @@ import asyncio
 import inspect
 from time import time
 from traceback import format_exc
-from typing import List, Type, Iterable, Optional
+from typing import List, Type, Iterable, Optional, Union, Callable
 
 from service import handler, BaseServiceError
 from service.message import Message, Shutdown
@@ -280,5 +280,22 @@ def will_fail(cause: str, expected_exception: Type[Exception] = None):
 
         __.__name__ = func.__name__
         return __
+
+    return _
+
+
+def skip(cause: Union[Callable, str]):
+
+    def _(func):
+        async def __(*args, **kwargs):
+            return TestSkipped(cause)
+
+        __.__name__ = func.__name__
+        return __
+
+    if callable(cause):
+        func = cause
+        cause = "?"
+        return _(func)
 
     return _

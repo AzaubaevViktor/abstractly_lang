@@ -38,6 +38,9 @@ class Message(AttributeStorage):
             return self._exception
         raise AttributeError("Use .result() instead")
 
+    async def wait(self):
+        await self._finished.wait()
+
     def _additional_repr(self) -> str:
         if self._finished.is_set():
             if self._result:
