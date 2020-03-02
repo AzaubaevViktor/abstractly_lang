@@ -33,10 +33,9 @@ class TestCommunicator(TestedService):
 
             assert True == await msg.result()
         except Exception:
-            pass
+            raise
         finally:
             if server:
                 await server.close()
             if client:
                 await client.close()
-            raise

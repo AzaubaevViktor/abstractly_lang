@@ -74,6 +74,7 @@ class SocketIOCommunicator(BaseCommunicator):
         self.sio.on("disconnect", self._disconnect)
 
         self.runner = web.AppRunner(self.app)
+        # web.run_app()
         await self.runner.setup()
 
         self.server_info = SocketIOServerInfo(
@@ -81,7 +82,10 @@ class SocketIOCommunicator(BaseCommunicator):
             port=randint(8081, 9999)
         )
 
-        self.site = web.TCPSite(self.runner, self.server_info.site, self.server_info.port)
+        self.site = web.TCPSite(
+            self.runner, self.server_info.site, self.server_info.port,
+            shutdown_timeout=1
+        )
         await self.site.start()
 
     async def _start_client(self):
@@ -95,7 +99,13 @@ class SocketIOCommunicator(BaseCommunicator):
 
         await self.sio.connect(f"http://{self.server_info.site}:{self.server_info.port}")
 
-        self.task = asyncio.create_task(self.sio.wait())
+        self.task = asyncio.create_task(self._run_client())
+
+    async def _run_client(self):
+        self.logger.info("Run client")
+        await self.sio.wait()
+        self.logger.info("Disconnect")
+        await self.sio.disconnect()
 
     async def _connect(self, *args):
         self.logger.important("Connected to", *args)
@@ -144,18 +154,29 @@ class SocketIOCommunicator(BaseCommunicator):
         return await self._messages_queue.get()
 
     async def close(self):
-        self.logger.info("Stop")
+        self.logger.info("Stopping..")
 
         if hasattr(self, "site"):
+            self.sio: socketio.AsyncServer
+            for ns, rooms in tuple(self.sio.manager.rooms.items()):
+                self.logger.info(ns=ns)
+                for room, sids in tuple(rooms.items()):
+                    for sid in tuple(sids.keys()):
+                        self.logger.info(room=room, sid=sid)
+                        await self.sio.disconnect(sid, ns)
+            self.logger.info("Stopping site")
             await self.site.stop()
 
         if hasattr(self, "runner"):
+            self.logger.info("Stopping runner")
             await self.runner.cleanup()
 
         if hasattr(self, "app"):
+            self.logger.info("Stopping app")
             await self.app.cleanup()
 
         if self.task:
+            self.logger.info("Stopping task")
             self.task.cancel()
             try:
                 await self.task
