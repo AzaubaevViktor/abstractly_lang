@@ -81,6 +81,9 @@ class EntryPoint:
 
         self._warm_upped = True
 
+    async def _wait_for_result(self, service: Type[Service], msg: Message):
+        return service, msg, await service.get(msg)
+
     async def run(self):
         if not self._warm_upped:
             raise RuntimeError("Call warm_up before (it's async)")
@@ -116,18 +119,25 @@ class EntryPoint:
 
         self.logger.info("All tasks ready, Shutdown")
 
-        for service in self.init_messages.keys():
-            await service.send(Shutdown(cause="Finished from EntryPoint"))
+        await asyncio.gather(*(
+            self._wait_for_result(service, Shutdown(cause="Finished from EntryPoint"))
+            for service in self.init_messages.keys()
+        ))
+
+        self.logger.info("Wait while Service runner shutdowned")
+        await ServiceRunner.get(Shutdown(cause="Finished main"))
+
+        self.logger.debug("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
         self.logger.important("Run results:", count=len(run_msgs))
         for msg in run_msgs:
-            self.logger.important(await msg.result())
+            await msg.wait()
+            self.logger.important(msg)
+
+        self.logger.debug("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
         self.logger.important("Init msgs results:", count=len(results))
         for service, msg, result in results:
             self.logger.important(service, "\n", result)
 
-        self.logger.info("Bye!")
-
-    async def _wait_for_result(self, service: Type[Service], msg: Message):
-        return service, msg, await service.get(msg)
+        self.logger.info("See you soon!")
