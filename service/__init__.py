@@ -5,3 +5,5 @@ from .runner import ServiceRunner, RunService
 from .error import *
 
 from .communicator import BaseCommunicator, SocketIOCommunicator
+
+from .entrypoint import EntryPoint

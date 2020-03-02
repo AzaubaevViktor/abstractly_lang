@@ -3,7 +3,7 @@ import sys
 from typing import Sequence
 
 from log import Log
-from service import ServiceRunner, Message, Service, RunService
+from service import  EntryPoint
 
 import test
 import vk_utils
@@ -39,52 +39,20 @@ class CmdParser:
         return args, kwargs
 
 
-async def main():
+async def main(cmd):
+    entry_point = EntryPoint({
+        cmd.service_name: [(cmd.message_name, cmd.kwargs)]
+    })
+
+    await entry_point.warm_up()
+    await entry_point.run()
+
+
+if __name__ == '__main__':
     logger = Log("Main")
 
     logger.info("Parse cmd")
 
     cmd = CmdParser(sys.argv)
 
-    logger.info("Create ServiceRunner")
-    instance = ServiceRunner(Message())
-    logger.info("Search service", service=cmd.service_name)
-    service_class = Service.search(cmd.service_name)
-
-    Service.main_queue = asyncio.Queue()
-
-    msg = await ServiceRunner.send(RunService(service_class=service_class))
-
-    logger.info("Run ServiceRunner")
-
-    asyncio.create_task(instance.run())
-
-    logger.info("Wait while ready")
-
-    run_msg_result = None
-
-    if cmd.message_name:
-        msg_klass = Message.search(cmd.message_name)
-
-        logger.info("Send additional message",
-                    msg=msg_klass,
-                    kwargs=cmd.kwargs)
-
-        run_msg_result = await service_class.get(msg_klass(**cmd.kwargs))
-
-        logger.info("Shutdown service")
-
-        await service_class.send(Shutdown(cause="Finished main"))
-
-    run_result = await msg.result()
-
-    await ServiceRunner.get(Shutdown(cause="Finished main"))
-
-    if run_msg_result:
-        logger.important(run_msg_result)
-    else:
-        logger.important(run_result)
-
-
-if __name__ == '__main__':
-    asyncio.run(main(), debug=True)
+    asyncio.run(main(cmd), debug=True)
