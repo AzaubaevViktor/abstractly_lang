@@ -11,25 +11,19 @@ from log import Log
 from service import Message
 
 
+class BaseServerInfo:
+    def __init__(self):
+        raise NotImplementedError()
+
+
 class BaseCommunicator:
+    def __init__(self, server_info: Optional[BaseServerInfo] = None):
+        self.server_info = server_info
+
     async def send_msg(self, msg: Message):
         raise NotImplementedError()
 
-    async def _send_answer(self, msg: Message, answer: Any):
-        raise NotImplementedError()
-
     async def receive_msg(self) -> Message:
-        # TODO:
-        #   Receive msg
-        #   Return it
-        #   Wait while result setted up
-        #   Set answer
-        raise NotImplementedError()
-
-    async def _recv_answer(self) -> Any:
-        # TODO:
-        #   Found answered message
-        #   Set result
         raise NotImplementedError()
 
     async def run(self, quiet=False):
@@ -42,15 +36,15 @@ class BaseCommunicator:
         raise NotImplementedError()
 
 
-class SocketIOServerInfo(AttributeStorage):
+class SocketIOServerInfo(AttributeStorage, BaseServerInfo):
     site: str = Attribute()
     port: int = Attribute()
 
 
 class SocketIOCommunicator(BaseCommunicator):
     def __init__(self, server_info: Optional[SocketIOServerInfo] = None):
+        super().__init__(server_info)
         self.logger = Log("!!Communicator")
-        self.server_info = server_info
         self.task = None
 
         self._messages_queue = asyncio.Queue()
