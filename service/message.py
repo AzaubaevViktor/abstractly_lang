@@ -32,6 +32,9 @@ class Message(AttributeStorage):
             raise self._exception
         return self._result
 
+    def result_nowait(self):
+        return self._result
+
     async def exception(self):
         await self._finished.wait()
         if self._exception:

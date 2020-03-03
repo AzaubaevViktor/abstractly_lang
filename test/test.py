@@ -17,6 +17,8 @@ class TestInfo(AttributeStorage):
     method_name = Attribute(default=None)
     params = Attribute(default=None)
     tags = Attribute(default=None)
+    result = Attribute(default=None)
+    time = Attribute(default=None)
 
 
 class MetaTestedService(MetaService):

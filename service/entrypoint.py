@@ -141,3 +141,5 @@ class EntryPoint:
             self.logger.important(service, "\n", result)
 
         self.logger.info("See you soon!")
+
+        return [msg for _, msg, _ in results]
