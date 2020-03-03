@@ -13,15 +13,19 @@ def finder() -> Callable[[Type[TestedService], str], TestInfo]:
 
         assert class_.__tests__
 
-        for test_info in class_.__tests__:
+        # check types
+        for test_info in class_.__tests__.values():
             assert isinstance(test_info, TestInfo)
             assert issubclass(class_, test_info.class_)
 
-        for test_info in class_.__tests__:
-            if test_info.method_name == name:
-                return test_info
+        # find
 
-        names = [test_info.method_name for test_info in class_.__tests__]
+        test_info = class_.__tests__.get(name)
+        if test_info:
+            assert test_info.method_name == name
+            return test_info
+
+        names = [test_info.method_name for test_info in class_.__tests__.values()]
 
         assert False, f"Method {name} not found, try one of: " \
                       f"{names}"

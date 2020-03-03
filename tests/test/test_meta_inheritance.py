@@ -22,7 +22,7 @@ class TestMetaInhChildChild(TestMetaInhChild):
 def test_parent():
     assert TestMetaInh.__tests__
     assert len(TestMetaInh.__tests__) == 1
-    test_info = TestMetaInh.__tests__[0]
+    test_info = TestMetaInh.__tests__["test_a"]
     assert test_info.class_ == TestMetaInh
     assert test_info.method_name == "test_a"
 

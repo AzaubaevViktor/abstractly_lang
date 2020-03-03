@@ -36,7 +36,7 @@ class MetaTestedService(MetaService):
         if name != mcs.base_class_name:
             new_attrs = MetaTestedService._garbage_tests(bases, attrs)
         else:
-            attrs['__tests__'] = []
+            attrs['__tests__'] = {}
             new_attrs = attrs
 
         class_ = super().__new__(mcs, name, bases, new_attrs)
@@ -47,7 +47,7 @@ class MetaTestedService(MetaService):
 
     @classmethod
     def _garbage_tests(mcs, bases, attrs):
-        __tests__ = []
+        __tests__ = {}
 
         for base in bases[::-1]:
             if base.__name__ == mcs.base_class_name:
@@ -57,22 +57,24 @@ class MetaTestedService(MetaService):
                 continue
             mcs.logger.important(current=__tests__, from_=base, what=base.__tests__)
             print(__tests__, base, base.__tests__)
-            __tests__.extend(base.__tests__)
+            __tests__.update(base.__tests__)
 
         source_path = attrs['__module__']
 
         for name, method in attrs.items():
             if name.startswith("test_"):
-                if inspect.iscoroutinefunction(method):
-                    if hasattr(method, "__test_info__"):
-                        raise NotImplementedError()
-                    else:
-                        method.__test_info__ = TestInfo(
-                            method_name=name,
-                            source=source_path
-                        )
+                if not inspect.iscoroutinefunction(method):
+                    raise TypeError(f"{name} is not coroutine function, "
+                                    f"but {method}")
+                if hasattr(method, "__test_info__"):
+                    raise NotImplementedError()
+                else:
+                    method.__test_info__ = TestInfo(
+                        method_name=name,
+                        source=source_path
+                    )
 
-                    __tests__.append(method.__test_info__)
+                __tests__[name] = method.__test_info__
 
         attrs['__tests__'] = __tests__
 
@@ -80,13 +82,13 @@ class MetaTestedService(MetaService):
 
     @classmethod
     def _apply_classes(mcs, class_: Type['TestedService']):
-        for info in class_.__tests__:
+        for info in class_.__tests__.values():
             if info.class_ is None:
                 info.class_ = class_
 
 
 class TestedService(Service, metaclass=MetaTestedService):
-    __tests__: List[TestInfo]
+    __tests__: Dict[str, TestInfo]
 
 
 class TestManager(Service):

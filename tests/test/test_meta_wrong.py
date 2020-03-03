@@ -1,6 +1,6 @@
 import pytest
 
-from test import TestedService
+from test.test import TestedService
 
 
 def test_not_async():

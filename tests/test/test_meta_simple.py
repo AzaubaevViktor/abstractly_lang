@@ -16,7 +16,7 @@ class TestMetaTwo(TestedService):
 
 def test_tests_info_one_list():
     assert len(TestMetaOne.__tests__) == 1
-    test_info = TestMetaOne.__tests__[0]
+    test_info = TestMetaOne.__tests__["test_a"]
     assert isinstance(test_info, TestInfo)
     assert test_info.class_ is TestMetaOne
     assert test_info.method_name == "test_a"
@@ -29,7 +29,7 @@ def test_tests_info_two_list():
     test_b: TestInfo = None
     test_c: TestInfo = None
 
-    for test_info in TestMetaTwo.__tests__:
+    for test_info in TestMetaTwo.__tests__.values():
         if test_info.method_name == "test_b":
             test_b = test_info
         if test_info.method_name == "test_c":
