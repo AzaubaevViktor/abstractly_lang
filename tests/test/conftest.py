@@ -1,7 +1,9 @@
-from typing import Type, Callable
+import asyncio
+from typing import Type, Callable, TypeVar
 
 import pytest
 
+from service import Service, Message, EntryPoint
 from test.test import TestedService, TestInfo
 
 
@@ -31,3 +33,37 @@ def finder() -> Callable[[Type[TestedService], str], TestInfo]:
                       f"{names}"
 
     return _f
+
+
+MSG = TypeVar("MSG", Message, Message)
+
+
+@pytest.fixture(scope='session')
+def runner() -> Callable[[Type[Service], MSG], MSG]:
+    def _do_run(service: Type[Service], message: MSG) -> MSG:
+        assert isinstance(service, Service) or (
+            isinstance(service, type) and issubclass(service, Service)
+        )
+
+        async def run():
+            entry_point = None
+            try:
+                entry_point = EntryPoint({
+                    service.__name__: [(
+                        message.__class__.__name__,
+                        dict(message)
+                    )]
+                })
+                await entry_point.warm_up()
+                return await entry_point.run()
+            finally:
+                if entry_point:
+                    await entry_point.cleanup()
+
+        loop = asyncio.get_event_loop()
+        msgs = loop.run_until_complete(run())
+        assert len(msgs) == 1
+        assert isinstance(msgs[0], Message)
+        return msgs[0]
+
+    return _do_run

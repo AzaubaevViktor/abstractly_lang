@@ -9,7 +9,7 @@ from service import handler, BaseServiceError
 from service.message import Message, Shutdown
 from service.service import Service
 
-from .messages_v1 import RunTests, ListTests
+from .messages_v1 import _RunTests, _ListTests
 from .reports_v1 import TestReport, TestReports
 from .results_v1 import TestResult, TestGood, TestFailed, TestSkipped, TestMustFailed
 
@@ -26,7 +26,7 @@ class MakeTestError(BaseServiceError):
 
 
 class TestedService(Service):
-    @handler(ListTests)
+    @handler(_ListTests)
     async def list_tests(self, filter_by_name: Optional[str], **kwargs):
         return TestReports(*self._search_tests(filter_by_name))
 
@@ -43,7 +43,7 @@ class TestedService(Service):
                         self, method_name,
                         f"Test is not coroutine (use `async def {method_name}(...)` instead")
 
-    @handler(RunTests)
+    @handler(_RunTests)
     async def run_tests(self, filter_by_name, **kwargs):
         reports: TestReports = await self.list_tests(filter_by_name)
         await asyncio.gather(*(
@@ -73,12 +73,12 @@ class TestsManager(Service):
     async def warm_up(self):
         self.services = set()
 
-    @handler(ListTests)
+    @handler(_ListTests)
     async def list_tests(self, filter_by_name, test_folder):
         self.logger.info("Found tested services:")
 
         _reports = await asyncio.gather(*(
-            service_klass.get(ListTests(filter_by_name=filter_by_name))
+            service_klass.get(_ListTests(filter_by_name=filter_by_name))
             for service_klass in self.all_tested_services(test_folder)
         ))
 
@@ -90,10 +90,10 @@ class TestsManager(Service):
 
         return reports
 
-    @handler(RunTests)
+    @handler(_RunTests)
     async def run_tests(self, filter_by_name, test_folder):
         _reports = await asyncio.gather(*(
-            service_class.get(RunTests(filter_by_name=filter_by_name))
+            service_class.get(_RunTests(filter_by_name=filter_by_name))
             for service_class in self.all_tested_services(test_folder)
         ))
 

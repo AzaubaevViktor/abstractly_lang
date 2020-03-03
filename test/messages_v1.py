@@ -7,9 +7,9 @@ class _BaseTestMessage(Message):
     test_folder = Attribute(default="abs_tests")
 
 
-class RunTests(_BaseTestMessage):
+class _RunTests(_BaseTestMessage):
     pass
 
 
-class ListTests(_BaseTestMessage):
+class _ListTests(_BaseTestMessage):
     pass

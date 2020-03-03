@@ -13,6 +13,8 @@ _TM = TypeVar("_TM", Message, Message)
 
 
 class Service(SearchableSubclasses, metaclass=MetaService):
+    logger = Log(f"ServiceClass:{__name__}")
+
     cpu_bound = False
     _instance: "Service" = None
     _handlers: Dict[Type[Message], Callable[[Message], Awaitable[Any]]]
@@ -154,3 +156,14 @@ class Service(SearchableSubclasses, metaclass=MetaService):
 
     def __repr__(self):
         return f"<Service:{self.__class__.__name__}: [{self._queue.qsize()}] / [{len(self._aio_tasks)}]>"
+
+    @classmethod
+    async def cleanup(cls):
+        cls._instance = None
+        if cls is Service:
+            cls._main_queue : asyncio.Queue
+            while not cls._main_queue.empty():
+                item = await cls._main_queue.get()
+                cls.logger.warning("Orphan message from the main queue:", msg=item)
+
+            cls._main_queue = None

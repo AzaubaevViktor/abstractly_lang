@@ -1,11 +1,11 @@
 from test.test_v1 import TestedService, will_fail
 from test.reports_v1 import TestReports
-from test.messages_v1 import ListTests
+from test.messages_v1 import _ListTests
 
 
 class TestManagerTest(TestedService):
     async def test_in_tests(self):
-        reports: TestReports = await self.get(ListTests())
+        reports: TestReports = await self.get(_ListTests())
         found = False
         for report in reports:
             if report.klass == self.__class__ and report.method_name == "test_in_tests":

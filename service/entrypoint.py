@@ -84,7 +84,7 @@ class EntryPoint:
     async def _wait_for_result(self, service: Type[Service], msg: Message):
         return service, msg, await service.get(msg)
 
-    async def run(self):
+    async def run(self) -> List[Message]:
         if not self._warm_upped:
             raise RuntimeError("Call warm_up before (it's async)")
 
@@ -143,3 +143,9 @@ class EntryPoint:
         self.logger.info("See you soon!")
 
         return [msg for _, msg, _ in results]
+
+    async def cleanup(self):
+        return await asyncio.gather(*(
+            service.cleanup()
+            for service in Service.all_subclasses()
+        ))
