@@ -6,7 +6,7 @@ class TestMetaInh(TestedService):
         assert True
 
 
-class TestMetaInhChild(TestedService):
+class TestMetaInhChild(TestMetaInh):
     async def test_b(self):
         assert True
 
@@ -14,7 +14,7 @@ class TestMetaInhChild(TestedService):
         assert True
 
 
-class TestMetaInhChildChild(TestedService):
+class TestMetaInhChildChild(TestMetaInhChild):
     async def test_b(self):
         assert True
 

@@ -20,9 +20,24 @@ class TestInfo(AttributeStorage):
 
 
 class MetaTestedService(MetaService):
+    base_class_name = "TestedService"
+    init_name_correct: bool = None
+    logger = Log(__name__)
+
     def __new__(mcs, name: str, bases: Tuple[Type["TestedService"]], attrs: Dict[str, Any]):
-        mcs.logger = Log(mcs.__name__)
-        new_attrs = MetaTestedService._garbage_tests(bases, attrs)
+        if name == mcs.base_class_name:
+            if mcs.init_name_correct is None:
+                mcs.init_name_correct = True
+        else:
+            if mcs.init_name_correct is False:
+                raise NameError(f"Base class has the different name: {name} "
+                                f"instead {mcs.base_class_name}")
+
+        if name != mcs.base_class_name:
+            new_attrs = MetaTestedService._garbage_tests(bases, attrs)
+        else:
+            attrs['__tests__'] = []
+            new_attrs = attrs
 
         class_ = super().__new__(mcs, name, bases, new_attrs)
 
@@ -33,6 +48,17 @@ class MetaTestedService(MetaService):
     @classmethod
     def _garbage_tests(mcs, bases, attrs):
         __tests__ = []
+
+        for base in bases[::-1]:
+            if base.__name__ == mcs.base_class_name:
+                continue
+
+            if not issubclass(base, TestedService):
+                continue
+            mcs.logger.important(current=__tests__, from_=base, what=base.__tests__)
+            print(__tests__, base, base.__tests__)
+            __tests__.extend(base.__tests__)
+
         source_path = attrs['__module__']
 
         for name, method in attrs.items():
@@ -55,7 +81,8 @@ class MetaTestedService(MetaService):
     @classmethod
     def _apply_classes(mcs, class_: Type['TestedService']):
         for info in class_.__tests__:
-            info.class_ = class_
+            if info.class_ is None:
+                info.class_ = class_
 
 
 class TestedService(Service, metaclass=MetaTestedService):

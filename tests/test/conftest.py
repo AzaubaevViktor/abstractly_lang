@@ -21,6 +21,9 @@ def finder() -> Callable[[Type[TestedService], str], TestInfo]:
             if test_info.method_name == name:
                 return test_info
 
-        assert False, f"Method {name} not found"
+        names = [test_info.method_name for test_info in class_.__tests__]
+
+        assert False, f"Method {name} not found, try one of: " \
+                      f"{names}"
 
     return _f
