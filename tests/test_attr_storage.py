@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from core import AttributeStorage, Attribute, KwargsAttribute
@@ -105,6 +107,9 @@ def test_default():
     assert ad.default == 100
     assert ad.required == 500
 
+    assert json.loads(ad.serialize())['default']
+    assert json.loads(ad.serialize())['default'] == 100
+
 
 def test_default_value():
     ad = AD(required=500, default=1000)
@@ -153,7 +158,6 @@ def test_kwargs_serialize():
 
     assert ak.params == obj_r.params, data
     assert ak == obj_r
-
 
 
 def test_empty_kwargs():

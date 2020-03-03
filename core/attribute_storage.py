@@ -114,9 +114,11 @@ class AttributeStorage(SearchableSubclasses, metaclass=MetaAttributeStorage):
 
         for k, attr in self.__attributes__.items():
             if not isinstance(attr, KwargsAttribute) \
-                    and (k not in kwargs) \
-                    and attr.is_required:
-                raise TypeError(f"Missed argument: {k}; Set value or set default")
+                    and (k not in kwargs):
+                if attr.is_required:
+                    raise TypeError(f"Missed argument: {k}; Set value or set default")
+                else:
+                    setattr(self, k, attr.default)
 
         for k, v in {**kwargs}.items():
             if k in self.__attributes__:
