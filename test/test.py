@@ -1,5 +1,6 @@
 import asyncio
 import inspect
+import os
 from time import time
 from traceback import format_exc
 from typing import List, Type, Iterable, Optional, Union, Callable
@@ -10,12 +11,17 @@ from service.message import Message, Shutdown
 from service.service import Service
 
 
-class RunTests(Message):
+class _BaseTestMessage(Message):
     filter_by_name = Attribute(default=None)
+    test_folder = Attribute(default="abs_tests")
 
 
-class ListTests(Message):
-    filter_by_name = Attribute(default=None)
+class RunTests(_BaseTestMessage):
+    pass
+
+
+class ListTests(_BaseTestMessage):
+    pass
 
 
 class TestResult:
@@ -165,7 +171,7 @@ class MakeTestError(BaseServiceError):
 
 class TestedService(Service):
     @handler(ListTests)
-    async def list_tests(self, filter_by_name: Optional[str]):
+    async def list_tests(self, filter_by_name: Optional[str], **kwargs):
         return TestReports(*self._search_tests(filter_by_name))
 
     def _search_tests(self, filter_by_name) -> Iterable[TestReport]:
@@ -182,7 +188,7 @@ class TestedService(Service):
                         f"Test is not coroutine (use `async def {method_name}(...)` instead")
 
     @handler(RunTests)
-    async def run_tests(self, filter_by_name):
+    async def run_tests(self, filter_by_name, **kwargs):
         reports: TestReports = await self.list_tests(filter_by_name)
         await asyncio.gather(*(
             self._run_single_test(report) for report in reports
@@ -212,7 +218,9 @@ class TestsManager(Service):
         pass
 
     @handler(ListTests)
-    async def list_tests(self, filter_by_name):
+    async def list_tests(self, filter_by_name, test_folder):
+        self._import_files(test_folder)
+
         self.logger.info("Found tested services:")
 
         _reports = await asyncio.gather(*(
@@ -229,13 +237,31 @@ class TestsManager(Service):
         return reports
 
     @handler(RunTests)
-    async def run_tests(self, filter_by_name):
+    async def run_tests(self, filter_by_name, test_folder):
+        self._import_files(test_folder)
+
         _reports = await asyncio.gather(*(
             service_class.get(RunTests(filter_by_name=filter_by_name))
             for service_class in self.all_tested_services()
         ))
 
         return TestReports(*_reports)
+
+    def _import_files(self, test_folder: str):
+        self.logger.info("Search tests from", path=test_folder)
+        import importlib.util
+
+        for root, folders, files in os.walk(test_folder):
+            for file in files:
+                path = os.path.join(root, file)
+
+                self.logger.info("Import test", path=path)
+
+                test_hash = '.'.join(path.split('/'))
+                spec = importlib.util.spec_from_file_location(
+                    f"test._{test_hash}", path)
+                foo = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(foo)
 
     def all_tested_services(self) -> List[Type[TestedService]]:
         return TestedService.all_subclasses()
