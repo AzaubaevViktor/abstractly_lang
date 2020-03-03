@@ -1,7 +1,6 @@
 from core import Attribute
 from service import Message
-from test import TestedService
-from test.test import will_fail
+from test import TestedService, will_fail
 
 
 class SimpleMessage(Message):

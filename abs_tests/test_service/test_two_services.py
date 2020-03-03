@@ -2,7 +2,7 @@ import asyncio
 
 from core import Attribute
 from service import Message
-from test.test import TestedService
+from test import TestedService
 
 
 class X(Message):

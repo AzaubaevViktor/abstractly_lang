@@ -1,4 +1,4 @@
-from test.test import TestedService, raises
+from test import TestedService, raises
 
 
 class TestRaises(TestedService):

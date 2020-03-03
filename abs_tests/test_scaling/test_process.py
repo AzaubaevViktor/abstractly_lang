@@ -6,7 +6,7 @@ from time import time, sleep
 
 from core import Attribute
 from service import Message, handler, Service
-from test.test import TestedService, raises, will_fail
+from test import TestedService, raises, will_fail
 
 
 class DoCalc(Message):

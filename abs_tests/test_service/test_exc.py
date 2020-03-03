@@ -1,6 +1,6 @@
 from core import Attribute
 from service import Message
-from test.test import TestedService
+from test import TestedService, raises
 
 
 class Z(Message):
@@ -15,14 +15,14 @@ class TestException(TestedService):
     async def test_get_exc(self):
         assert await TestException.get(Z(value=2)) == 1 / 2
 
-        try:
+        with raises(ZeroDivisionError):
             await TestException.get(Z(value=0))
-        except ZeroDivisionError:
-            self.logger.info("Nice")
 
     async def test_send_exc(self):
-
         msg = await TestException.send(Z(value=0))
 
         e = await msg.exception()
         assert isinstance(e, ZeroDivisionError)
+
+        with raises(ZeroDivisionError):
+            await msg.result()

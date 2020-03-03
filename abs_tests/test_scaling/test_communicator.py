@@ -2,7 +2,6 @@ from core import Attribute
 from service import Message
 from service import BaseCommunicator, SocketIOCommunicator
 from test import TestedService
-from test.test import will_fail, skip
 
 
 class SimpleM(Message):

@@ -1,7 +1,7 @@
 from test.test import TestedService, TestReports, ListTests, will_fail
 
 
-class TestManager(TestedService):
+class TestManagerTest(TestedService):
     async def test_in_tests(self):
         reports: TestReports = await self.get(ListTests())
         found = False

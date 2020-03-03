@@ -4,7 +4,6 @@ from service import Message, handler
 from service._meta import CallContext
 from service.error import UnknownMessageType
 from test import TestedService, raises
-from test.test import will_fail
 
 
 class M0(Message):

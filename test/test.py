@@ -3,7 +3,7 @@ import inspect
 import os
 from time import time
 from traceback import format_exc
-from typing import List, Type, Iterable, Optional, Union, Callable
+from typing import List, Type, Iterable, Optional, Union, Callable, Set
 
 from core import Attribute
 from service import handler, BaseServiceError
@@ -215,17 +215,15 @@ class TestedService(Service):
 
 class TestsManager(Service):
     async def warm_up(self):
-        pass
+        self.services = set()
 
     @handler(ListTests)
     async def list_tests(self, filter_by_name, test_folder):
-        self._import_files(test_folder)
-
         self.logger.info("Found tested services:")
 
         _reports = await asyncio.gather(*(
             service_klass.get(ListTests(filter_by_name=filter_by_name))
-            for service_klass in self.all_tested_services()
+            for service_klass in self.all_tested_services(test_folder)
         ))
 
         reports = TestReports(*_reports)
@@ -238,11 +236,9 @@ class TestsManager(Service):
 
     @handler(RunTests)
     async def run_tests(self, filter_by_name, test_folder):
-        self._import_files(test_folder)
-
         _reports = await asyncio.gather(*(
             service_class.get(RunTests(filter_by_name=filter_by_name))
-            for service_class in self.all_tested_services()
+            for service_class in self.all_tested_services(test_folder)
         ))
 
         return TestReports(*_reports)
@@ -253,18 +249,34 @@ class TestsManager(Service):
 
         for root, folders, files in os.walk(test_folder):
             for file in files:
-                path = os.path.join(root, file)
+                if file.endswith(".py") and file.startswith("test_"):
+                    path = os.path.join(root, file)
 
-                self.logger.info("Import test", path=path)
+                    test_hash = '.'.join(path.split('/'))
+                    spec = importlib.util.spec_from_file_location(
+                        f"test._{test_hash}", path)
+                    foo = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(foo)
 
-                test_hash = '.'.join(path.split('/'))
-                spec = importlib.util.spec_from_file_location(
-                    f"test._{test_hash}", path)
-                foo = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(foo)
+                    _attrs = tuple(getattr(foo, k) for k in dir(foo))
 
-    def all_tested_services(self) -> List[Type[TestedService]]:
-        return TestedService.all_subclasses()
+                    classes = tuple(attr for attr in _attrs if
+                                    isinstance(attr, type) and
+                                    issubclass(attr, TestedService) and
+                                    attr is not TestedService)
+                    self.logger.info("Import test", path=path, classes=classes)
+
+                    yield from classes
+
+    def all_tested_services(self, folder_path: Optional[str] = None) -> Set[Type[TestedService]]:
+        if folder_path is not None:
+            imported = set(self._import_files(folder_path))
+        else:
+            imported = set()
+        loaded = set(TestedService.all_subclasses())
+        classes = imported | loaded
+        self.services.update(classes)
+        return self.services
 
     async def shutdown(self, message: Message):
         self.logger.info("Shutdown services")
