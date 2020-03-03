@@ -1,5 +1,5 @@
 from service import Message
-from test.test import TestedService
+from test.test_v1 import TestedService
 
 
 class HelloMsg(Message):

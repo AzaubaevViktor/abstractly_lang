@@ -1,7 +1,7 @@
 from typing import Type, Iterable
 
 from service import Service
-from test.results import TestResult, TestInProgress
+from test.results_v1 import TestResult, TestInProgress
 
 
 class TestReport:

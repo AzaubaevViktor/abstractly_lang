@@ -9,9 +9,9 @@ from service import handler, BaseServiceError
 from service.message import Message, Shutdown
 from service.service import Service
 
-from .messages import RunTests, ListTests
-from .reports import TestReport, TestReports
-from .results import TestResult, TestGood, TestFailed, TestSkipped, TestMustFailed
+from .messages_v1 import RunTests, ListTests
+from .reports_v1 import TestReport, TestReports
+from .results_v1 import TestResult, TestGood, TestFailed, TestSkipped, TestMustFailed
 
 
 class MakeTestError(BaseServiceError):

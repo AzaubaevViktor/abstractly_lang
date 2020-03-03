@@ -2,7 +2,7 @@ import asyncio
 
 from core import Attribute, KwargsAttribute
 from service import Message, handler
-from test.test import TestedService
+from test.test_v1 import TestedService
 from vk_utils.registrate import VkSettings
 from vk_utils.requests_service import RequestService
 from vk_utils.settings import VkSettingsData
