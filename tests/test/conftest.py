@@ -1,5 +1,5 @@
 import asyncio
-from typing import Type, Callable, TypeVar
+from typing import Type, Callable, TypeVar, Union, List
 
 import pytest
 
@@ -8,26 +8,33 @@ from test.test import TestedService, TestInfo
 
 
 @pytest.fixture(scope='session')
-def finder() -> Callable[[Type[TestedService], str], TestInfo]:
-    def _f(class_: Type[TestedService], name: str):
-        assert isinstance(class_, type)
-        assert issubclass(class_, TestedService)
+def finder() -> Callable[[Union[List[TestInfo], Type[TestedService]], str], TestInfo]:
+    def _f(class_: Union[List[TestInfo], Type[TestedService]], name: str):
+        if isinstance(class_, type):
+            assert issubclass(class_, TestedService)
+            tests = class_.__tests__
 
-        assert class_.__tests__
+        else:
+            isinstance(class_, list)
+            tests = class_
+            class_ = None
+
+        assert tests
 
         # check types
-        for test_info in class_.__tests__.values():
+        for test_info in tests.values():
             assert isinstance(test_info, TestInfo)
-            assert issubclass(class_, test_info.class_)
+            if class_:
+                assert issubclass(class_, test_info.class_)
 
         # find
 
-        test_info = class_.__tests__.get(name)
+        test_info = tests.get(name)
         if test_info:
             assert test_info.method_name == name
             return test_info
 
-        names = [test_info.method_name for test_info in class_.__tests__.values()]
+        names = [test_info.method_name for test_info in tests.values()]
 
         assert False, f"Method {name} not found, try one of: " \
                       f"{names}"

@@ -4,6 +4,7 @@ from pytest import fixture
 
 from test.message import RunTests
 from test.test import TestManager, TestInfo
+from tests.test._abs_tests.test_hello import Hello
 
 
 @fixture(scope="session")
@@ -20,4 +21,10 @@ def test_run_ok(reports_abs_tests):
         assert isinstance(report, TestInfo)
 
 
+def test_hello_result(reports_abs_tests, finder):
+    test_hello: TestInfo = finder(reports_abs_tests, "test_hello")
+    assert test_hello
+    assert test_hello.class_ is Hello
+    assert test_hello.method_name == "test_hello"
+    assert isinstance(test_hello.result, TestResult)
 
