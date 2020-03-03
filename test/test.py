@@ -33,6 +33,7 @@ class MetaTestedService(MetaService):
     @classmethod
     def _garbage_tests(mcs, bases, attrs):
         __tests__ = []
+        source_path = attrs['__module__']
 
         for name, method in attrs.items():
             if name.startswith("test_"):
@@ -41,7 +42,8 @@ class MetaTestedService(MetaService):
                         raise NotImplementedError()
                     else:
                         method.__test_info__ = TestInfo(
-                            method_name=name
+                            method_name=name,
+                            source=source_path
                         )
 
                     __tests__.append(method.__test_info__)
