@@ -1,4 +1,6 @@
-from test.test import TestedService, TestReports, ListTests, will_fail
+from test.test import TestedService, will_fail
+from test.reports import TestReports
+from test.messages import ListTests
 
 
 class TestManagerTest(TestedService):
