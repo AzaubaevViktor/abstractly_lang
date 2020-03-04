@@ -1,4 +1,4 @@
-from test.test_v1 import TestedService, will_fail
+from test.test_v1 import TestedService, xfail
 from test.reports_v1 import TestReports
 from test.messages_v1 import _ListTests
 
@@ -14,14 +14,14 @@ class TestManagerTest(TestedService):
 
         assert found
 
-    @will_fail("Self test")
+    @xfail("Self test")
     async def test_will_fail_assertion_error(self):
         assert False, "It's test"
 
-    @will_fail("Self test")
+    @xfail("Self test")
     async def test_will_fail_any_error(self):
         1 / 0
 
-    @will_fail("Self test")
+    @xfail("Self test")
     async def test_will_fail_exception(self):
         raise Exception("Hey")

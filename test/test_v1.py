@@ -169,7 +169,7 @@ class raises:
                f"`{self.value}` >"
 
 
-def will_fail(cause: str, expected_exception: Type[Exception] = None):
+def xfail(cause: str, expected_exception: Type[Exception] = None):
     expected_exception = expected_exception or Exception
 
     def _(func):

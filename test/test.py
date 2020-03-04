@@ -145,7 +145,7 @@ class TestedService(Service, metaclass=MetaTestedService):
         return test_info
 
 
-class TestManager(Service):
+class TestsManager(Service):
     PREFIX = "atest_"
 
     @handler(ListTests)

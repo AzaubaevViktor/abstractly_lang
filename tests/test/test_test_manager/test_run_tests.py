@@ -2,12 +2,12 @@ from pytest import fixture
 
 from test.message import RunTests
 from test.results import BaseTestResult, TestNotRunning, TestExecuting, TestGood, TestFailed, TestXFailed
-from test.test import TestManager, TestInfo, Report, raises
+from test.test import TestsManager, TestInfo, Report, raises
 
 
 @fixture(scope="session")
 def reports_abs_tests(runner, project_path) -> Report:
-    msg: RunTests = runner(TestManager, RunTests(source=project_path))
+    msg: RunTests = runner(TestsManager, RunTests(source=project_path))
 
     report = msg.result_nowait()
     assert isinstance(report, Report)

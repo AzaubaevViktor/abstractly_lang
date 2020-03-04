@@ -4,12 +4,12 @@ from pytest import fixture
 
 from test.message import ListTests
 from test.results import BaseTestResult, TestNotRunning
-from test.test import TestManager, TestInfo
+from test.test import TestsManager, TestInfo
 
 
 @fixture(scope='session')
 def tests_list(runner, project_path):
-    msg: ListTests = runner(TestManager, ListTests(source=project_path))
+    msg: ListTests = runner(TestsManager, ListTests(source=project_path))
     result: List[TestInfo] = msg.result_nowait()
     assert isinstance(result, list)
     for item in result:

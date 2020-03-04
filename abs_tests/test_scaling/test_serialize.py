@@ -1,6 +1,6 @@
 from core import Attribute
 from service import Message
-from test import TestedService, will_fail
+from test import TestedService, xfail
 
 
 class SimpleMessage(Message):
@@ -44,6 +44,6 @@ class TestSerialize(TestedService):
         assert msg.c == obj.c
         assert msg.d == obj.d
 
-    @will_fail("Oops")
+    @xfail("Oops")
     async def test_args(self):
         raise NotImplementedError()

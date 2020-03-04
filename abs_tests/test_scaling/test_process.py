@@ -6,7 +6,7 @@ from time import time, sleep
 
 from core import Attribute
 from service import Message, handler, Service
-from test import TestedService, raises, will_fail
+from test import TestedService, raises, xfail
 
 
 class DoCalc(Message):
@@ -36,13 +36,13 @@ class TestServiceProcess(TestedService):
     async def do_error(self):
         return 1 / 0
 
-    @will_fail("ABS-3")
+    @xfail("ABS-3")
     async def test_pid(self):
         result, pid = await self.get(DoCalc(value=3))
         assert pid != os.getpid(), pid
         assert 3 ** 3 ** 2 == result
 
-    @will_fail("ABS-3")
+    @xfail("ABS-3")
     async def test_kill(self):
         result, pid = await self.do_calc(0, 0)
         assert result == 1
@@ -114,7 +114,7 @@ class TestProcessSendBack(TestedService):
     async def do_work(self):
         return os.getpid(), await TestLocal.get_my_pid()
 
-    @will_fail("ABS-3")
+    @xfail("ABS-3")
     async def test_call_local(self):
         local_pid, rnd_num = await TestLocal.get_my_pid()
 
@@ -140,7 +140,7 @@ class TestProcessSendBack(TestedService):
 
         return x, other_pid, os.getpid()
 
-    @will_fail("ABS-3")
+    @xfail("ABS-3")
     async def test_call_other_cpu_bound(self):
         # TODO: Parametrize
         x_orig = 0

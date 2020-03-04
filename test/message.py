@@ -3,7 +3,7 @@ from service import Message
 
 
 class BaseTestMessage(Message):
-    source = Attribute(default="abs_tests")
+    source = Attribute(default="")
 
 
 class RunTests(BaseTestMessage):
