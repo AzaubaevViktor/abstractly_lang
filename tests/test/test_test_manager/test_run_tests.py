@@ -1,7 +1,7 @@
 from pytest import fixture
 
 from test.message import RunTests
-from test.results import BaseTestResult, TestNotRunning, TestExecuting, TestGood, TestFailed, TestXFailed
+from test.results import BaseTestResult, TestNotRunning, TestExecuting, TestSuccess, TestFailed, TestXFailed
 from test.test import TestsManager, TestInfo, Report, raises
 
 
@@ -34,7 +34,7 @@ def test_hello_result(reports_abs_tests, finder):
     assert test_hello.method_name == "test_hello"
     assert isinstance(test_hello.result, BaseTestResult)
 
-    assert isinstance(test_hello.result, TestGood)
+    assert isinstance(test_hello.result, TestSuccess)
     assert test_hello.result.result == "Hello, test!"
 
 

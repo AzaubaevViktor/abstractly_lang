@@ -10,7 +10,7 @@ from log import Log
 from service import Service
 from service._meta import MetaService, handler
 from test.message import RunTests, ListTests
-from test.results import TestNotRunning, BaseTestResult, TestGood, TestFailed, TestXFailed, TestSkipped
+from test.results import TestNotRunning, BaseTestResult, TestSuccess, TestFailed, TestXFailed, TestSkipped
 
 
 class Tag(str):
@@ -26,6 +26,18 @@ class TestInfo(AttributeStorage):
     result: BaseTestResult = Attribute(default=None)
     start_time: float = Attribute(default=None)
     finish_time: float = Attribute(default=None)
+
+    def __str__(self):
+        if self.finish_time and self.start_time:
+            tm = self.finish_time - self.start_time
+            tm = f"{tm:.3f}s"
+        else:
+            tm = "🕰"
+
+        return f"{self.result.SYMBOL} [{self.result.NAME:<10}] " \
+               f"{self.source}::{self.class_.__name__}::{self.method_name} " \
+               f"[{tm}] " \
+               f"{self.result}"
 
 
 class Report(AttributeStorage):
@@ -44,6 +56,42 @@ class Report(AttributeStorage):
             return len(self.results)
 
         return 0
+
+    def __str__(self):
+        r = "\n"
+        r += "=" * 10 + " TESTS REPORT " + "=" * 10 + "\n"
+
+        by_types = {
+            result_class: 0
+            for result_class
+            in sorted(
+                BaseTestResult.all_subclasses(),
+                key=lambda rc: rc.sorted_id
+            )
+        }
+
+        for test_info in sorted(
+                self.results,
+                key=lambda ti: (ti.result.sorted_id, ti.class_.__name__, ti.method_name)
+        ):
+            r += str(test_info) + "\n"
+
+            by_types[test_info.result.__class__] += 1
+
+        r += "\n" + "~" * 30 + "\n"
+
+        r += f"Total execution time: {self.finish_time - self.start_time:.3f}s\n"
+        r += "\n"
+
+        total = len(self.results)
+        assert total == sum(by_types.values())
+
+        r += f"🐊 {'TOTAL':<20}: {total}\n"
+
+        for result_class, v in by_types.items():
+            r += f"{result_class.SYMBOL} {result_class.NAME:<20}: {v}\n"
+
+        return r
 
 
 class MetaTestedService(MetaService):
@@ -131,7 +179,7 @@ class TestedService(Service, metaclass=MetaTestedService):
         try:
             result = await method()
             test_info.finish_time = time()
-            test_info.result = result if isinstance(result, BaseTestResult) else TestGood(result=result)
+            test_info.result = result if isinstance(result, BaseTestResult) else TestSuccess(result=result)
         except (Exception, AssertionError) as e:
             test_info.finish_time = time()
             test_info.result = TestFailed(
