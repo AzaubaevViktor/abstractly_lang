@@ -10,7 +10,7 @@ async def entry_point():
     """ Запускает систему, передавая сообщения в сервисы """
 
 
-_InputDictT = Dict[
+EntryPointInfoT = Dict[
     Union[str, Type[Service]],
     Sequence[Union[Message,
                    Tuple[str, Dict]]]]
@@ -26,7 +26,7 @@ _InputDictServicesMessagesT = Dict[
 
 
 class EntryPoint:
-    def __init__(self, messages: _InputDictT, name="__main__"):
+    def __init__(self, messages: EntryPointInfoT, name="__main__"):
         self.name = name
         self.logger = Log(f"EntryPoint:{self.name}")
         self.init_messages = messages
@@ -35,7 +35,7 @@ class EntryPoint:
         self.service_runner: ServiceRunner = None
         self.main_task = None
 
-    def _find_services(self, messages: _InputDictT) -> _InputDictServicesT:
+    def _find_services(self, messages: EntryPointInfoT) -> _InputDictServicesT:
         self.logger.info('Search services')
         new_d = {}
         for service, msgs in messages.items():

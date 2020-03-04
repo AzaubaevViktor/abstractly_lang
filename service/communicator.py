@@ -1,7 +1,7 @@
 import asyncio
 from asyncio import CancelledError
 from random import randint
-from typing import Any, Optional
+from typing import Any, Optional, TypeVar
 
 import socketio
 from aiohttp import web
@@ -11,16 +11,21 @@ from log import Log
 from service import Message
 
 
-class BaseServerInfo:
-    def __init__(self):
-        raise NotImplementedError()
+class BaseServerInfo(AttributeStorage):
+    def __init__(self, **kwargs):
+        assert self.__class__ != BaseServerInfo
+        super().__init__(**kwargs)
+
+
+MsgT = TypeVar("MsgT", Message, Message)
 
 
 class BaseCommunicator:
-    def __init__(self, server_info: Optional[BaseServerInfo] = None):
+    def __init__(self,
+                 server_info: Optional[BaseServerInfo] = None):
         self.server_info = server_info
 
-    async def send_msg(self, msg: Message):
+    async def send_msg(self, msg: MsgT) -> MsgT:
         raise NotImplementedError()
 
     async def receive_msg(self) -> Message:
@@ -36,7 +41,7 @@ class BaseCommunicator:
         raise NotImplementedError()
 
 
-class SocketIOServerInfo(AttributeStorage, BaseServerInfo):
+class SocketIOServerInfo(BaseServerInfo):
     site: str = Attribute()
     port: int = Attribute()
 
@@ -138,7 +143,7 @@ class SocketIOCommunicator(BaseCommunicator):
         else:
             raise ValueError(answer)
 
-    async def send_msg(self, msg: Message):
+    async def send_msg(self, msg: MsgT) -> MsgT:
         asyncio.create_task(self._send_msg(msg))
         return msg
 
