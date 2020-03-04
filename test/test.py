@@ -198,12 +198,15 @@ class TestsManager(Service):
 
     @handler(ListTests)
     async def list_tests(self, source: str):
+        report = Report(start_time=time())
         classes = self._search_classes(source)
         tests = []
         for class_ in classes:
             tests.extend(class_.__tests__.values())
 
-        return tests
+        report.finish_time = time()
+        report.results = tests
+        return report
 
     @handler(RunTests)
     async def run_tests(self, source: str):
