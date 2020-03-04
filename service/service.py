@@ -1,5 +1,6 @@
 import asyncio
 from asyncio import Queue, Task, CancelledError
+from multiprocessing.pool import RemoteTraceback
 from typing import List, TypeVar, Any, Dict, Type, Callable, Awaitable, Coroutine
 
 from log import Log
@@ -87,6 +88,8 @@ class Service(SearchableSubclasses, metaclass=MetaService):
 
         except CancelledError:
             self.logger.info("⏹ Service cancelled")
+        except RemoteTraceback:
+            raise
         except Exception as e:
             self.logger.exception()
             raise
@@ -133,6 +136,8 @@ class Service(SearchableSubclasses, metaclass=MetaService):
                 raise UnknownMessageType(self, message)
 
             message.set_result(result)
+        except RemoteTraceback:
+            raise
         except Exception as e:
             self.logger.exception(message=message)
             message.set_error(e)

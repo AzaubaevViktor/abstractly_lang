@@ -29,11 +29,23 @@ class EntryPoint:
     def __init__(self, messages: EntryPointInfoT, name="__main__"):
         self.name = name
         self.logger = Log(f"EntryPoint:{self.name}")
+        self.logger.important("Run", messages=messages)
         self.init_messages = messages
         self._warm_upped = False
 
         self.service_runner: ServiceRunner = None
         self.main_task = None
+
+    @classmethod
+    async def _main(cls, messages, name):
+        await cls.cleanup()
+        obj = cls(messages, name)
+        await obj.warm_up()
+        return await obj.run()
+
+    @classmethod
+    def main(cls, messages, name):
+        asyncio.run(cls._main(messages, name))
 
     def _find_services(self, messages: EntryPointInfoT) -> _InputDictServicesT:
         self.logger.info('Search services')
@@ -144,7 +156,8 @@ class EntryPoint:
 
         return [msg for _, msg, _ in results]
 
-    async def cleanup(self):
+    @staticmethod
+    async def cleanup():
         return await asyncio.gather(*(
             service.cleanup()
             for service in Service.all_subclasses()

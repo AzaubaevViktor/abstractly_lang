@@ -6,7 +6,7 @@ from time import time, sleep
 
 from core import Attribute
 from service import Message, handler, Service
-from test import TestedService, raises, xfail
+from test import TestedService, raises, xfail, skip
 
 
 class DoCalc(Message):
@@ -19,7 +19,7 @@ class DoPing(Message):
 
 
 class TestServiceProcess(TestedService):
-    cpu_bound = True
+    cpu_bound = False
 
     @handler(DoCalc)
     async def do_calc(self, value, sync_delay=0):
@@ -36,13 +36,13 @@ class TestServiceProcess(TestedService):
     async def do_error(self):
         return 1 / 0
 
-    @xfail("ABS-3")
+    @skip("Wait tags")
     async def test_pid(self):
         result, pid = await self.get(DoCalc(value=3))
         assert pid != os.getpid(), pid
         assert 3 ** 3 ** 2 == result
 
-    @xfail("ABS-3")
+    @skip("Wait tags")
     async def test_kill(self):
         result, pid = await self.do_calc(0, 0)
         assert result == 1
@@ -63,6 +63,7 @@ class TestServiceProcess(TestedService):
 
         return request_accept - request_start, request_end - request_start
 
+    @skip("Wait tags")
     async def test_ping(self):
         self.logger.info("Linear ping")
 
@@ -93,6 +94,7 @@ class TestServiceProcess(TestedService):
             'max': f"{max(times) * 1000:.3f}ms",
         }
 
+    @skip("Wait tags")
     async def test_error(self):
         with raises(ZeroDivisionError):
             await self.do_error()
@@ -108,13 +110,13 @@ class TestLocal(Service):
 
 
 class TestProcessSendBack(TestedService):
-    cpu_bound = True
+    cpu_bound = False
 
     @handler
     async def do_work(self):
         return os.getpid(), await TestLocal.get_my_pid()
 
-    @xfail("ABS-3")
+    @skip("Wait tags")
     async def test_call_local(self):
         local_pid, rnd_num = await TestLocal.get_my_pid()
 
@@ -140,7 +142,7 @@ class TestProcessSendBack(TestedService):
 
         return x, other_pid, os.getpid()
 
-    @xfail("ABS-3")
+    @skip("Wait tags")
     async def test_call_other_cpu_bound(self):
         # TODO: Parametrize
         x_orig = 0

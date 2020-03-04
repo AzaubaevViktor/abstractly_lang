@@ -1,5 +1,6 @@
 import datetime
 import os
+import random
 from enum import Enum
 from inspect import getframeinfo, stack
 
@@ -27,6 +28,15 @@ class Log:
         LogLevel.EXCEPTION: Back.LIGHTRED_EX,
         LogLevel.ERROR: Back.RED
     }
+    pid_colors = {}
+    colors_list = [
+        Fore.RED,
+        Fore.BLUE,
+        Fore.GREEN,
+        Fore.YELLOW,
+        Fore.MAGENTA,
+        Fore.CYAN
+    ]
 
     def __init__(self, name: str):
         self.name = name
@@ -54,7 +64,13 @@ class Log:
             _kwargs = ' '.join((f"{k}={v}" for k, v in kwargs.items())) if kwargs else ''
             _level_name_colorize = f"{self.LEVEL_COLOR.get(level, '')}{level.name:^9}{Style.RESET_ALL}"
             file_name, fun_name, lineno = self._frame(3)
-            print(f"[{now.strftime(self.TIME_FORMAT)}] [{_level_name_colorize}] {file_name}:{lineno} {fun_name} {self.name}: {_args} {_kwargs}")
+
+            _pid = os.getpid()
+            if _pid not in self.pid_colors:
+                self.pid_colors[_pid] = random.choice(self.colors_list)
+            pid = f"{self.pid_colors[_pid]}{_pid}{Style.RESET_ALL}"
+
+            print(f"[{now.strftime(self.TIME_FORMAT)}] [{_level_name_colorize}] /{pid}/ {self.name} {Fore.LIGHTWHITE_EX}{file_name}:{lineno} {fun_name}{Style.RESET_ALL}: {_args} {_kwargs}")
 
     def deep(self, *args, **kwargs):
         self._print(LogLevel.DEEP, *args, **kwargs)

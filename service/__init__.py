@@ -7,3 +7,4 @@ from .error import *
 from .communicator import BaseCommunicator, SocketIOCommunicator
 
 from .entrypoint import EntryPoint
+from .proxy import ProcessSpawner, ProxyForService, ProxyClient

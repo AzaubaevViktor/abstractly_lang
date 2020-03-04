@@ -61,7 +61,15 @@ class SocketIOCommunicator(BaseCommunicator):
             await self._start_client()
 
     async def _start_server(self):
-        self.logger = Log("Communicator:SERVER")
+        self.server_info = SocketIOServerInfo(
+            site="localhost",
+            port=randint(8081, 9999)
+        )
+
+        self.logger = Log("Communicator:SERVER["
+                          f"{self.server_info.site}:"
+                          f"{self.server_info.port}"
+                          "]")
         self.logger.info("Starting server")
 
         self.sio = socketio.AsyncServer(async_mode="aiohttp")
@@ -76,11 +84,6 @@ class SocketIOCommunicator(BaseCommunicator):
         # web.run_app()
         await self.runner.setup()
 
-        self.server_info = SocketIOServerInfo(
-            site="localhost",
-            port=randint(8081, 9999)
-        )
-
         self.site = web.TCPSite(
             self.runner, self.server_info.site, self.server_info.port,
             shutdown_timeout=1
@@ -88,7 +91,10 @@ class SocketIOCommunicator(BaseCommunicator):
         await self.site.start()
 
     async def _start_client(self):
-        self.logger = Log("Communicator:CLIENT")
+        self.logger = Log("Communicator:CLIENT["
+                          f"{self.server_info.site}:"
+                          f"{self.server_info.port}"
+                          "]")
 
         self.sio = socketio.AsyncClient()
 
@@ -107,7 +113,8 @@ class SocketIOCommunicator(BaseCommunicator):
         await self.sio.disconnect()
 
     async def _connect(self, *args):
-        self.logger.important("Connected to", *args)
+        what = args or self.server_info
+        self.logger.important("Connected to", what)
 
     async def _message_server(self, sid, data):
         self.logger.important("Message from", sid=sid)
@@ -181,3 +188,5 @@ class SocketIOCommunicator(BaseCommunicator):
                 await self.task
             except CancelledError:
                 pass
+
+        self.logger.info("Finished!")

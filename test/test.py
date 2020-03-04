@@ -1,6 +1,7 @@
 import asyncio
 import inspect
 import os
+from asyncio import CancelledError
 from time import time
 from traceback import format_exc, format_tb, format_stack
 from typing import Tuple, Type, Dict, Any, Sequence, List, Iterable, Union, Callable
@@ -140,6 +141,7 @@ class MetaTestedService(MetaService):
             print(__tests__, base, base.__tests__)
             __tests__.update(base.__tests__)
 
+        assert "__module__" in attrs, attrs
         source_path = attrs['__module__']
 
         for name, method in attrs.items():
@@ -174,7 +176,9 @@ class TestedService(Service, metaclass=MetaTestedService):
 
     @handler
     async def _run_test(self, test_info: TestInfo):
-        assert test_info.class_ is self.__class__
+        assert ("Proxy" + test_info.class_.__name__ == self.__class__.__name__) or (
+                test_info.class_.__name__ == self.__class__.__name__
+        )
         method_name = test_info.method_name
         assert hasattr(self, method_name)
         method = getattr(self, method_name)
@@ -234,10 +238,14 @@ class TestsManager(Service):
         report = Report(start_time=time())
 
         tests = await self.list_tests(source)
-        results = await asyncio.gather(*(
-            test_info.class_._run_test(test_info)
-            for test_info in tests
-        ))
+        try:
+            results = await asyncio.gather(*(
+                test_info.class_._run_test(test_info)
+                for test_info in tests
+            ))
+        except CancelledError:
+            results = tests
+            self.logger.exception()
 
         report.finish_time = time()
 
