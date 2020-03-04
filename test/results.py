@@ -15,11 +15,17 @@ class TestNotRunning(BaseTestResult):
     NAME = "NOT RUNNING"
     SYMBOL = "💤"
 
+    def __str__(self):
+        return ""
+
 
 class TestExecuting(BaseTestResult):
     sorted_id = 10
     NAME = "EXECUTING"
     SYMBOL = "🛠"
+
+    def __str__(self):
+        return ""
 
 
 class TestSuccess(BaseTestResult):

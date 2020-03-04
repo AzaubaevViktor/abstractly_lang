@@ -35,7 +35,7 @@ class TestInfo(AttributeStorage):
             tm = "🕰"
 
         return f"{self.result.SYMBOL} [{self.result.NAME:<10}] " \
-               f"{self.source}::{self.class_.__name__}::{self.method_name} " \
+               f"{self.class_.__name__}::{self.method_name} " \
                f"[{tm}] " \
                f"{self.result}"
 
@@ -228,7 +228,9 @@ class TestsManager(Service):
 
     def _search_classes(self, source: str):
         classes = set()
-        self.logger.info("Search tests in folder", folder=source)
+        self.logger.info("Search tests in folder",
+                         folder=os.path.join(os.getcwd(), source)
+                         )
 
         import importlib.util
 
@@ -244,7 +246,6 @@ class TestsManager(Service):
                     spec.loader.exec_module(foo)
 
                     self.logger.important(foo)
-                    self.logger.important(foo.__dict__)
 
                     for name, attr in foo.__dict__.items():
                         if isinstance(attr, type) and \
