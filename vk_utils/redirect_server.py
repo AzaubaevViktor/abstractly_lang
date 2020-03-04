@@ -4,12 +4,11 @@ import aiofiles
 from aiohttp import web
 from aiohttp.abc import BaseRequest
 
-from service import Message, handler
+from service import Message, handler, Service
 from service.message import Shutdown
-from test import TestedService
 
 
-class RedirectServer(TestedService):
+class RedirectServer(Service):
     def __init__(self, message: Message):
         super().__init__(message)
         self.app: web.Application = None
@@ -63,5 +62,3 @@ class RedirectServer(TestedService):
         await self.runner.cleanup()
         await self.app.cleanup()
         self.logger.info("WebServer stopped")
-
-    # TODO: Add test

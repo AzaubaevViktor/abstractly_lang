@@ -3,8 +3,7 @@ from typing import Any
 
 import aiohttp
 
-from service import Message, handler
-from test import TestedService
+from service import Message, handler, Service
 
 
 class _HTTPMethods(Enum):
@@ -12,7 +11,7 @@ class _HTTPMethods(Enum):
     POST = "POST"
 
 
-class RequestService(TestedService):
+class RequestService(Service):
     def __init__(self, message: Message):
         super().__init__(message)
         self.session: aiohttp.ClientSession
@@ -35,7 +34,3 @@ class RequestService(TestedService):
         async with self.session.get(url, params=data, timeout=10) as resp:
             return await resp.json()
 
-    async def test_get_request(self):
-        answer = await self.get_request("https://youtrack.abstractly.org/api")
-        assert 'error' in answer
-        assert 'error_description' in answer

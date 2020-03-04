@@ -1,18 +1,21 @@
-from test.test_v1 import TestedService, xfail
-from test.reports_v1 import TestReports
-from test.messages_v1 import _ListTests
+from test import TestedService, xfail
+from test.message import ListTests
+from test.results import TestExecuting
+from test.test import Report, TestsManager
 
 
 class TestManagerTest(TestedService):
     async def test_in_tests(self):
-        reports: TestReports = await self.get(_ListTests())
+        report: Report = await TestsManager.get(ListTests())
         found = False
-        for report in reports:
-            if report.klass == self.__class__ and report.method_name == "test_in_tests":
-                found = True
+        for test_info in report:
+            if test_info.method_name == "test_in_tests":
+                found = test_info
                 break
 
         assert found
+        assert found.class_.__name__ is self.__class__.__name__
+        assert isinstance(found.result, TestExecuting)
 
     @xfail("Self test")
     async def test_will_fail_assertion_error(self):
