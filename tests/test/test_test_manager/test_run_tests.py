@@ -1,15 +1,13 @@
-from typing import List
-
 from pytest import fixture
 
 from test.message import RunTests
 from test.test import TestManager, TestInfo
-from tests.test._abs_tests.test_hello import Hello
+from tests.test.at_project.abs_tests.atest_hello import Hello
 
 
 @fixture(scope="session")
-def reports_abs_tests(runner):
-    msg: RunTests = runner(TestManager, RunTests(source="tests/test/_abs_tests"))
+def reports_abs_tests(runner, project_path):
+    msg: RunTests = runner(TestManager, RunTests(source=project_path))
 
     return msg.result_nowait()
 

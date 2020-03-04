@@ -96,6 +96,9 @@ class TestedService(Service, metaclass=MetaTestedService):
 
 
 class TestManager(Service):
+    PREFIX = "atest_"
+
+
     @handler(ListTests)
     async def list_tests(self, source: str):
         classes = self._search_classes(source)
@@ -118,10 +121,10 @@ class TestManager(Service):
 
         for root, dirs, files in os.walk(source):
             for file in files:
-                if file.endswith(".py") and file.startswith("test_"):
+                if file.endswith(".py") and file.startswith(self.PREFIX):
                     path = os.path.join(root, file)
 
-                    test_hash = ".".join(path[:len(".py")].split("/"))
+                    test_hash = ".".join(path[:-len(".py")].split("/"))
                     spec = importlib.util.spec_from_file_location(
                         f"test._{test_hash}", path)
                     foo = importlib.util.module_from_spec(spec)

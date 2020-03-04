@@ -1,4 +1,4 @@
-from tests.test._abs_tests.test_hello import Hello, HelloMsg
+from tests.test.at_project.abs_tests.atest_hello import Hello, HelloMsg
 
 
 def test_run_simple(runner):

@@ -8,6 +8,11 @@ from test.test import TestedService, TestInfo
 
 
 @pytest.fixture(scope='session')
+def project_path():
+    return "tests/test/at_project"
+
+
+@pytest.fixture(scope='session')
 def finder() -> Callable[[Union[List[TestInfo], Type[TestedService]], str], TestInfo]:
     def _f(class_: Union[List[TestInfo], Type[TestedService]], method_name: str):
         if isinstance(class_, type):
@@ -48,7 +53,7 @@ MSG = TypeVar("MSG", Message, Message)
 def runner() -> Callable[[Type[Service], MSG], MSG]:
     def _do_run(service: Type[Service], message: MSG) -> MSG:
         assert isinstance(service, Service) or (
-            isinstance(service, type) and issubclass(service, Service)
+                isinstance(service, type) and issubclass(service, Service)
         )
 
         async def run():

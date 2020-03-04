@@ -4,12 +4,11 @@ from pytest import fixture
 
 from test.message import ListTests
 from test.test import TestManager, TestInfo
-from tests.test._abs_tests.test_hello import Hello
 
 
 @fixture(scope='session')
-def tests_list(runner):
-    msg: ListTests = runner(TestManager, ListTests(source="tests/test/_abs_tests"))
+def tests_list(runner, project_path):
+    msg: ListTests = runner(TestManager, ListTests(source=project_path))
     result: List[TestInfo] = msg.result_nowait()
     assert isinstance(result, list)
     for item in result:
@@ -18,9 +17,18 @@ def tests_list(runner):
     return result
 
 
+def test_list_count(tests_list):
+    assert len(tests_list) == 4
+
+
 def test_list_tests(tests_list, finder):
     test_hello = finder(tests_list, "test_hello")
     assert isinstance(test_hello, TestInfo)
     assert test_hello.class_.__name__ == "Hello"
     assert test_hello.method_name == "test_hello"
     assert test_hello.result is None
+
+
+def test_tests_from_service(finder, tests_list):
+    test_calc = finder(tests_list, "test_calc")
+    assert test_calc.class_.__name__ == "TestCalculator"
