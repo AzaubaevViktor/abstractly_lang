@@ -12,7 +12,8 @@ from log import Log
 from service import Service
 from service._meta import MetaService, handler
 from test.message import RunTests, ListTests
-from test.results import TestNotRunning, BaseTestResult, TestSuccess, TestFailed, TestXFailed, TestSkipped
+from test.results import TestNotRunning, BaseTestResult, TestSuccess, TestFailed, TestXFailed, TestSkipped, \
+    TestExecuting
 
 
 class Tag(str):
@@ -179,6 +180,7 @@ class TestedService(Service, metaclass=MetaTestedService):
         self.logger.info("Run test", test=test_info)
         test_info.start_time = time()
         try:
+            test_info.result = TestExecuting()
             result = await method()
             test_info.finish_time = time()
             test_info.result = result if isinstance(result, BaseTestResult) else TestSuccess(result=result)
@@ -283,8 +285,6 @@ class TestsManager(Service):
                             self.logger.info("Found test class", class_=attr)
 
         return classes
-
-
 
 
 class raises:
