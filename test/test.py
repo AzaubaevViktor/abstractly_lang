@@ -6,6 +6,7 @@ from traceback import format_exc, format_tb, format_stack
 from typing import Tuple, Type, Dict, Any, Sequence, List, Iterable, Union, Callable
 
 import yaml
+from colorama import init, Fore, Style
 
 from core import AttributeStorage, Attribute
 from log import Log
@@ -61,10 +62,12 @@ class Report(AttributeStorage):
         return 0
 
     def __str__(self):
-        r = "\n"
-        r += "=" * 10 + " TESTS REPORT " + "=" * 10 + "\n"
+        init(autoreset=True)
 
-        by_types = {
+        r = "\n"
+        r += Style.BRIGHT + "=" * 10 + " TESTS REPORT " + "=" * 10 + "\n"
+
+        by_types: Dict[Type[BaseTestResult], int] = {
             result_class: 0
             for result_class
             in sorted(
@@ -77,7 +80,7 @@ class Report(AttributeStorage):
                 self.results,
                 key=lambda ti: (ti.result.sorted_id, ti.class_.__name__, ti.method_name)
         ):
-            r += str(test_info) + "\n"
+            r += test_info.result.COLOR + str(test_info) + "\n"
 
             by_types[test_info.result.__class__] += 1
 
@@ -89,10 +92,10 @@ class Report(AttributeStorage):
         total = len(self.results)
         assert total == sum(by_types.values())
 
-        r += f"🐊 {'TOTAL':<20}: {total}\n"
+        r += f"{Style.BRIGHT}🐊 {'TOTAL':<20}: {total}\n"
 
         for result_class, v in by_types.items():
-            r += f"{result_class.SYMBOL} {result_class.NAME:<20}: {v}\n"
+            r += f"{result_class.SYMBOL} {result_class.COLOR}{result_class.NAME:<20}: {v} {Style.RESET_ALL}\n"
 
         return r
 
