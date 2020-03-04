@@ -5,6 +5,8 @@ from time import time
 from traceback import format_exc, format_tb, format_stack
 from typing import Tuple, Type, Dict, Any, Sequence, List, Iterable, Union, Callable
 
+import yaml
+
 from core import AttributeStorage, Attribute
 from log import Log
 from service import Service
@@ -193,6 +195,20 @@ class TestedService(Service, metaclass=MetaTestedService):
         return test_info
 
 
+class _SearchContext:
+    def __init__(self):
+        self.ignored_paths = set()
+
+    def is_need(self, file_or_dir):
+        return file_or_dir not in self.ignored_paths
+
+    def apply(self, file_name: str):
+        with open(file_name, "rt") as f:
+            data = yaml.safe_load(f)
+
+        self.ignored_paths.update(data.get('ignored', []))
+
+
 class TestsManager(Service):
     PREFIX = "atest_"
 
@@ -227,6 +243,8 @@ class TestsManager(Service):
         return report
 
     def _search_classes(self, source: str):
+        search_context = _SearchContext()
+
         classes = set()
         self.logger.info("Search tests in folder",
                          folder=os.path.join(os.getcwd(), source)
@@ -235,7 +253,17 @@ class TestsManager(Service):
         import importlib.util
 
         for root, dirs, files in os.walk(source):
+            if os.path.exists(os.path.join(root, "atest.yml")):
+                search_context.apply(os.path.join(root, "atest.yml"))
+
+            for dir in dirs[:]:
+                if not search_context.is_need(dir):
+                    dirs.remove(dir)
+
             for file in files:
+                if not search_context.is_need(file):
+                    continue
+
                 if file.endswith(".py") and file.startswith(self.PREFIX):
                     path = os.path.join(root, file)
 
@@ -255,6 +283,8 @@ class TestsManager(Service):
                             self.logger.info("Found test class", class_=attr)
 
         return classes
+
+
 
 
 class raises:

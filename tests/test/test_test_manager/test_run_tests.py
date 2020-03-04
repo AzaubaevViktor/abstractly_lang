@@ -73,3 +73,8 @@ def test_report(reports_abs_tests):
         item: TestInfo
         assert item.method_name in s
         assert item.class_.__name__ in s
+
+
+def test_test_ignored(reports_abs_tests, finder):
+    with raises(AssertionError):
+        finder(reports_abs_tests, "test_ignored")
