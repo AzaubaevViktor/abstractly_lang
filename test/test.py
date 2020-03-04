@@ -3,14 +3,14 @@ import inspect
 import os
 from time import time
 from traceback import format_exc, format_tb, format_stack
-from typing import Tuple, Type, Dict, Any, Sequence, List
+from typing import Tuple, Type, Dict, Any, Sequence, List, Iterable, Union, Callable
 
 from core import AttributeStorage, Attribute
 from log import Log
 from service import Service
 from service._meta import MetaService, handler
 from test.message import RunTests, ListTests
-from test.results import TestNotRunning, BaseTestResult, TestGood, TestFailed
+from test.results import TestNotRunning, BaseTestResult, TestGood, TestFailed, TestXFailed, TestSkipped
 
 
 class Tag(str):
@@ -33,7 +33,7 @@ class Report(AttributeStorage):
     finish_time: int = Attribute(default=None)
     results: List[TestInfo] = Attribute(default=None)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable[TestInfo]:
         if self.results:
             return iter(self.results)
 
@@ -203,3 +203,62 @@ class TestManager(Service):
                             self.logger.info("Found test class", class_=attr)
 
         return classes
+
+
+class raises:
+    def __init__(self, expected_exception: Type[Exception]):
+        assert isinstance(expected_exception, type), f"{expected_exception} is not class"
+        assert issubclass(expected_exception, Exception), f"{expected_exception} must be subclass of Exception"
+        self.expected_exception = expected_exception
+        self.value = None
+        self.type = None
+
+    def __enter__(self) -> "raises":
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        assert exc_type, f"Not raised {self.expected_exception}"
+        assert issubclass(exc_type, self.expected_exception), f"Raised {exc_type} " \
+                                                              f"instead subclass of {self.expected_exception}"
+
+        self.type = exc_type
+        self.value = exc_val
+        return True
+
+    def __str__(self):
+        return str(self.value)
+
+    def __repr__(self):
+        return f"<raises:{self.expected_exception.__name__} " \
+               f"(in fact {self.type if self.type is not None else '∅'}): " \
+               f"`{self.value}` >"
+
+
+def xfail(cause: str, expected_exception: Type[Exception] = Exception):
+    def _(func):
+        async def __(*args, **kwargs):
+            with raises(expected_exception) as exc_info:
+                result = await func(*args, **kwargs)
+
+            return TestXFailed(cause=cause, exc_info=exc_info)
+
+        __.__name__ = func.__name__
+        return __
+
+    return _
+
+
+def skip(cause: Union[Callable, str]):
+    def _(func):
+        async def __(*args, **kwargs):
+            return TestSkipped(cause=cause)
+
+        __.__name__ = func.__name__
+        return __
+
+    if callable(cause):
+        func = cause
+        cause = "?"
+        return _(func)
+
+    return _

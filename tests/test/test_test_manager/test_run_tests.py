@@ -1,13 +1,12 @@
 from pytest import fixture
 
 from test.message import RunTests
-from test.results import BaseTestResult, TestNotRunning, TestExecuting, TestGood, TestFailed
-from test.test import TestManager, TestInfo, Report
-from tests.test.at_project.abs_tests.atest_hello import Hello
+from test.results import BaseTestResult, TestNotRunning, TestExecuting, TestGood, TestFailed, TestXFailed
+from test.test import TestManager, TestInfo, Report, raises
 
 
 @fixture(scope="session")
-def reports_abs_tests(runner, project_path):
+def reports_abs_tests(runner, project_path) -> Report:
     msg: RunTests = runner(TestManager, RunTests(source=project_path))
 
     report = msg.result_nowait()
@@ -22,7 +21,7 @@ def reports_abs_tests(runner, project_path):
 
 
 def test_run_ok(reports_abs_tests):
-    assert len(reports_abs_tests) == 4
+    assert len(reports_abs_tests) == 7
 
     for report in reports_abs_tests:
         assert isinstance(report, TestInfo)
@@ -48,3 +47,29 @@ def test_test_wrong(reports_abs_tests, finder):
     assert isinstance(test_wrong.result.exc, AssertionError)
     assert test_wrong.result.cause
     assert test_wrong.result.stack
+
+
+def test_test_xfail_true(reports_abs_tests, finder):
+    test_xfail: TestInfo = finder(reports_abs_tests, "test_xfail")
+    assert isinstance(test_xfail.result, TestXFailed)
+    assert isinstance(test_xfail.result.exc_info, raises)
+    assert test_xfail.result.cause
+
+
+def test_test_xfail_false(reports_abs_tests, finder):
+    test_not_xfail: TestInfo = finder(reports_abs_tests, "test_not_xfail")
+    assert isinstance(test_not_xfail.result, TestFailed)
+    assert isinstance(test_not_xfail.result.exc, AssertionError)
+
+
+def test_report(reports_abs_tests):
+    s = str(reports_abs_tests)
+    assert s
+    print(s)
+
+    assert str(len(reports_abs_tests)) in s
+
+    for item in reports_abs_tests:
+        item: TestInfo
+        assert item.method_name in s
+        assert item.class_.__name__ in s

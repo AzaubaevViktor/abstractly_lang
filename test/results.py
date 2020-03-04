@@ -25,3 +25,16 @@ class TestFailed(BaseTestResult):
     exc = Attribute()
     cause = Attribute()
     stack = Attribute()
+
+
+class TestXFailed(BaseTestResult):
+    SYMBOL = "⚠️"
+
+    cause: str = Attribute()
+    exc_info = Attribute()
+
+
+class TestSkipped(BaseTestResult):
+    SYMBOL = "⏩"
+
+    cause: str = Attribute()

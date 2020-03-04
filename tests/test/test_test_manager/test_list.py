@@ -21,7 +21,7 @@ def tests_list(runner, project_path):
 
 
 def test_list_count(tests_list):
-    assert len(tests_list) == 4
+    assert len(tests_list) == 7
 
 
 def test_list_tests(tests_list, finder):
