@@ -15,3 +15,5 @@ class Hello(TestedService):
     async def test_hello(self):
         msg = await Hello.send(HelloMsg())
         assert "Hello, world!" == await msg.result()
+
+        return "Hello, test!"

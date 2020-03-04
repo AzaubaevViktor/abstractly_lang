@@ -1,5 +1,8 @@
+import asyncio
 import inspect
 import os
+from time import time
+from traceback import format_exc, format_tb, format_stack
 from typing import Tuple, Type, Dict, Any, Sequence, List
 
 from core import AttributeStorage, Attribute
@@ -7,7 +10,7 @@ from log import Log
 from service import Service
 from service._meta import MetaService, handler
 from test.message import RunTests, ListTests
-from test.results import TestNotRunning, BaseTestResult
+from test.results import TestNotRunning, BaseTestResult, TestGood, TestFailed
 
 
 class Tag(str):
@@ -22,7 +25,25 @@ class TestInfo(AttributeStorage):
     tags: Sequence[Tag] = Attribute(default=None)
     result: BaseTestResult = Attribute(default=None)
     start_time: float = Attribute(default=None)
-    time: float = Attribute(default=None)
+    finish_time: float = Attribute(default=None)
+
+
+class Report(AttributeStorage):
+    start_time: int = Attribute()
+    finish_time: int = Attribute(default=None)
+    results: List[TestInfo] = Attribute(default=None)
+
+    def __iter__(self):
+        if self.results:
+            return iter(self.results)
+
+        return iter([])
+
+    def __len__(self):
+        if self.results:
+            return len(self.results)
+
+        return 0
 
 
 class MetaTestedService(MetaService):
@@ -97,10 +118,35 @@ class MetaTestedService(MetaService):
 class TestedService(Service, metaclass=MetaTestedService):
     __tests__: Dict[str, TestInfo]
 
+    @handler
+    async def _run_test(self, test_info: TestInfo):
+        assert test_info.class_ is self.__class__
+        method_name = test_info.method_name
+        assert hasattr(self, method_name)
+        method = getattr(self, method_name)
+        assert inspect.iscoroutinefunction(method)
+
+        self.logger.info("Run test", test=test_info)
+        test_info.start_time = time()
+        try:
+            result = await method()
+            test_info.finish_time = time()
+            test_info.result = result if isinstance(result, BaseTestResult) else TestGood(result=result)
+        except (Exception, AssertionError) as e:
+            test_info.finish_time = time()
+            test_info.result = TestFailed(
+                exc=e,
+                cause=format_exc(),
+                stack=format_stack()
+            )
+
+            self.logger.exception("While test")
+
+        return test_info
+
 
 class TestManager(Service):
     PREFIX = "atest_"
-
 
     @handler(ListTests)
     async def list_tests(self, source: str):
@@ -113,8 +159,21 @@ class TestManager(Service):
 
     @handler(RunTests)
     async def run_tests(self, source: str):
-        classes = self._search_classes(source)
-        pass
+        report = Report(start_time=time())
+
+        tests = await self.list_tests(source)
+        results = await asyncio.gather(*(
+            test_info.class_._run_test(test_info)
+            for test_info in tests
+        ))
+
+        report.finish_time = time()
+
+        assert len(results) == len(tests)
+
+        report.results = results
+
+        return report
 
     def _search_classes(self, source: str):
         classes = set()

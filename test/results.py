@@ -19,7 +19,9 @@ class TestGood(BaseTestResult):
     result = Attribute(default=None)
 
 
-class TestWrong(BaseTestResult):
+class TestFailed(BaseTestResult):
     SYMBOL = "⛔️"
 
     exc = Attribute()
+    cause = Attribute()
+    stack = Attribute()
