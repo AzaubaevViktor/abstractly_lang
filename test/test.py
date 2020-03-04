@@ -7,6 +7,7 @@ from log import Log
 from service import Service
 from service._meta import MetaService, handler
 from test.message import RunTests, ListTests
+from test.results import TestNotRunning, BaseTestResult
 
 
 class Tag(str):
@@ -14,13 +15,14 @@ class Tag(str):
 
 
 class TestInfo(AttributeStorage):
-    source = Attribute(default=None)
-    class_ = Attribute(default=None)
-    method_name = Attribute(default=None)
-    params = Attribute(default=None)
-    tags = Attribute(default=None)
-    result = Attribute(default=None)
-    time = Attribute(default=None)
+    source: str = Attribute(default=None)
+    class_: Type["TestedService"] = Attribute(default=None)
+    method_name: str = Attribute(default=None)
+    params: Dict = Attribute(default=None)
+    tags: Sequence[Tag] = Attribute(default=None)
+    result: BaseTestResult = Attribute(default=None)
+    start_time: float = Attribute(default=None)
+    time: float = Attribute(default=None)
 
 
 class MetaTestedService(MetaService):
@@ -75,7 +77,8 @@ class MetaTestedService(MetaService):
                 else:
                     method.__test_info__ = TestInfo(
                         method_name=name,
-                        source=source_path
+                        source=source_path,
+                        result=TestNotRunning()
                     )
 
                 __tests__[name] = method.__test_info__

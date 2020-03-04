@@ -3,6 +3,7 @@ from typing import List
 from pytest import fixture
 
 from test.message import ListTests
+from test.results import BaseTestResult, TestNotRunning
 from test.test import TestManager, TestInfo
 
 
@@ -13,6 +14,8 @@ def tests_list(runner, project_path):
     assert isinstance(result, list)
     for item in result:
         assert isinstance(item, TestInfo)
+        assert isinstance(item.result, BaseTestResult)
+        assert isinstance(item.result, TestNotRunning)
 
     return result
 
@@ -26,7 +29,6 @@ def test_list_tests(tests_list, finder):
     assert isinstance(test_hello, TestInfo)
     assert test_hello.class_.__name__ == "Hello"
     assert test_hello.method_name == "test_hello"
-    assert test_hello.result is None
 
 
 def test_tests_from_service(finder, tests_list):
