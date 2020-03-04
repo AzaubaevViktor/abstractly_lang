@@ -9,10 +9,10 @@ from test.test import TestedService, TestInfo
 
 @pytest.fixture(scope='session')
 def finder() -> Callable[[Union[List[TestInfo], Type[TestedService]], str], TestInfo]:
-    def _f(class_: Union[List[TestInfo], Type[TestedService]], name: str):
+    def _f(class_: Union[List[TestInfo], Type[TestedService]], method_name: str):
         if isinstance(class_, type):
             assert issubclass(class_, TestedService)
-            tests = class_.__tests__
+            tests = class_.__tests__.values()
 
         else:
             isinstance(class_, list)
@@ -22,21 +22,20 @@ def finder() -> Callable[[Union[List[TestInfo], Type[TestedService]], str], Test
         assert tests
 
         # check types
-        for test_info in tests.values():
+        for test_info in tests:
             assert isinstance(test_info, TestInfo)
             if class_:
                 assert issubclass(class_, test_info.class_)
 
         # find
 
-        test_info = tests.get(name)
-        if test_info:
-            assert test_info.method_name == name
-            return test_info
+        for test_info in tests:
+            if test_info.method_name == method_name:
+                return test_info
 
-        names = [test_info.method_name for test_info in tests.values()]
+        names = [test_info.method_name for test_info in tests]
 
-        assert False, f"Method {name} not found, try one of: " \
+        assert False, f"Method {method_name} not found, try one of: " \
                       f"{names}"
 
     return _f

@@ -1,10 +1,12 @@
 import inspect
+import os
 from typing import Tuple, Type, Dict, Any, Sequence, List
 
 from core import AttributeStorage, Attribute
 from log import Log
 from service import Service
-from service._meta import MetaService
+from service._meta import MetaService, handler
+from test.message import RunTests, ListTests
 
 
 class Tag(str):
@@ -94,4 +96,45 @@ class TestedService(Service, metaclass=MetaTestedService):
 
 
 class TestManager(Service):
-    pass
+    @handler(ListTests)
+    async def list_tests(self, source: str):
+        classes = self._search_classes(source)
+        tests = []
+        for class_ in classes:
+            tests.extend(class_.__tests__.values())
+
+        return tests
+
+    @handler(RunTests)
+    async def run_tests(self, source: str):
+        classes = self._search_classes(source)
+        pass
+
+    def _search_classes(self, source: str):
+        classes = set()
+        self.logger.info("Search tests in folder", folder=source)
+
+        import importlib.util
+
+        for root, dirs, files in os.walk(source):
+            for file in files:
+                if file.endswith(".py") and file.startswith("test_"):
+                    path = os.path.join(root, file)
+
+                    test_hash = ".".join(path[:len(".py")].split("/"))
+                    spec = importlib.util.spec_from_file_location(
+                        f"test._{test_hash}", path)
+                    foo = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(foo)
+
+                    self.logger.important(foo)
+                    self.logger.important(foo.__dict__)
+
+                    for name, attr in foo.__dict__.items():
+                        if isinstance(attr, type) and \
+                                issubclass(attr, TestedService) and \
+                                attr is not TestedService:
+                            classes.add(attr)
+                            self.logger.info("Found test class", class_=attr)
+
+        return classes
