@@ -1,9 +1,8 @@
 import asyncio
-from typing import Type
 
-from service import CommunicatorServer, CommunicatorClient, Message, ServiceRunner
-from service.message import Shutdown
-from test import TestedService, skip
+from service import CommunicatorServer, CommunicatorClient, Message
+from service.communicator_ng import RemoteException
+from test import TestedService, raises
 
 
 class SimpleM(Message):
@@ -20,7 +19,7 @@ class TestCommunicator(TestedService):
         assert client_info.port
         assert client_info.client_uid
 
-        client = CommunicatorClient(client_info)
+        client = CommunicatorClient(client_info, test_mode=True)
 
         await client.connect()
 
@@ -56,7 +55,7 @@ class TestCommunicator(TestedService):
     async def test_client_disconnect(self):
         client_info = await CommunicatorServer.get_info()
 
-        client = CommunicatorClient(client_info)
+        client = CommunicatorClient(client_info, test_mode=True)
         await client.connect()
 
         await CommunicatorServer.wait_for_client(info=client_info)
@@ -69,4 +68,52 @@ class TestCommunicator(TestedService):
             count += 1
             assert count <= 10
 
+        with raises(Exception):
+            await CommunicatorServer.receive_msg_from_client(info=client_info)
+
+        with raises(Exception):
+            await CommunicatorServer.send_msg_to_client(
+                info=client_info,
+                msg=SimpleM())
+
+    async def test_client_disconnect_send_receive(self):
+        client_info = await CommunicatorServer.get_info()
+
+        client = CommunicatorClient(client_info, test_mode=True)
+        await client.connect()
+
+        await CommunicatorServer.wait_for_client(info=client_info)
+
+        await client.close()
+
+        with raises(Exception):
+            await client.receive_msg()
+
+        with raises(Exception):
+            await client.send_msg(SimpleM())
+
+
+    async def test_send_exc(self):
+        client_info = await CommunicatorServer.get_info()
+
+        client = CommunicatorClient(client_info, test_mode=True)
+        await client.connect()
+
+        await CommunicatorServer.wait_for_client(info=client_info)
+
+        server_msg = await CommunicatorServer.send_msg_to_client(info=client_info, msg=SimpleM())
+        client_msg = await client.receive_msg()
+
+        try:
+            1 / 0
+        except Exception as e:
+            client_msg.set_error(e)
+
+        with raises(RemoteException) as exc_info:
+            await server_msg.result()
+
+        exc_info.value: RemoteException
+        assert exc_info.value.exc_class == "ZeroDivisionError", exc_info.value.exc_class
+
+        assert isinstance(server_msg._exception, RemoteException)
 
