@@ -18,8 +18,8 @@ class DoPing(Message):
     pass
 
 
-class TestServiceProcess(TestedService):
-    cpu_bound = False
+class ServiceProcess(Service):
+    cpu_bound = True
 
     @handler(DoCalc)
     async def do_calc(self, value, sync_delay=0):
@@ -36,15 +36,17 @@ class TestServiceProcess(TestedService):
     async def do_error(self):
         return 1 / 0
 
-    @skip("Wait tags")
+
+class TestServiceProcess(TestedService):
+    @skip
     async def test_pid(self):
-        result, pid = await self.get(DoCalc(value=3))
+        result, pid = await ServiceProcess.get(DoCalc(value=3))
         assert pid != os.getpid(), pid
         assert 3 ** 3 ** 2 == result
 
     @skip("Wait tags")
     async def test_kill(self):
-        result, pid = await self.do_calc(0, 0)
+        result, pid = await ServiceProcess.do_calc(0, 0)
         assert result == 1
         assert pid != os.getpid(), pid
 
@@ -58,7 +60,7 @@ class TestServiceProcess(TestedService):
 
     async def _do_ping(self):
         request_start = time()
-        request_accept = await self.get(DoPing())
+        request_accept = await ServiceProcess.get(DoPing())
         request_end = time()
 
         return request_accept - request_start, request_end - request_start
@@ -97,10 +99,10 @@ class TestServiceProcess(TestedService):
     @skip("Wait tags")
     async def test_error(self):
         with raises(ZeroDivisionError):
-            await self.do_error()
+            await ServiceProcess.do_error()
 
 
-class TestLocal(Service):
+class LocalService(Service):
     async def warm_up(self):
         self.rnd_num = randint(0, 1000000000)
 
@@ -109,27 +111,16 @@ class TestLocal(Service):
         return os.getpid(), self.rnd_num
 
 
-class TestProcessSendBack(TestedService):
-    cpu_bound = False
+class ProcessSendBack(Service):
+    cpu_bound = True
 
     @handler
     async def do_work(self):
-        return os.getpid(), await TestLocal.get_my_pid()
-
-    @skip("Wait tags")
-    async def test_call_local(self):
-        local_pid, rnd_num = await TestLocal.get_my_pid()
-
-        sb_pid, (local_pid_returned, rnd_num_returned) = await self.do_work()
-
-        assert local_pid == os.getpid(), (local_pid, os.getpid())
-        assert sb_pid != local_pid, sb_pid
-        assert local_pid == local_pid_returned, (local_pid, local_pid_returned)
-        assert rnd_num == rnd_num_returned, (rnd_num, rnd_num_returned)
+        return os.getpid(), await LocalService.get_my_pid()
 
     @handler
     async def do_hark_work(self, value, epsilon):
-        result, other_pid = await TestServiceProcess.do_calc(value=value)
+        result, other_pid = await ServiceProcess.do_calc(value=value)
         result = result ** 0.5
 
         x = 0
@@ -142,13 +133,26 @@ class TestProcessSendBack(TestedService):
 
         return x, other_pid, os.getpid()
 
+
+class TestProcessSendBack(TestedService):
+    @skip("Wait tags")
+    async def test_call_local(self):
+        local_pid, rnd_num = await LocalService.get_my_pid()
+
+        sb_pid, (local_pid_returned, rnd_num_returned) = await ProcessSendBack.do_work()
+
+        assert local_pid == os.getpid(), (local_pid, os.getpid())
+        assert sb_pid != local_pid, sb_pid
+        assert local_pid == local_pid_returned, (local_pid, local_pid_returned)
+        assert rnd_num == rnd_num_returned, (rnd_num, rnd_num_returned)
+
     @skip("Wait tags")
     async def test_call_other_cpu_bound(self):
         # TODO: Parametrize
         x_orig = 0
         epsilon = 0.1
 
-        x, other_pid, sb_pid = await self.do_hark_work(x_orig, epsilon)
+        x, other_pid, sb_pid = await ProcessSendBack.do_hark_work(x_orig, epsilon)
         assert abs(x - x_orig) < epsilon
         assert os.getpid() != other_pid
         assert os.getpid() != sb_pid

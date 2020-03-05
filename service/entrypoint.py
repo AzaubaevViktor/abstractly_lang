@@ -45,7 +45,18 @@ class EntryPoint:
 
     @classmethod
     def main(cls, messages, name):
-        asyncio.run(cls._main(messages, name))
+        result = asyncio.run(cls._main(messages, name))
+        return result
+
+    @classmethod
+    def main_serializable(cls, messages, name):
+        msgs = cls.main(messages, name)
+        result = {}
+        for msg in msgs:
+            msg: Message
+            result[(msg.to.__name__, msg.__class__.__name__)] = msg.result_nowait()
+
+        return result
 
     def _find_services(self, messages: EntryPointInfoT) -> _InputDictServicesT:
         self.logger.info('Search services')

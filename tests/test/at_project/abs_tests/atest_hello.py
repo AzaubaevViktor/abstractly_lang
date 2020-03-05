@@ -1,3 +1,5 @@
+import os
+
 from service import Message
 from test.test import TestedService
 
@@ -9,7 +11,7 @@ class HelloMsg(Message):
 class Hello(TestedService):
     async def process(self, message: Message):
         if isinstance(message, HelloMsg):
-            self.logger.info("Hello, world!")
+            self.logger.info("Hello, world!", pid=os.getpid())
             return "Hello, world!"
 
     async def test_hello(self):

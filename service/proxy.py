@@ -24,7 +24,9 @@ class ProxyForService(Service):
         self.logger.important("Start class", class_=class_)
         self.communicator = SocketIOCommunicator()
         await self.communicator.run()
-        await ProcessSpawner.run_process(class_=class_, communicator=self.communicator)
+        self._run_background(
+            ProcessSpawner.run_process(class_=class_, communicator=self.communicator)
+        )
 
         msg = await self.communicator.send_msg(_ProxyHelloMessage())
 
@@ -33,7 +35,7 @@ class ProxyForService(Service):
         assert await msg.result() is True
 
     async def _found_processor(self, msg: Message):
-        return await self.communicator.send_msg(msg)
+        return self.communicator.send_msg
 
     async def shutdown(self, message: Message):
         if self.communicator:
@@ -49,21 +51,24 @@ class ProcessSpawner(Service):
     @handler
     async def run_process(self, class_: Type[Service], communicator: BaseCommunicator):
         loop = asyncio.get_running_loop()
-
+        self.logger.important("Run in executor",
+                              class_=class_)
         result = await loop.run_in_executor(
             self.pool, EntryPoint.main, {
                 'ServiceRunner': [("SetMainService", {'service_class_name': class_.__name__})],
-                'ProxyClient': [("SetCommunicator", {'communicator': communicator.server_info})]
+                'ProxyClient': [("SetCommunicator", {'server_info': communicator.server_info})]
             }, "RunnedProcess")
 
         self.logger.important("Process class finished", result=result, class_=class_)
+
+        return result
 
     async def shutdown(self, message: Message):
         self.pool.shutdown(wait=True)
 
 
 class SetCommunicator(Message):
-    communicator: BaseServerInfo = Attribute()
+    server_info: BaseServerInfo = Attribute()
 
 
 class ProxyClient(Service):
@@ -71,12 +76,13 @@ class ProxyClient(Service):
         self.communicator = None
 
     @handler(SetCommunicator)
-    async def set_communicator(self, communicator: BaseServerInfo):
+    async def set_communicator(self, server_info: BaseServerInfo):
         assert self.communicator is None
-        self.communicator = SocketIOCommunicator(communicator)
-        self.logger.important("Start connect to", communicator=communicator)
+        self.communicator = SocketIOCommunicator(server_info)
+        self.logger.important("Start connect to", communicator=server_info)
         await self.communicator.run()
         msg = await self.communicator.receive_msg()
+        assert isinstance(msg, _ProxyHelloMessage), msg
         msg.set_result(True)
         self._run_background(self._run_waiter())
 
