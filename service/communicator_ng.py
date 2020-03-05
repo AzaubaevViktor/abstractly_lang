@@ -9,6 +9,7 @@ from aiohttp import web
 from core import AttributeStorage, Attribute
 from log import Log
 from service import Service, Message, handler
+from concurrent.futures import TimeoutError
 
 
 class ClientInfo(AttributeStorage):
@@ -87,7 +88,7 @@ class CommunicatorServer(Service):
         self.waiters: Dict[int, asyncio.Event] = {}
 
         self.host = "localhost"
-        self.port = 8686
+        self.port = randint(8100, 10000)
 
         self.logger.info("Starting server in",
                          host=self.host,

@@ -1,7 +1,9 @@
 import asyncio
+from typing import Type
 
-from service import CommunicatorServer, CommunicatorClient, Message
-from test import TestedService
+from service import CommunicatorServer, CommunicatorClient, Message, ServiceRunner
+from service.message import Shutdown
+from test import TestedService, skip
 
 
 class SimpleM(Message):
@@ -66,3 +68,5 @@ class TestCommunicator(TestedService):
             await asyncio.sleep(1)
             count += 1
             assert count <= 10
+
+
