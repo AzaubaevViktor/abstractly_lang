@@ -70,7 +70,7 @@ class Log:
                 self.pid_colors[_pid] = random.choice(self.colors_list)
             pid = f"{self.pid_colors[_pid]}{_pid}{Style.RESET_ALL}"
 
-            print(f"[{now.strftime(self.TIME_FORMAT)}] [{_level_name_colorize}] /{pid}/ {self.name} {Fore.LIGHTWHITE_EX}{file_name}:{lineno} {fun_name}{Style.RESET_ALL}: {_args} {_kwargs}")
+            print(f"[{now.strftime(self.TIME_FORMAT)}] [{_level_name_colorize}] /{pid}/ {self.name} {Fore.LIGHTBLACK_EX}{file_name}:{lineno} {fun_name}{Style.RESET_ALL}: {_args} {_kwargs}")
 
     def deep(self, *args, **kwargs):
         self._print(LogLevel.DEEP, *args, **kwargs)

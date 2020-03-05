@@ -16,7 +16,7 @@ class TestNotRunning(BaseTestResult):
     sorted_id = 0
     NAME = "NOT RUNNING"
     SYMBOL = "💤"
-    COLOR = Fore.LIGHTBLACK_EX
+    COLOR = Fore.BLACK
 
     def __str__(self):
         return ""
@@ -36,7 +36,7 @@ class TestSuccess(BaseTestResult):
     sorted_id = 30
     NAME = "SUCCESS"
     SYMBOL = "✅"
-    COLOR = Fore.LIGHTGREEN_EX
+    COLOR = Fore.GREEN
 
     result = Attribute(default=None)
 
@@ -79,7 +79,7 @@ class TestSkipped(BaseTestResult):
     sorted_id = 20
     NAME = "SKIPPED"
     SYMBOL = "⏩"
-    COLOR = Fore.LIGHTWHITE_EX
+    COLOR = Fore.LIGHTBLACK_EX
 
     cause: str = Attribute()
 
