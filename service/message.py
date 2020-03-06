@@ -12,6 +12,12 @@ class Message(AttributeStorage):
         self._exception = None
         self._finished = Event()
 
+    def ready(self) -> bool:
+        return self._finished.is_set()
+
+    async def wait(self):
+        await self._finished.wait()
+
     def set_result(self, result):
         self._result = result
         self._finished.set()
@@ -19,12 +25,6 @@ class Message(AttributeStorage):
     def set_error(self, exc):
         self._exception = exc
         self._finished.set()
-
-    def ready(self) -> bool:
-        return self._finished.is_set()
-
-    def ok(self) -> bool:
-        return not self._exception
 
     async def result(self):
         await self._finished.wait()
@@ -41,8 +41,8 @@ class Message(AttributeStorage):
             return self._exception
         raise AttributeError("Use .result() instead")
 
-    async def wait(self):
-        await self._finished.wait()
+    def exception_nowait(self):
+        return self._exception
 
     def _additional_repr(self) -> str:
         if self._finished.is_set():

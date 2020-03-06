@@ -3,18 +3,19 @@ from time import time
 from typing import Callable, Any
 
 from service import Message
+from service.comm import BaseCommunicator, CommunicateManager
 from test import TestedService
 
 
 class TestNgCommunicator(TestedService):
     async def _send_recv_step(self,
-                              _from: Communicator,
-                              _to: Communicator,
+                              _from: BaseCommunicator,
+                              _to: BaseCommunicator,
                               msg: Message,
                               method: Callable[[Message], Any]):
-        _from.send(msg)
+        await _from.send(msg)
 
-        _to_msg: Message = _to.recv()
+        _to_msg: Message = await _to.recv()
 
         assert _to_msg.__class__ is msg.__class__
         assert _to_msg == msg
@@ -40,11 +41,11 @@ class TestNgCommunicator(TestedService):
             assert msg.result_nowait() == result_
 
     async def test_simple(self):
-        key, server_comm = CommunicateManager.new_idenntity()
+        key, server_comm = await CommunicateManager.new_identity()
 
-        client_comm = Communicator(key)
+        client_comm = BaseCommunicator(key)
 
-        client_comm.connect()
+        await client_comm.connect()
         assert client_comm.connected
 
         for simple_object in [True, False,
@@ -75,22 +76,22 @@ class TestNgCommunicator(TestedService):
             for x in range(100)
         ))
 
-        server_comm.disconnect()
-        assert server_comm.disconnnected
+        await server_comm.disconnect()
+        assert server_comm.disconnected
 
         await client_comm.wait_disconnected()
         assert client_comm.disconnected
 
-    async def test_simple(self):
-        key, server_comm = CommunicateManager.new_idenntity()
+    async def test_disconnect(self):
+        key, server_comm = await CommunicateManager.new_identity()
 
-        client_comm = Communicator(key)
+        client_comm = BaseCommunicator(key)
 
-        client_comm.connect()
+        await client_comm.connect()
         assert client_comm.connected
 
-        client_comm.disconnect()
+        await client_comm.disconnect()
         assert client_comm.disconnected
 
         await server_comm.wait_disconnected()
-        assert server_comm.disconnnected
+        assert server_comm.disconnected
