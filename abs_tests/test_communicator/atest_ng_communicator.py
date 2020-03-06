@@ -3,8 +3,13 @@ from time import time
 from typing import Callable, Any
 
 from service import Message
-from service.comm import BaseCommunicator, CommunicateManager
+from service.sio_comm.comm import ClientSioComm
+from service.sio_comm.service import CommunicateManager
+from service.sio_comm.base import BaseCommunicator
 from test import TestedService
+
+
+# TODO: Переписать на фикстуры и параметризацию !!!
 
 
 class TestNgCommunicator(TestedService):
@@ -43,7 +48,7 @@ class TestNgCommunicator(TestedService):
     async def test_simple(self):
         key, server_comm = await CommunicateManager.new_identity()
 
-        client_comm = BaseCommunicator(key)
+        client_comm = ClientSioComm(key)
 
         await client_comm.connect()
         assert client_comm.connected
@@ -82,10 +87,38 @@ class TestNgCommunicator(TestedService):
         await client_comm.wait_disconnected()
         assert client_comm.disconnected
 
+    async def test_exc(self):
+        key, server_comm = await CommunicateManager.new_identity()
+
+        client_comm = ClientSioComm(key)
+
+        await client_comm.connect()
+        assert client_comm.connected
+
+        await self._send_recv_step(
+            client_comm,
+            server_comm,
+            Message(),
+            lambda msg: 1 / 0
+        )
+
+        await self._send_recv_step(
+            server_comm,
+            client_comm,
+            Message(),
+            lambda msg: 1 / 0
+        )
+
+        await server_comm.disconnect()
+        assert server_comm.disconnected
+
+        await client_comm.wait_disconnected()
+        assert client_comm.disconnected
+
     async def test_disconnect(self):
         key, server_comm = await CommunicateManager.new_identity()
 
-        client_comm = BaseCommunicator(key)
+        client_comm = ClientSioComm(key)
 
         await client_comm.connect()
         assert client_comm.connected

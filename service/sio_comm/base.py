@@ -1,18 +1,21 @@
-from typing import TypeVar, Tuple
+from typing import TypeVar
 
-from service import Message, Service, handler
-from ._site import _Site
+from core import AttributeStorage
+from log import Log
+from service import Message
+
 
 _MsgT = TypeVar("_MsgT", Message, Message)
 
 
-class BaseCommunicatorKey(object):
+class BaseCommunicatorKey(AttributeStorage):
     pass
 
 
 class BaseCommunicator:
     def __init__(self, key: BaseCommunicatorKey):
         self.key = key
+        self.logger = Log(f"{self.__class__.__name__}")
 
     async def connect(self):
         raise NotImplementedError()
@@ -42,13 +45,4 @@ class BaseCommunicator:
     def disconnected(self):
         raise NotImplementedError()
 
-
-class CommunicateManager(Service):
-    async def warm_up(self):
-        self._site = _Site()
-        await self._site.run()
-
-    @handler
-    async def new_identity(self) -> Tuple[BaseCommunicatorKey, BaseCommunicator]:
-        raise NotImplementedError()
 

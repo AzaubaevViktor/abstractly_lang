@@ -205,8 +205,8 @@ class CommunicatorServer(Service):
         return True
 
     async def _message(self, sid, data):
-
-        self._processors[]
+        pass
+        # self._processors[]
 
     async def _disconnect(self, sid):
         if sid in self.clients.values():
