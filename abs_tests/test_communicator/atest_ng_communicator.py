@@ -41,7 +41,8 @@ class TestNgCommunicator(TestedService):
 
         if error_:
             assert isinstance(error_, Exception)
-            assert issubclass(msg.exception_nowait(), error_.__class__)
+            assert msg.exception_nowait()
+            assert isinstance(msg.exception_nowait(), error_.__class__), (msg.exception_nowait(), error_.__class__)
         elif result_:
             assert msg.result_nowait() == result_
 
@@ -90,7 +91,7 @@ class TestNgCommunicator(TestedService):
         await client_comm.wait_disconnected()
         assert client_comm.disconnected
 
-    @skip
+    # @skip
     async def test_exc(self):
         key, server_comm = await CommunicateManager.new_identity()
 

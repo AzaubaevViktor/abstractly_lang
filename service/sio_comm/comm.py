@@ -5,7 +5,7 @@ from typing import Optional, Any, Dict
 
 import socketio
 
-from core import Attribute
+from core import Attribute, SearchableSubclasses
 from service import Message
 from .base import BaseCommunicatorKey, BaseCommunicator, _MsgT
 from .._background import BackgroundManager
@@ -53,15 +53,20 @@ class _BaseSioComm(BaseCommunicator, BackgroundManager):
             **kwargs
         )
 
-        if raw_data['raw_data']:
-            msg.set_result(raw_data['raw_data'])
+        if raw_data['result']:
+            msg.set_result(raw_data['result'])
         elif raw_data['exception']:
-            msg.set_error(await self._deserialize_exc(raw_data))
+            msg.set_error(await self._deserialize_exc(raw_data['exception']))
         else:
             raise RuntimeError("Unknown raw_data answer", raw_data)
 
-    async def _deserialize_exc(self, raw_data):
-        return RemoteException(**raw_data['exception'])
+    async def _deserialize_exc(self, exc_data):
+        exc_class = SearchableSubclasses._search(Exception, exc_data['exc_class'])
+
+        class X(RemoteException, exc_class):
+            pass
+
+        return X(info=exc_data)
 
     async def _on_message(self, serialized_data: str):
         msg = Message.deserialize(serialized_data, force=True)
@@ -121,7 +126,6 @@ class _IsConnectedStuff:
 
 class ServerSioComm(_IsConnectedStuff, _BaseSioComm):
     def __init__(self, **kwargs):
-        self.sio: socketio.AsyncServer
         super().__init__(**kwargs)
         self.client_: "ClientInfo" = None
 
@@ -131,6 +135,11 @@ class ServerSioComm(_IsConnectedStuff, _BaseSioComm):
 
     async def connect(self):
         await self.wait_connected()
+
+    async def disconnect(self):
+        self.sio: socketio.AsyncServer
+
+        await self.sio.disconnect(self.sid)
 
 
 class ClientSioComm(_IsConnectedStuff, _BaseSioComm):
