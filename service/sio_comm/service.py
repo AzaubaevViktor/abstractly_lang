@@ -17,7 +17,7 @@ class CommunicateManager(Service):
 
         self._site = _SIOWrapper(self.host, self.port)
 
-        self._site.on("connect", self._on_connect)
+        # self._site.on("connect", self._on_connect)
         self._site.on("hello", self._on_hello)
 
         await self._site.run()
@@ -33,8 +33,8 @@ class CommunicateManager(Service):
     async def _on_connect(self, sid):
         self.clients.connected(sid)
 
-    async def _on_hello(self, sid, token):
-        client = self.clients.apply_token(sid, token)
+    async def _on_hello(self, sid, data):
+        client = self.clients.apply_token(sid, data)
         assert isinstance(client, ClientInfo)
         return True
 

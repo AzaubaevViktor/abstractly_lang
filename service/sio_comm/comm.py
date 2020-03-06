@@ -53,9 +53,9 @@ class ClientSioComm(_BaseSioComm):
 
         self.sio.on("connect", self._on_connect)
 
-        self.task = asyncio.create_task(self._run_client())
-
         await self.sio.connect(f"http://{self.key.host}:{self.key.port}")
+
+        self.task = asyncio.create_task(self._run_client())
 
         await self._is_connected.wait()
 
@@ -75,10 +75,11 @@ class ClientSioComm(_BaseSioComm):
     async def disconnect(self):
         await self.sio.disconnect()
 
-        self.logger.info("Stopping task")
-        self.task.cancel()
-        try:
-            await self.task
-        except CancelledError:
-            pass
+        if self.task:
+            self.logger.info("Stopping task")
+            self.task.cancel()
+            try:
+                await self.task
+            except CancelledError:
+                pass
 
