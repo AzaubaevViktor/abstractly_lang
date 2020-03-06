@@ -39,14 +39,13 @@ class TestNgCommunicator(TestedService):
 
         assert (error_ is not None) or (result_ is not None)
 
-        if error_:
+        if error_ is not None:
             assert isinstance(error_, Exception)
             assert msg.exception_nowait()
             assert isinstance(msg.exception_nowait(), error_.__class__), (msg.exception_nowait(), error_.__class__)
-        elif result_:
-            assert msg.result_nowait() == result_
+        elif result_ is not None:
+            assert msg.result_nowait() == result_, (msg.result_nowait(), result_)
 
-    @skip
     async def test_simple(self):
         key, server_comm = await CommunicateManager.new_identity()
 
@@ -60,7 +59,8 @@ class TestNgCommunicator(TestedService):
         for simple_object in [True, False,
                               1, 0, -1,
                               "Hey", "✡️🔥♷˙∆∑ˆˆπµΩ≤µµå∆∂πæåß∂æ«åß“‘",
-                              [1, 2, 3], {1: 2, '3': 4}]:
+                              [1, 2, 3], {'1': 2, '3': 4}]:
+            self.logger.important("Send CLIENT => server", obj=simple_object)
             await self._send_recv_step(
                 client_comm,
                 server_comm,
@@ -68,6 +68,7 @@ class TestNgCommunicator(TestedService):
                 lambda msg: simple_object
             )
 
+            self.logger.important("Send SERVER => client", obj=simple_object)
             await self._send_recv_step(
                 server_comm,
                 client_comm,

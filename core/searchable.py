@@ -24,7 +24,7 @@ class SearchableSubclasses:
 
         raise NameError(f"Not found service with name {name}. "
                         f"Class must be subclass of `Service`",
-                        name, tuple(klass.__name__ for klass in cls.all_subclasses()))
+                        name, tuple(klass.__name__ for klass in SearchableSubclasses._all_subclasses(cls)))
 
     @classmethod
     def search(cls: _TM, name: str) -> Type[_TM]:

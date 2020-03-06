@@ -22,7 +22,7 @@ class RemoteException(Exception):
         self.info = info
 
     def __str__(self):
-        return f"<{RemoteException.__name__} of {self.__class__.mro()[1]}: {self.info}>"
+        return f"<{RemoteException.__name__} of {self.__class__.mro()[2]}: {self.info}>"
 
 
 class _BaseSioComm(BaseCommunicator, BackgroundManager):
@@ -53,9 +53,9 @@ class _BaseSioComm(BaseCommunicator, BackgroundManager):
             **kwargs
         )
 
-        if raw_data['result']:
+        if raw_data['result'] is not None:
             msg.set_result(raw_data['result'])
-        elif raw_data['exception']:
+        elif raw_data['exception'] is not None:
             msg.set_error(await self._deserialize_exc(raw_data['exception']))
         else:
             raise RuntimeError("Unknown raw_data answer", raw_data)
@@ -79,14 +79,17 @@ class _BaseSioComm(BaseCommunicator, BackgroundManager):
 
         answer = {'result': None, 'exception': None}
 
-        if msg.result_nowait():
+        if msg.result_nowait() is not None:
             answer['result'] = msg.result_nowait()
-        else:
+        elif msg.exception_nowait() is not None:
             answer['exception'] = await self._serialize_exc(msg.exception_nowait())
+        else:
+            raise ValueError("All fields is None, wtf?")
 
         return answer
 
     async def _serialize_exc(self, exc):
+        self.logger.exception(exc)
         return {
             'exc_class': exc.__class__.__name__,
             'fmt_exc': str(exc),
