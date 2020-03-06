@@ -151,8 +151,8 @@ class Service(BackgroundManager, SearchableSubclasses, metaclass=MetaService):
     @classmethod
     async def cleanup(cls):
         """ Восстановление первоначального состояния """
-        del cls._instance
         cls._instance = None
+
         if cls is Service:
             cls._main_queue : asyncio.Queue
             while not cls._main_queue.empty():
