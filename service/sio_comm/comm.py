@@ -49,13 +49,13 @@ class ClientSioComm(_BaseSioComm):
         return not self._is_connected.is_set()
 
     async def connect(self):
-        self.logger.info("Connect to server")
+        self.logger.info("Connect to server", host=self.key.host, port=self.key.port)
 
         self.sio.on("connect", self._on_connect)
 
-        await self.sio.connect(f"http://{self.key.host}:{self.key.port}")
-
         self.task = asyncio.create_task(self._run_client())
+
+        await self.sio.connect(f"http://{self.key.host}:{self.key.port}")
 
         await self._is_connected.wait()
 
@@ -68,7 +68,8 @@ class ClientSioComm(_BaseSioComm):
     async def _on_connect(self):
         self.logger.info("Connected to server")
         self.logger.info("Say hello")
-        assert await self.sio.call("hello", data=self.key.token)
+        result = await self.sio.call("hello", data=self.key.token)
+        assert result, result
         self._is_connected.set()
 
     async def disconnect(self):
