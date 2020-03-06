@@ -3,7 +3,6 @@ from typing import Tuple
 
 from service import Service, handler, Message
 from ._siowrapper import _SIOWrapper
-from .base import BaseCommunicatorKey, BaseCommunicator
 from .clients import Clients, ClientInfo
 from .comm import SIOKey, ServerSioComm
 

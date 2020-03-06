@@ -1,6 +1,6 @@
 import asyncio
 
-from service import Service, handler, CommunicatorServer, CommunicatorClient
+from service import Service, handler
 from service.message import Shutdown, Message
 
 
@@ -11,21 +11,23 @@ class _DoTest(Message):
 class TestS(Service):
     @handler(_DoTest)
     async def do_test(self):
-        client_info = await CommunicatorServer.get_info()
-        client = CommunicatorClient(client_info)
+        from service.sio_comm.comm import ClientSioComm
+        from service.sio_comm.service import CommunicateManager
+
+        key, server_comm = await CommunicateManager.new_identity()
+        client = ClientSioComm(key)
         await client.connect()
 
-        assert client.is_connected
+        assert client.connected
 
-        await CommunicatorServer.wait_for_client(info=client_info)
+        await server_comm.wait_connected()
 
-        await CommunicatorServer.send(Shutdown(cause="Test"))
+        await CommunicateManager.send(Shutdown(cause="Test"))
 
-        count = 0
-        while client.is_connected:
-            await asyncio.sleep(1)
-            count += 1
-            assert count <= 10
+        await asyncio.wait_for(client.wait_disconnected(), 5)
+
+        assert client.disconnect()
+        assert server_comm.disconnect()
 
         return True
 
