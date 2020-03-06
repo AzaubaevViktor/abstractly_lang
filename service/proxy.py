@@ -3,8 +3,9 @@ import concurrent.futures
 from typing import Type, Optional
 
 from core import Attribute
-from service import Service, Message, handler, BaseCommunicator, SocketIOCommunicator, EntryPoint, ServiceRunner
-from service.communicator import BaseServerInfo
+
+
+from service import Service, Message, handler, EntryPoint, ServiceRunner
 from service.message import Shutdown
 
 
@@ -49,7 +50,7 @@ class ProcessSpawner(Service):
         self.pool = concurrent.futures.ProcessPoolExecutor(max_workers=4)
 
     @handler
-    async def run_process(self, class_: Type[Service], communicator: BaseCommunicator):
+    async def run_process(self, class_: Type[Service], communicator: "BaseCommunicator"):
         loop = asyncio.get_running_loop()
         self.logger.important("Run in executor",
                               class_=class_)
@@ -68,7 +69,7 @@ class ProcessSpawner(Service):
 
 
 class SetCommunicator(Message):
-    server_info: BaseServerInfo = Attribute()
+    server_info: "BaseServerInfo" = Attribute()
 
 
 class ProxyClient(Service):

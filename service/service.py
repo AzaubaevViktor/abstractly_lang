@@ -2,6 +2,7 @@ import asyncio
 from asyncio import Queue, CancelledError
 from multiprocessing.pool import RemoteTraceback
 from typing import TypeVar, Any, Dict, Type, Callable, Awaitable
+from concurrent.futures import TimeoutError
 
 from log import Log
 from ._background import BackgroundManager
@@ -70,7 +71,11 @@ class Service(BackgroundManager, SearchableSubclasses, metaclass=MetaService):
             while True:
                 await self._collect_aio_tasks()
 
-                msg = await self._queue.get()
+                try:
+                    msg = await asyncio.wait_for(self._queue.get(), 2)
+                except TimeoutError:
+                    continue
+
                 self.logger.info("💌", message=msg)
 
                 if isinstance(msg, Shutdown) and msg.to is self.__class__:
@@ -107,8 +112,6 @@ class Service(BackgroundManager, SearchableSubclasses, metaclass=MetaService):
             custom_processor = self._handlers[type(msg)]
             self.logger.debug("Found custom processor", processor=custom_processor)
         return custom_processor
-
-
 
     async def _apply_task(self,
                           message: Message,

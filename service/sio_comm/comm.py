@@ -41,11 +41,16 @@ class _BaseSioComm(BaseCommunicator, BackgroundManager):
         self._run_background(self._send(msg))
         return msg
 
-    async def _send(self, msg: _MsgT):
+    async def _send(self, msg: Message):
+        kwargs = {
+            'event': "message",
+            "data": msg.serialize()
+        }
+        if self.sid:
+            kwargs['sid'] = self.sid
+
         raw_data = await self.sio.call(
-            "message",
-            data=msg.serialize(),
-            sid=self.sid
+            **kwargs
         )
 
         if raw_data['raw_data']:
@@ -116,6 +121,7 @@ class _IsConnectedStuff:
 
 class ServerSioComm(_IsConnectedStuff, _BaseSioComm):
     def __init__(self, **kwargs):
+        self.sio: socketio.AsyncServer
         super().__init__(**kwargs)
         self.client_: "ClientInfo" = None
 
@@ -136,6 +142,10 @@ class ClientSioComm(_IsConnectedStuff, _BaseSioComm):
 
         self.task = None
 
+    @property
+    def sid(self):
+        return None
+
     async def connect(self):
         self.logger.info("Connect to server", host=self.key.host, port=self.key.port)
 
@@ -150,10 +160,15 @@ class ClientSioComm(_IsConnectedStuff, _BaseSioComm):
         await self.wait_connected()
 
     async def _run_client(self):
-        self.logger.info("Run client")
-        await self.sio.wait()
-        self.logger.info("Disconnect")
-        await self.sio.disconnect()
+        try:
+            self.logger.info("Run client")
+            await self.sio.wait()
+        except CancelledError:
+            pass
+        finally:
+            self.logger.info("Disconnect")
+            await self.sio.disconnect()
+            await self._on_disconnect()
 
     async def _on_connect(self):
         self.logger.info("Connected to server")

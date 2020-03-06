@@ -6,7 +6,7 @@ from service import Message
 from service.sio_comm.comm import ClientSioComm
 from service.sio_comm.service import CommunicateManager
 from service.sio_comm.base import BaseCommunicator
-from test import TestedService
+from test import TestedService, skip
 
 
 # TODO: Переписать на фикстуры и параметризацию !!!
@@ -45,6 +45,7 @@ class TestNgCommunicator(TestedService):
         elif result_:
             assert msg.result_nowait() == result_
 
+    @skip
     async def test_simple(self):
         key, server_comm = await CommunicateManager.new_identity()
 
@@ -89,6 +90,7 @@ class TestNgCommunicator(TestedService):
         await client_comm.wait_disconnected()
         assert client_comm.disconnected
 
+    @skip
     async def test_exc(self):
         key, server_comm = await CommunicateManager.new_identity()
 
@@ -117,6 +119,7 @@ class TestNgCommunicator(TestedService):
         await client_comm.wait_disconnected()
         assert client_comm.disconnected
 
+    # @skip
     async def test_disconnect(self):
         key, server_comm = await CommunicateManager.new_identity()
 

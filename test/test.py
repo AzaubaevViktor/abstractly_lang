@@ -242,7 +242,7 @@ class TestsManager(Service):
 
         tests = await self.list_tests(source)
         try:
-            await asyncio.gather(*(
+            results = await asyncio.gather(*(
                 test_info.class_._run_test(test_info)
                 for test_info in tests
             ))

@@ -69,5 +69,3 @@ class Clients:
     def drop(self, client: 'ClientInfo'):
         del self._by_sid_cache[client.sid]
         client.was_disconnected()
-        if client.comm:
-            client.comm.was_disconnected()
