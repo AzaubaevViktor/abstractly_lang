@@ -32,6 +32,7 @@ class ServerSioComm(_BaseSioComm):
 
 class ClientSioComm(_BaseSioComm):
     def __init__(self, key: Optional[SIOKey] = None):
+        self.sio: socketio.AsyncClient
         sio = socketio.AsyncClient()
 
         super().__init__(key=key, sio=sio)
@@ -41,11 +42,11 @@ class ClientSioComm(_BaseSioComm):
         self.task = None
 
     @property
-    async def connected(self):
+    def connected(self):
         return self._is_connected.is_set()
 
     @property
-    async def disconnected(self):
+    def disconnected(self):
         return not self._is_connected.is_set()
 
     async def connect(self):
@@ -82,4 +83,6 @@ class ClientSioComm(_BaseSioComm):
                 await self.task
             except CancelledError:
                 pass
+
+        self._is_connected.clear()
 

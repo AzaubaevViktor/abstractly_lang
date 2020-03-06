@@ -55,7 +55,7 @@ class TestCommunicator(TestedService):
     async def test_client_disconnect(self):
         client_info = await CommunicatorServer.get_info()
 
-        client = CommunicatorClient(client_info, test_mode=True)
+        client = CommunicatorClient(client_info)
         await client.connect()
 
         await CommunicatorServer.wait_for_client(info=client_info)

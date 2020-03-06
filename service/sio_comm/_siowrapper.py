@@ -11,15 +11,14 @@ class _SIOWrapper:
         self.logger = Log(f"Site:{self.host}:{self.port}")
 
         self.sio: socketio.AsyncServer = socketio.AsyncServer(async_mode="aiohttp")
-        self._app: web.Application
+        self._app: web.Application = web.Application()
+        self.sio.attach(self._app)
+
         self._runner: web.AppRunner
         self._site: web.TCPSite
 
     async def run(self):
-        self.app = web.Application()
-        self.sio.attach(self.app)
-
-        self.runner = web.AppRunner(self.app)
+        self.runner = web.AppRunner(self._app)
 
         # web.run_app(), but manually
         await self.runner.setup()
@@ -46,9 +45,9 @@ class _SIOWrapper:
         await self.runner.cleanup()
 
         self.logger.debug("Stopping app")
-        await self.app.cleanup()
+        await self._app.cleanup()
 
         self.logger.info("Server stopped!")
 
     def on(self, event, handler=None, namespace=None):
-        self.sio.on(event, handler=None, namespace=None)
+        self.sio.on(event, handler=handler, namespace=namespace)

@@ -35,7 +35,7 @@ class Clients:
         client = self.by_sid(sid)
         assert client
 
-        assert token in self._tokens
+        assert token in self._tokens, (sid, token, self._tokens)
         client.comm = self._tokens[token]
         del self._tokens[token]
         client.token = token
