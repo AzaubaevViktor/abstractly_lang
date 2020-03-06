@@ -14,6 +14,7 @@ class BaseCommunicatorKey(AttributeStorage):
 
 class BaseCommunicator:
     def __init__(self, key: BaseCommunicatorKey):
+        super().__init__()
         self.key = key
         self.logger = Log(f"{self.__class__.__name__}")
 
@@ -33,6 +34,9 @@ class BaseCommunicator:
         return await msg.result()
 
     async def recv(self) -> Message:
+        raise NotImplementedError()
+
+    async def _on_message(self, data):
         raise NotImplementedError()
 
     async def disconnect(self):

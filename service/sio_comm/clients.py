@@ -1,8 +1,9 @@
+import weakref
 from random import randint
 from typing import Optional, Dict, List
 
 from core import AttributeStorage, Attribute
-from service import BaseCommunicator
+from service.sio_comm.base import BaseCommunicator
 
 
 class TokenT(int):
@@ -10,9 +11,10 @@ class TokenT(int):
 
 
 class ClientInfo(AttributeStorage):
-    sid = Attribute()
-    token = Attribute(default=None)
-    comm = Attribute(default=None)
+    sid: str = Attribute()
+    token: TokenT = Attribute(default=None)
+    comm: BaseCommunicator = Attribute(default=None)
+
 
 class Clients:
     def __init__(self):
@@ -37,6 +39,7 @@ class Clients:
 
         assert token in self._tokens, (sid, token, self._tokens)
         client.comm = self._tokens[token]
+        client.comm.client_ = weakref.ref(client)
         del self._tokens[token]
         client.token = token
         return client

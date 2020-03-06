@@ -19,6 +19,7 @@ class CommunicateManager(Service):
 
         self._site.on("connect", self._on_connect)
         self._site.on("hello", self._on_hello)
+        self._site.on("message", self._on_message)
 
         await self._site.run()
 
@@ -39,6 +40,10 @@ class CommunicateManager(Service):
         client = self.clients.apply_token(sid, data)
         assert isinstance(client, ClientInfo)
         return True
+
+    async def _on_message(self, sid, data):
+        client = self.clients.by_sid(sid)
+        return await client.comm._on_message(data)
 
     async def shutdown(self, message: Message):
         await self._site.stop()

@@ -1,11 +1,13 @@
 import asyncio
 from asyncio import CancelledError
-from typing import Optional
+from typing import Optional, Any, Dict
 
 import socketio
 
 from core import Attribute
-from service.sio_comm.base import BaseCommunicatorKey, BaseCommunicator
+from service import Message
+from .base import BaseCommunicatorKey, BaseCommunicator, _MsgT
+from .._background import BackgroundManager
 
 
 class SIOKey(BaseCommunicatorKey):
@@ -14,7 +16,15 @@ class SIOKey(BaseCommunicatorKey):
     token = Attribute()
 
 
-class _BaseSioComm(BaseCommunicator):
+class RemoteException(Exception):
+    def __init__(self, info):
+        self.info = info
+
+    def __str__(self):
+        return f"<{RemoteException.__name__} of {self.__class__.mro()[1]}: {self.info}>"
+
+
+class _BaseSioComm(BaseCommunicator, BackgroundManager):
     def __init__(self, key: Optional[SIOKey] = None, sio = None):
         super().__init__(key)
         self.sio = sio
@@ -22,8 +32,71 @@ class _BaseSioComm(BaseCommunicator):
 
         self.message_queue = asyncio.Queue()
 
+    @property
+    def sid(self):
+        raise NotImplementedError()
+
+    async def send(self, msg: _MsgT) -> _MsgT:
+        self._run_background(self._send(msg))
+        return msg
+
+    async def _send(self, msg: _MsgT):
+        raw_data = await self.sio.call(
+            "message",
+            data=msg.serialize(),
+            sid=self.sid
+        )
+
+        if raw_data['raw_data']:
+            msg.set_result(raw_data['raw_data'])
+        elif raw_data['exception']:
+            msg.set_error(await self._deserialize_exc(raw_data))
+        else:
+            raise RuntimeError("Unknown raw_data answer", raw_data)
+
+    async def _deserialize_exc(self, raw_data):
+        return RemoteException(**raw_data['exception'])
+
+    async def _on_message(self, serialized_data: str):
+
+        msg = Message.deserialize(serialized_data, force=True)
+
+        await self.message_queue.put(msg)
+
+        # Some hard work
+
+        await msg.wait()
+
+        answer = {'result': None, 'exception': None}
+
+        if msg.result_nowait():
+            answer['result'] = msg.result_nowait()
+        else:
+            answer['exception'] = await self._serialize_exc(msg.exception_nowait())
+
+        return answer
+
+    async def _serialize_exc(self, exc):
+        return {
+            'exc_class': exc.__class__.__name__,
+            'fmt_exc': str(exc),
+            'fmt_tb': None
+        }
+
+
+    async def recv(self) -> Message:
+        return await self.message_queue.get()
+
 
 class ServerSioComm(_BaseSioComm):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.client_: "ClientInfo" = None
+
+    @property
+    def sid(self):
+        return self.client_.sid
+
     async def connect(self):
         self.sio: socketio.AsyncServer
         # Server already run
@@ -53,6 +126,7 @@ class ClientSioComm(_BaseSioComm):
         self.logger.info("Connect to server", host=self.key.host, port=self.key.port)
 
         self.sio.on("connect", self._on_connect)
+        self.sio.on("message", self._on_message)
 
         await self.sio.connect(f"http://{self.key.host}:{self.key.port}")
 

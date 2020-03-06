@@ -1,9 +1,10 @@
 import asyncio
-from asyncio import Queue, Task, CancelledError
+from asyncio import Queue, CancelledError
 from multiprocessing.pool import RemoteTraceback
-from typing import List, TypeVar, Any, Dict, Type, Callable, Awaitable, Coroutine
+from typing import TypeVar, Any, Dict, Type, Callable, Awaitable
 
 from log import Log
+from ._background import BackgroundManager
 from ._meta import MetaService, HandlersManager
 from core import SearchableSubclasses
 from .error import UnknownMessageType, ServiceExist
@@ -13,7 +14,7 @@ from .message import Message, Shutdown
 _TM = TypeVar("_TM", Message, Message)
 
 
-class Service(SearchableSubclasses, metaclass=MetaService):
+class Service(BackgroundManager, SearchableSubclasses, metaclass=MetaService):
     logger = Log(f"ServiceClass:{__name__}")
 
     cpu_bound = False
@@ -31,13 +32,9 @@ class Service(SearchableSubclasses, metaclass=MetaService):
 
         self.logger = Log(f"Service:{self.__class__.__name__}")
         self._queue: Queue[Message] = Queue()
-        self._aio_tasks: List[Task] = []
-        self.logger.info("🖥 Hello!")
 
-    def _run_background(self, coro: Coroutine):
-        self._aio_tasks.append(
-            asyncio.create_task(coro)
-        )
+        super().__init__()
+        self.logger.info("🖥 Hello!")
 
     async def warm_up(self):
         """
@@ -111,21 +108,7 @@ class Service(SearchableSubclasses, metaclass=MetaService):
             self.logger.debug("Found custom processor", processor=custom_processor)
         return custom_processor
 
-    async def _collect_aio_tasks(self):
-        to_delete = tuple(task for task in self._aio_tasks if task.done())
 
-        if to_delete:
-            self.logger.debug("🗑 Collect tasks", count=len(to_delete))
-
-        for task in to_delete:
-            self._aio_tasks.remove(task)
-
-    async def _stop_aio_tasks(self):
-        if self._aio_tasks:
-            self.logger.info("☠️ Cancel tasks", count=len(self._aio_tasks))
-            for task in self._aio_tasks:
-                task.cancel()
-                await task
 
     async def _apply_task(self,
                           message: Message,
@@ -164,6 +147,8 @@ class Service(SearchableSubclasses, metaclass=MetaService):
 
     @classmethod
     async def cleanup(cls):
+        """ Восстановление первоначального состояния """
+        del cls._instance
         cls._instance = None
         if cls is Service:
             cls._main_queue : asyncio.Queue
