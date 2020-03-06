@@ -12,7 +12,6 @@ from service import Service, Message, handler
 from concurrent.futures import TimeoutError
 
 
-
 class ClientInfo(AttributeStorage):
     host = Attribute()
     port = Attribute()

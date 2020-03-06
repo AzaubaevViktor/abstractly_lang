@@ -20,11 +20,12 @@ class CommunicateManager(Service):
         self._site.on("connect", self._on_connect)
         self._site.on("hello", self._on_hello)
         self._site.on("message", self._on_message)
+        self._site.on("disconnect", self._on_disconnect)
 
         await self._site.run()
 
     @handler
-    async def new_identity(self) -> Tuple[BaseCommunicatorKey, BaseCommunicator]:
+    async def new_identity(self) -> Tuple[SIOKey, ServerSioComm]:
         communicator = ServerSioComm(key=None, sio=self._site.sio)
         token = self.clients.new_token(communicator)
         key = SIOKey(host=self.host, port=self.port, token=token)
@@ -44,6 +45,10 @@ class CommunicateManager(Service):
     async def _on_message(self, sid, data):
         client = self.clients.by_sid(sid)
         return await client.comm._on_message(data)
+
+    async def _on_disconnect(self, sid):
+        client = self.clients.by_sid(sid)
+        return self.clients.drop(client)
 
     async def shutdown(self, message: Message):
         await self._site.stop()

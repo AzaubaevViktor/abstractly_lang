@@ -49,4 +49,9 @@ class BaseCommunicator:
     def disconnected(self):
         raise NotImplementedError()
 
+    def was_disconnected(self):
+        raise NotImplementedError()
+
+    def was_connected(self):
+        raise NotImplementedError()
 

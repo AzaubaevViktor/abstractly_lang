@@ -16,6 +16,7 @@ from service._meta import MetaService, handler
 from test.message import RunTests, ListTests
 from test.results import TestNotRunning, BaseTestResult, TestSuccess, TestFailed, TestXFailed, TestSkipped, \
     TestExecuting
+from concurrent.futures import TimeoutError
 
 
 class Tag(str):
@@ -188,7 +189,9 @@ class TestedService(Service, metaclass=MetaTestedService):
         test_info.start_time = time()
         try:
             test_info.result = TestExecuting()
+
             result = await method()
+
             test_info.finish_time = time()
             test_info.result = result if isinstance(result, BaseTestResult) else TestSuccess(result=result)
         except (Exception, AssertionError) as e:
@@ -239,10 +242,13 @@ class TestsManager(Service):
 
         tests = await self.list_tests(source)
         try:
-            results = await asyncio.gather(*(
+            await asyncio.gather(*(
                 test_info.class_._run_test(test_info)
                 for test_info in tests
             ))
+        except TimeoutError:
+            pass
+
         except CancelledError:
             results = tests
             self.logger.exception()

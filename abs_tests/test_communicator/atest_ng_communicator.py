@@ -53,6 +53,8 @@ class TestNgCommunicator(TestedService):
         await client_comm.connect()
         assert client_comm.connected
 
+        assert server_comm.connected
+
         for simple_object in [True, False,
                               1, 0, -1,
                               "Hey", "✡️🔥♷˙∆∑ˆˆπµΩ≤µµå∆∂πæåß∂æ«åß“‘",

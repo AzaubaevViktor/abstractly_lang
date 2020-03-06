@@ -15,6 +15,14 @@ class ClientInfo(AttributeStorage):
     token: TokenT = Attribute(default=None)
     comm: BaseCommunicator = Attribute(default=None)
 
+    def was_connected(self):
+        assert self.comm
+        self.comm.was_connected()
+
+    def was_disconnected(self):
+        assert self.comm
+        self.comm.was_disconnected()
+
 
 class Clients:
     def __init__(self):
@@ -40,6 +48,7 @@ class Clients:
         assert token in self._tokens, (sid, token, self._tokens)
         client.comm = self._tokens[token]
         client.comm.client_ = weakref.ref(client)
+        client.was_connected()
         del self._tokens[token]
         client.token = token
         return client
@@ -59,5 +68,6 @@ class Clients:
 
     def drop(self, client: 'ClientInfo'):
         del self._by_sid_cache[client.sid]
-
-
+        client.was_disconnected()
+        if client.comm:
+            client.comm.was_disconnected()
