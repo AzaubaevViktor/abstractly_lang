@@ -5,8 +5,8 @@ from typing import Callable, Any
 from service import Message
 from service.sio_comm.comm import ClientSioComm
 from service.sio_comm.service import CommunicateManager
-from service.sio_comm.base import BaseCommunicator
-from test import TestedService, skip
+from service.sio_comm.base import BaseCommunicator, ConnectionClosed
+from test import TestedService, skip, raises
 
 
 # TODO: Переписать на фикстуры и параметризацию !!!
@@ -48,6 +48,7 @@ class TestNgCommunicator(TestedService):
         elif result_ is not None:
             assert msg.result_nowait() == result_, (msg.result_nowait(), result_)
 
+    @skip
     async def test_simple(self):
         key, server_comm = await CommunicateManager.new_identity()
 
@@ -94,7 +95,7 @@ class TestNgCommunicator(TestedService):
         await client_comm.wait_disconnected()
         assert client_comm.disconnected
 
-    # @skip
+    @skip
     async def test_exc(self):
         key, server_comm = await CommunicateManager.new_identity()
 
@@ -123,7 +124,7 @@ class TestNgCommunicator(TestedService):
         await client_comm.wait_disconnected()
         assert client_comm.disconnected
 
-    # @skip
+    @skip
     async def test_disconnect(self):
         key, server_comm = await CommunicateManager.new_identity()
 
@@ -137,3 +138,34 @@ class TestNgCommunicator(TestedService):
 
         await server_comm.wait_disconnected()
         assert server_comm.disconnected
+
+    async def test_recv_disconnect_server(self):
+        key, server_comm = await CommunicateManager.new_identity()
+
+        client_comm = ClientSioComm(key)
+
+        await client_comm.connect()
+        await server_comm.connect()
+
+        task = self._run_background(client_comm.recv())
+
+        await server_comm.disconnect()
+
+        with raises(ConnectionClosed):
+            await asyncio.wait_for(task, 5)
+
+    @skip
+    async def test_recv_disconnect_client(self):
+        key, server_comm = await CommunicateManager.new_identity()
+
+        client_comm = ClientSioComm(key)
+
+        await client_comm.connect()
+        await server_comm.connect()
+
+        task = self._run_background(server_comm.recv())
+
+        await client_comm.disconnect()
+
+        with raises(ConnectionClosed):
+            await asyncio.wait_for(task, 5)

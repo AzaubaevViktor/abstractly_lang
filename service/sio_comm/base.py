@@ -55,3 +55,8 @@ class BaseCommunicator:
     def was_connected(self):
         raise NotImplementedError()
 
+
+class ConnectionClosed(Exception):
+    def __init__(self, host, port):
+        self.host = host
+        self.port = port
