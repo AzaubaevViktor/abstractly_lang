@@ -10,10 +10,12 @@ class BackgroundManager:
         self._logger = Log(f"{self.__class__.__name__}:BackgroundManager")
         self._aio_tasks: List[Task] = []
 
-    def _run_background(self, coro: Coroutine):
+    def _run_background(self, coro: Coroutine) -> Task:
+        task_ = asyncio.create_task(coro)
         self._aio_tasks.append(
-            asyncio.create_task(coro)
+            task_
         )
+        return task_
 
     async def _collect_aio_tasks(self):
         to_delete = tuple(task for task in self._aio_tasks if task.done())

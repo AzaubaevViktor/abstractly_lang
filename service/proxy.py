@@ -44,8 +44,8 @@ class ProxyForService(Service):
             self.logger.important("Recv message, put into main_queue")
             await self.main_queue.put(msg)
 
-    async def _found_processor(self, msg: Message):
-        return self.communicator.send_msg
+    def process(self, message: Message):
+        return self.communicator.get(message)
 
     async def shutdown(self, message: Message):
         if self.communicator:

@@ -34,12 +34,15 @@ class ServiceRunner(Service):
             service_class = orig_service_class
 
             if orig_service_class.cpu_bound and orig_service_class != self.main_service:
-                from service import ProxyForService
                 if orig_service_class.__name__ not in self._proxies:
-                    self._proxies[orig_service_class.__name__] = type(
-                        f"Proxy{orig_service_class.__name__}",
-                        (orig_service_class, ProxyForService),
-                        {'__module__': "Lol in process"})
+                    from service.proxy import ProxyForService
+
+                    class Proxy_(orig_service_class, ProxyForService):
+                        pass
+
+                    Proxy_.__name__ = f"Proxy:{orig_service_class.__name__}"
+
+                    self._proxies[orig_service_class.__name__] = Proxy_
 
                 service_class = self._proxies[orig_service_class.__name__]
 

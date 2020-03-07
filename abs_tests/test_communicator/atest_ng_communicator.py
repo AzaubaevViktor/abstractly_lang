@@ -18,9 +18,11 @@ class TestNgCommunicator(TestedService):
                               _to: BaseCommunicator,
                               msg: Message,
                               method: Callable[[Message], Any]):
-        await _from.send(msg)
+        assert msg is await _from.send(msg)
 
         _to_msg: Message = await _to.recv()
+
+        assert msg is not _to_msg
 
         assert _to_msg.__class__ is msg.__class__
         assert _to_msg == msg

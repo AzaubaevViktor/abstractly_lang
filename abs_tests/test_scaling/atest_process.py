@@ -38,7 +38,7 @@ class ServiceProcess(Service):
 
 
 class TestServiceProcess(TestedService):
-    @skip
+    # @skip
     async def test_pid(self):
         result, pid = await ServiceProcess.get(DoCalc(value=3))
         assert pid != os.getpid(), pid
