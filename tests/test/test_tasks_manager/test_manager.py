@@ -71,7 +71,7 @@ async def test_stats(manager):
         assert isinstance(task_, asyncio.Task)
         assert info_ is None
 
-    while _count_waited_stats(manager) == 0:
+    while _count_waited_stats(manager) == 2:
         await asyncio.sleep(0.1)
 
     assert _count_waited_stats(manager) == 1
@@ -81,7 +81,7 @@ async def test_stats(manager):
     while _count_waited_stats(manager) == 1:
         await asyncio.sleep(0.1)
 
-    assert _count_waited_stats(manager) == 2
+    assert _count_waited_stats(manager) == 0
 
 
 async def test_pop_stats(manager):
@@ -187,7 +187,7 @@ async def test_exc(manager):
     tasks = [task_ for task_, _info_ in manager.stats]
 
     with pytest.raises(ZeroDivisionError):
-        manager.results()
+        await manager.results()
 
 
 async def test_exc_ret(manager):
@@ -195,7 +195,7 @@ async def test_exc_ret(manager):
 
     tasks = [task_ for task_, _info_ in manager.stats]
 
-    results = manager.results(return_exceptions=True)
+    results = await manager.results(return_exceptions=True)
 
     assert len(results) == 3
 
