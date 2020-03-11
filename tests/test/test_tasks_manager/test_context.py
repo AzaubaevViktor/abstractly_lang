@@ -52,5 +52,4 @@ async def test_context(capsys):
 
     for task in result:
         assert task.done()
-        with pytest.raises(CancelledError):
-            task.exception()
+        assert task.cancelled()

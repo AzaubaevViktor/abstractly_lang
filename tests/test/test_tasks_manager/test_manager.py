@@ -1,5 +1,4 @@
 import asyncio
-from asyncio import CancelledError
 from typing import Optional, List
 
 import pytest
@@ -174,8 +173,7 @@ async def test_cancel(manager):
 
     assert tasks[0].result() == 10
 
-    with pytest.raises(CancelledError):
-        tasks[1].exception()
+    tasks[1].cancelled()
 
 
 async def _calc(x):
