@@ -13,34 +13,37 @@ async def _ok(x, sleep=0):
     return x
 
 
-async def do_test(*chars):
+async def do_test(ev, *chars):
     tasks = []
-    with TasksManager() as manager:
+    async with TasksManager() as manager:
         try:
             for char in chars:
                 assert len(char) == 1
-                tasks.append(manager.apply(_ok(ord(char)), char * 10))
-
+                tasks.append(manager.apply(_ok(ord(char), ord(char)), char * 10))
+            ev.set()
             await manager.results()
         except CancelledError:
             print(manager.stats)
             for task_, info_ in manager.stats:
                 task_: asyncio.Task
-                assert not task_.done()
+                assert not task_.done() or task_.cancelled()
 
     return tasks
 
 
 async def test_context(capsys):
-    captured = capsys.readouterr()
-    task: asyncio.Task = asyncio.create_task(do_test("a", "b", "c"))
+    ev = asyncio.Event()
+    task: asyncio.Task = asyncio.create_task(do_test(ev, "a", "b", "c"))
+
+    await ev.wait()
+
+    await asyncio.sleep(1)
 
     task.cancel()
 
-    try:
-        await task
-    except Exception as e:
-        assert isinstance(e, CancelledError)
+    await task
+
+    captured = capsys.readouterr()
 
     for ch in ("a", "b", "c"):
         assert ch * 10 in captured.out
@@ -49,4 +52,5 @@ async def test_context(capsys):
 
     for task in result:
         assert task.done()
-        assert isinstance(task.exception(), CancelledError)
+        with pytest.raises(CancelledError):
+            task.exception()

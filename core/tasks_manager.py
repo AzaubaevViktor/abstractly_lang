@@ -85,6 +85,13 @@ class BaseTasksManager:
                 except Exception:
                     self.logger.exception("While cancel task")
 
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        print(exc_type, exc_val, exc_tb)
+        await self.cancel()
+
 
 class TasksManager(BaseTasksManager):
     pass

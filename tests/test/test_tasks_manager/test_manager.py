@@ -219,5 +219,3 @@ async def test_exc_ret(manager):
     assert len(results) == 2
 
     assert set(results) == {1 / 1, 1 / 2}
-
-
