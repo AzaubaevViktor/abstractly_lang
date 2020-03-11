@@ -1,9 +1,8 @@
 import asyncio
+from asyncio import CancelledError
 from typing import Optional, List
 
 import pytest
-
-from core.tasks_manager import TasksManager, WrappedCancelledError
 
 pytestmark = pytest.mark.asyncio
 
@@ -34,6 +33,8 @@ async def test_run_multiple(manager):
     result = await manager.results()
 
     assert set(result) == {100, 200, 300, 400}
+
+    assert len(await manager.results()) == 0
 
 
 async def test_pop(manager):
@@ -90,7 +91,7 @@ async def test_pop_stats(manager):
 
     while len(manager.stats):
         prev = len(manager.stats)
-        results.append(await manager.pop)
+        results.append(await manager.pop())
         assert prev - 1 == len(manager.stats)
 
     assert set(results) == set(range(5))
@@ -107,19 +108,42 @@ async def test_stats_info(manager):
     assert set(infos) == {"one", "two"}
 
 
+@pytest.mark.skip()
 async def test_clean(manager):
     ev = asyncio.Event()
     manager.run(_ok(10), _ok(20), _ok(30, ev))
 
     while len(manager.stats) > 1:
-        manager.clean()
+        await manager.clean()
+        await asyncio.sleep(0.1)
 
     ev.set()
 
     while len(manager.stats) > 0:
-        manager.clean()
+        await manager.clean()
+        await asyncio.sleep(0.1)
 
     assert not manager.stats
+
+
+async def test_clean_count(manager):
+    manager.run(_ok(10), _ok(20), _ok(30))
+
+    all_ready = False
+    while not all_ready:
+        all_ready = True
+        for task_, info_ in manager.stats:
+            if not task_.done():
+                all_ready = False
+                break
+
+        if not all_ready:
+            await asyncio.sleep(0.1)
+
+    assert 3 == await manager.clean()
+    assert 0 == len(manager.stats)
+    assert 0 == len(await manager.results())
+    assert 0 == await manager.clean()
 
 
 async def test_cancel(manager):
@@ -129,6 +153,7 @@ async def test_cancel(manager):
     while True:
         task_done = None
         for task_, info_ in manager.stats:
+            print(task_)
             if task_.done():
                 task_done = task_
                 break
@@ -136,6 +161,8 @@ async def test_cancel(manager):
         if task_done:
             assert task_done.done()
             break
+
+        await asyncio.sleep(0.1)
 
     tasks: List[asyncio.Task] = [task_ for task_, info_ in manager.stats]
 
@@ -145,7 +172,9 @@ async def test_cancel(manager):
         assert task_.done()
 
     assert tasks[0].result() == 10
-    assert isinstance(tasks[1].exception(), WrappedCancelledError)
+
+    with pytest.raises(CancelledError):
+        tasks[1].exception()
 
 
 async def _calc(x):

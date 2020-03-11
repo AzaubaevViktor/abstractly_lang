@@ -1,37 +1,79 @@
 import asyncio
-from typing import List, Any, Tuple
+from asyncio import CancelledError
+from typing import List, Any, Tuple, Dict, Sequence, ItemsView
 
 from log import Log
-
-
-class WrappedCancelledError(Exception):
-    pass
 
 
 class BaseTasksManager:
     def __init__(self, name=""):
         self.logger = Log(f"{self.__class__.__name__}:{name}")
-        self._tasks = []
-        self._submanagers = []
+        self._tasks: Dict[asyncio.Task, Any] = {}
 
-    async def results(self, return_exceptions=False) -> List[Any]:
-        raise NotImplementedError()
+    def run(self, *coros) -> Sequence[asyncio.Task]:
+        tasks = []
+        for coro_ in coros:
+            tasks.append(self.apply(coro_, None))
 
-    async def pop(self) -> Any:
-        raise NotImplementedError()
+        return tuple(tasks)
+
+    def apply(self, coro, info: Any) -> asyncio.Task:
+        task = asyncio.create_task(coro)
+        self._tasks[task] = info
+        return task
 
     @property
-    def stats(self) -> List[asyncio.Task, Any]:
-        raise NotImplementedError()
+    def stats(self) -> ItemsView[asyncio.Task, Any]:
+        return self._tasks.items()
 
-    def apply(self, coro, info) -> asyncio.Task:
-        raise NotImplementedError()
+    async def pop(self, sleep_=0.1) -> Any:
+        task_done = None
+        while task_done is None:
+            for task in self._tasks:
+                if task.done():
+                    task_done = task
+                    break
 
-    def clean(self):
-        raise NotImplementedError()
+            if task_done is None:
+                await asyncio.sleep(sleep_)
+
+        del self._tasks[task_done]
+
+        return await task_done
+
+    async def results(self, return_exceptions=False) -> List[Any]:
+        results = []
+        for task in self._tasks:
+            results.append(await task)
+
+        self._tasks.clear()
+
+        return results
+
+    async def clean(self) -> int:
+        to_remove = []
+        for task in self._tasks:
+            if task.done():
+                to_remove.append(task)
+
+            await task
+
+        for task in to_remove:
+            del self._tasks[task]
+
+        return len(to_remove)
 
     async def cancel(self):
-        raise NotImplementedError()
+        if self._tasks:
+            self.logger.debug("☠️ Cancel tasks", count=len(self._tasks))
+            for task in self._tasks.keys():
+                task.cancel()
+                try:
+                    await task
+                except CancelledError:
+                    pass
+                except Exception:
+                    self.logger.exception("While cancel task")
 
 
 class TasksManager(BaseTasksManager):
