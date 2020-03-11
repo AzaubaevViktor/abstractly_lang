@@ -1,5 +1,7 @@
 import asyncio
 
+import pytest
+
 from service import Service, handler
 from service.message import Shutdown, Message
 
@@ -32,6 +34,7 @@ class TestS(Service):
         return True
 
 
+@pytest.mark.skip
 def test_comm_server(runner):
     result = runner(TestS, _DoTest())
     assert result
