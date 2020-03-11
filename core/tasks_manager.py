@@ -44,7 +44,13 @@ class BaseTasksManager:
     async def results(self, return_exceptions=False) -> List[Any]:
         results = []
         for task in self._tasks:
-            results.append(await task)
+            try:
+                results.append(await task)
+            except Exception as e:
+                if return_exceptions:
+                    results.append(e)
+                else:
+                    raise
 
         self._tasks.clear()
 
@@ -52,14 +58,18 @@ class BaseTasksManager:
 
     async def clean(self) -> int:
         to_remove = []
-        for task in self._tasks:
-            if task.done():
-                to_remove.append(task)
 
-            await task
+        try:
+            for task in self._tasks:
+                if task.done():
+                    to_remove.append(task)
 
-        for task in to_remove:
-            del self._tasks[task]
+                    await task
+        except Exception:
+            raise
+        finally:
+            for task in to_remove:
+                del self._tasks[task]
 
         return len(to_remove)
 

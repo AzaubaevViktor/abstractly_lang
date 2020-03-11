@@ -108,13 +108,14 @@ async def test_stats_info(manager):
     assert set(infos) == {"one", "two"}
 
 
-@pytest.mark.skip()
 async def test_clean(manager):
     ev = asyncio.Event()
     manager.run(_ok(10), _ok(20), _ok(30, ev))
 
     while len(manager.stats) > 1:
+        print(manager.stats)
         await manager.clean()
+        print(manager.stats)
         await asyncio.sleep(0.1)
 
     ev.set()
@@ -188,6 +189,17 @@ async def test_exc(manager):
 
     with pytest.raises(ZeroDivisionError):
         await manager.results()
+
+
+async def test_clean_exc(manager):
+    manager.run(_calc(0), _calc(0), _calc(0), _calc(0))
+
+    while len(manager.stats):
+        with pytest.raises((ZeroDivisionError, AssertionError)):
+            assert 0 != await manager.clean()
+        await asyncio.sleep(0.1)
+
+    assert len(manager.stats) == 0
 
 
 async def test_exc_ret(manager):
